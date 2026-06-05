@@ -4,9 +4,10 @@ import { useServices } from "~/composables/useServices";
 import { useComposites } from "~/composables/useComposites";
 import { useStatusStore } from "~/composables/useStatusStore";
 import { useOrdering } from "~/composables/useOrdering";
+import { useDisplayMode } from "~/composables/useDisplayMode";
 
-const levelConfigOpen = ref(false);
 
+definePageMeta({ middleware: 'auth' })
 useHead({ title: "Services — Status Concentrateur" });
 
 const { services, addService, updateService, removeService, toggleService } =
@@ -101,6 +102,9 @@ const ADAPTER_LABELS: Record<string, string> = {
   auto: "Auto",
 };
 
+const { pageStyle } = useDisplayMode()
+const containerClass = computed(() => pageStyle.value === 'large' ? 'w-full px-4 sm:px-6' : 'max-w-6xl mx-auto px-4 sm:px-6')
+
 const totalCount = computed(
   () => services.value.length + composites.value.length,
 );
@@ -163,11 +167,11 @@ function onDragEnd() {
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen bg-gray-50">
     <!-- Nav -->
     <nav class="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div
-        class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between"
+        :class="[containerClass, 'h-14 flex items-center justify-between']"
       >
         <div class="flex items-center gap-3">
           <NuxtLink
@@ -196,14 +200,11 @@ function onDragEnd() {
           >
         </div>
         <div class="flex items-center gap-2">
-          <!-- Personnaliser les niveaux -->
-          <button
-            class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            @click="levelConfigOpen = true"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
-            Niveaux
-          </button>
+          <!-- Lien vers les paramètres -->
+          <NuxtLink to="/settings" class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            Paramètres
+          </NuxtLink>
           <button
             class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
             @click="openAdd"
@@ -226,9 +227,8 @@ function onDragEnd() {
         </div>
       </div>
     </nav>
-    <LevelConfigModal :open="levelConfigOpen" @close="levelConfigOpen = false" />
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-3">
+    <main :class="[containerClass, 'py-8 space-y-3']">
       <!-- Empty state -->
       <div v-if="totalCount === 0" class="text-center py-20">
         <div

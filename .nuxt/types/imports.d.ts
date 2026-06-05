@@ -96,6 +96,7 @@ declare global {
   const tryUseNuxtApp: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/nuxt').tryUseNuxtApp
   const unref: typeof import('../../node_modules/vue').unref
   const updateAppConfig: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/config').updateAppConfig
+  const useAccessControl: typeof import('../../composables/useAccessControl').useAccessControl
   const useAppConfig: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/config').useAppConfig
   const useAsyncData: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/asyncData').useAsyncData
   const useAttrs: typeof import('../../node_modules/vue').useAttrs
@@ -187,6 +188,7 @@ declare global {
   const useState: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/state').useState
   const useStatusStore: typeof import('../../composables/useStatusStore').useStatusStore
   const useTemplateRef: typeof import('../../node_modules/vue').useTemplateRef
+  const useTheme: typeof import('../../composables/useTheme').useTheme
   const useTransitionState: typeof import('../../node_modules/vue').useTransitionState
   const watch: typeof import('../../node_modules/vue').watch
   const watchEffect: typeof import('../../node_modules/vue').watchEffect
@@ -204,6 +206,15 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from '../../node_modules/vue'
   import('../../node_modules/vue')
+  // @ts-ignore
+  export type { AccessMode } from '../../composables/useAccessControl'
+  import('../../composables/useAccessControl')
+  // @ts-ignore
+  export type { PageStyle } from '../../composables/useDisplayMode'
+  import('../../composables/useDisplayMode')
+  // @ts-ignore
+  export type { Theme } from '../../composables/useTheme'
+  import('../../composables/useTheme')
 }
 // for vue template auto import
 import { UnwrapRef } from 'vue'
@@ -304,6 +315,7 @@ declare module 'vue' {
     readonly tryUseNuxtApp: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/nuxt')['tryUseNuxtApp']>
     readonly unref: UnwrapRef<typeof import('../../node_modules/vue')['unref']>
     readonly updateAppConfig: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/config')['updateAppConfig']>
+    readonly useAccessControl: UnwrapRef<typeof import('../../composables/useAccessControl')['useAccessControl']>
     readonly useAppConfig: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/config')['useAppConfig']>
     readonly useAsyncData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']>
     readonly useAttrs: UnwrapRef<typeof import('../../node_modules/vue')['useAttrs']>
@@ -395,6 +407,7 @@ declare module 'vue' {
     readonly useState: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/state')['useState']>
     readonly useStatusStore: UnwrapRef<typeof import('../../composables/useStatusStore')['useStatusStore']>
     readonly useTemplateRef: UnwrapRef<typeof import('../../node_modules/vue')['useTemplateRef']>
+    readonly useTheme: UnwrapRef<typeof import('../../composables/useTheme')['useTheme']>
     readonly useTransitionState: UnwrapRef<typeof import('../../node_modules/vue')['useTransitionState']>
     readonly watch: UnwrapRef<typeof import('../../node_modules/vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('../../node_modules/vue')['watchEffect']>

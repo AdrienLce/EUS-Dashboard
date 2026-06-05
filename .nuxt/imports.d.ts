@@ -30,8 +30,9 @@ export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callba
 export { setInterval } from '#app/compat/interval';
 export { definePageMeta } from '../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/pages/runtime/composables';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
+export { useAccessControl, AccessMode } from '../composables/useAccessControl';
 export { useComposites } from '../composables/useComposites';
-export { useDisplayMode } from '../composables/useDisplayMode';
+export { useDisplayMode, PageStyle } from '../composables/useDisplayMode';
 export { levelStyles, useLevelConfig } from '../composables/useLevelConfig';
 export { useOrdering } from '../composables/useOrdering';
 export { usePolling } from '../composables/usePolling';
@@ -39,5 +40,6 @@ export { useScheduler } from '../composables/useScheduler';
 export { useServerConfig } from '../composables/useServerConfig';
 export { useServices } from '../composables/useServices';
 export { useStatusStore } from '../composables/useStatusStore';
+export { useTheme, Theme } from '../composables/useTheme';
 export { buildSummary } from '../utils/summarize';
 export { useNuxtDevTools } from '../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';

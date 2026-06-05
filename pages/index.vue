@@ -14,7 +14,18 @@ import { usePolling } from "~/composables/usePolling";
 
 useHead({ title: "Dashboard — Status Concentrateur" });
 
-const { compact, toggle: toggleCompact } = useDisplayMode();
+const { compact, toggle: toggleCompact, pageStyle } = useDisplayMode();
+const containerClass = computed(() => pageStyle.value === 'large' ? 'w-full px-4 sm:px-6' : 'max-w-6xl mx-auto px-4 sm:px-6')
+
+const gridClass = computed(() => {
+  const isLarge = pageStyle.value === 'large'
+  if (compact.value) return isLarge
+    ? 'grid gap-1 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8'
+    : 'grid gap-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+  return isLarge
+    ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5'
+    : 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+})
 const { enabledServices } = useServices();
 const { enabledComposites } = useComposites();
 const { currentStatus, getHistory } = useStatusStore();
@@ -114,18 +125,12 @@ const groupedServices = computed(() => {
 const hasGroups = computed(() => groupedServices.value.named.length > 0);
 
 const globalLevel = computed(() => {
-  const order = [
-    "operational",
-    "inconnu",
-    "maintenance",
-    "leger",
-    "mineur",
-    "majeur",
-  ] as const;
+  // inconnu exclu — proxy bloqué ou auth manquante, pas un incident réel
+  const order = ["operational", "information", "maintenance", "leger", "mineur", "majeur"] as const;
   let worst = 0;
   for (const svc of enabledServices.value) {
     const snap = currentStatus.value[svc.id];
-    if (snap) {
+    if (snap && snap.level !== 'inconnu') {
       const idx = order.indexOf(snap.level as (typeof order)[number]);
       if (idx > worst) worst = idx;
     }
@@ -134,7 +139,7 @@ const globalLevel = computed(() => {
     for (const ch of c.children) {
       if (!ch.enabled) continue;
       const snap = currentStatus.value[ch.id];
-      if (snap) {
+      if (snap && snap.level !== 'inconnu') {
         const idx = order.indexOf(snap.level as (typeof order)[number]);
         if (idx > worst) worst = idx;
       }
@@ -144,19 +149,21 @@ const globalLevel = computed(() => {
 });
 
 const LEVEL_LABELS_GLOBAL: Record<string, string> = {
-  operational: "Tous les services opérationnels",
-  leger: "Légère perturbation détectée",
-  mineur: "Incident mineur en cours",
-  majeur: "Incident majeur en cours",
-  maintenance: "Maintenance en cours",
+  operational:  "Tous les services opérationnels",
+  information:  "Message informatif",
+  leger:        "Légère perturbation détectée",
+  mineur:       "Incident mineur en cours",
+  majeur:       "Incident majeur en cours",
+  maintenance:  "Maintenance en cours",
 };
 
 const GLOBAL_COLORS: Record<string, string> = {
-  operational: "bg-green-500",
-  leger: "bg-yellow-500",
-  mineur: "bg-orange-500",
-  majeur: "bg-red-500",
-  maintenance: "bg-blue-500",
+  operational:  "bg-green-500",
+  information:  "bg-violet-500",
+  leger:        "bg-yellow-500",
+  mineur:       "bg-orange-500",
+  majeur:       "bg-red-500",
+  maintenance:  "bg-blue-500",
 };
 
 function openHistory(service: ServiceConfig) {
@@ -206,11 +213,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen bg-gray-50">
     <!-- Nav -->
     <nav class="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div
-        class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between"
+        :class="[containerClass, 'h-14 flex items-center justify-between']"
       >
         <div class="flex items-center gap-3">
           <div
@@ -236,13 +243,8 @@ onUnmounted(() => {
         <div class="flex items-center gap-2">
           <!-- Toggle compact -->
           <button
-            class="p-1.5 rounded-lg transition-colors"
-            :class="
-              compact
-                ? 'bg-gray-100 text-gray-700'
-                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-            "
-            :title="compact ? 'Vue normale' : 'Vue compacte'"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg transition-colors"
+            :class="compact ? 'bg-gray-100 text-gray-700 border-gray-200' : 'text-gray-500 border-gray-200 hover:bg-gray-50'"
             @click="toggleCompact"
           >
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -333,38 +335,22 @@ onUnmounted(() => {
                 />
               </template>
             </svg>
+            {{ compact ? 'Normal' : 'Compact' }}
           </button>
 
-          <NuxtLink
-            to="/services"
-            class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            Gérer les services
+          <NuxtLink to="/settings" class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            Paramètres
+          </NuxtLink>
+          <NuxtLink to="/services" class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Gérer
           </NuxtLink>
         </div>
       </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <main :class="[containerClass, 'py-8']">
       <!-- Global status banner -->
       <div
         class="rounded-2xl p-5 mb-8 flex items-center gap-4 text-white"
@@ -465,11 +451,7 @@ onUnmounted(() => {
               >
             </h2>
             <div
-              :class="
-                compact
-                  ? 'grid gap-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-              "
+              :class="gridClass"
             >
               <template v-for="entry in items" :key="entry.item.id">
                 <ServiceCard
@@ -517,11 +499,7 @@ onUnmounted(() => {
               Sans section
             </h2>
             <div
-              :class="
-                compact
-                  ? 'grid gap-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-              "
+              :class="gridClass"
             >
               <template
                 v-for="entry in groupedServices.ungrouped"

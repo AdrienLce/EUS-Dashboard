@@ -6,13 +6,19 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      watch: {
+        // Exclure le dossier data/ du watcher Vite — sinon chaque écriture
+        // de config (theme, services...) déclenche un HMR reload en dev
+        ignored: ['**/data/**'],
+      },
+    },
   },
 
   css: ['~/assets/css/main.css'],
 
   nitro: {
     storage: {
-      // Stockage fichier — partagé entre tous les utilisateurs du déploiement
       config: {
         driver: 'fs',
         base: './data',

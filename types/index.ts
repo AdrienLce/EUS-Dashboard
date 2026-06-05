@@ -1,3 +1,27 @@
+/**
+ * @module types
+ *
+ * Définitions TypeScript centrales du tableau de bord de statut.
+ *
+ * Ce module exporte :
+ * - Les types de niveaux de statut (StatusLevel) et leur ordre de sévérité
+ * - Les interfaces de configuration (ServiceConfig, CompositeServiceConfig, etc.)
+ * - Les interfaces de résultat (AdapterResult, StatusSnapshot, Incident, MessageEntry)
+ * - Les constantes de couleurs et libellés par niveau
+ * - La fonction utilitaire worstLevel
+ */
+
+/**
+ * Les 7 niveaux de statut possibles, du plus bénin au plus grave.
+ *
+ * - `operational`  : tout fonctionne normalement
+ * - `information`  : message informatif sans impact sur le service
+ * - `leger`        : dégradation partielle non critique
+ * - `mineur`       : impact partiel sur le service
+ * - `majeur`       : interruption ou impact fort
+ * - `maintenance`  : maintenance planifiée ou en cours
+ * - `inconnu`      : statut indéterminé, souvent dû à une auth manquante
+ */
 export type StatusLevel =
   | "operational"
   | "leger"
@@ -7,15 +31,30 @@ export type StatusLevel =
   | "information"
   | "inconnu";
 
+/**
+ * Configuration d'affichage d'un niveau de statut.
+ *
+ * Chaque niveau dispose d'un libellé personnalisable (`label`) et d'un libellé
+ * de référence immuable (`reference`) qui rappelle la sémantique exacte du niveau.
+ * La distinction est importante : l'utilisateur peut renommer "Incident majeur"
+ * en "Panne totale" sans perdre la sémantique encodée dans `reference`.
+ */
 export interface LevelConfig {
+  /** Identifiant technique immuable du niveau */
   id: StatusLevel
-  /** Libellé affiché — personnalisable */
+  /** Libellé affiché dans l'UI — personnalisable par l'utilisateur */
   label: string
   /** Libellé de référence — non modifiable, rappelle la sémantique du niveau */
   reference: string
-  color: string // hex, ex: "#22c55e"
+  /** Couleur hexadécimale, ex: "#22c55e" — utilisée pour générer les styles CSS */
+  color: string
 }
 
+/**
+ * Configurations par défaut des 7 niveaux de statut.
+ * Utilisées comme valeur initiale et comme fallback si un niveau est absent
+ * de la configuration personnalisée de l'utilisateur.
+ */
 export const DEFAULT_LEVEL_CONFIGS: LevelConfig[] = [
   { id: 'operational',  label: 'Opérationnel',       reference: 'Tout fonctionne normalement',         color: '#22c55e' },
   { id: 'information',  label: 'Information',         reference: 'Message informatif sans impact',      color: '#8b5cf6' },
@@ -26,69 +65,202 @@ export const DEFAULT_LEVEL_CONFIGS: LevelConfig[] = [
   { id: 'inconnu',      label: 'Action requise',      reference: 'Statut indéterminé / auth manquante', color: '#9ca3af' },
 ]
 
+/** Méthode HTTP autorisée pour les requêtes de polling */
 export type HttpMethod = "GET" | "POST";
 
+/**
+ * Mapping personnalisé pour l'adapter `custom`.
+ *
+ * Permet de pointer vers n'importe quelle valeur dans un JSON arbitraire
+ * via une notation pointée et de la convertir en StatusLevel.
+ *
+ * @example
+ * // JSON cible: { "health": { "status": "degraded" } }
+ * const mapping: CustomMapping = {
+ *   statusPath: 'health.status',
+ *   levelMap: { 'degraded': 'mineur', 'healthy': 'operational' }
+ * }
+ *
+ * @example
+ * // JSON cible avec tableau: { "services": [{ "name": "API", "state": "outage" }] }
+ * const mapping: CustomMapping = {
+ *   statusPath: 'services.*.state',  // wildcard * = itère le tableau
+ *   messagePath: 'services.*.name',
+ *   levelMap: { 'outage': 'majeur', 'operational': 'operational' }
+ * }
+ */
 export interface CustomMapping {
+  /**
+   * Chemin vers la valeur de statut dans le JSON, en notation pointée.
+   * Supporte les wildcards `*` pour itérer sur des tableaux.
+   * Exemples : `"status"`, `"data.health"`, `"components.*.status"`
+   */
   statusPath: string;
+  /**
+   * Chemin vers le texte descriptif du statut (optionnel).
+   * Si absent, `statusPath` est utilisé comme message.
+   * Avec wildcard, toutes les valeurs sont jointes par `\n`.
+   */
   messagePath?: string;
+  /**
+   * Table de correspondance valeur → niveau de statut.
+   * Supporte 4 syntaxes de pattern (voir matchLevelMap dans custom.ts) :
+   * - Exact    : `"none"` → opérationnel
+   * - Wildcard : `"healthy*"` → toute valeur commençant par "healthy"
+   * - Contains : `"~advisory"` → toute valeur contenant "advisory"
+   * - Regex    : `"/^(none|healthy)$/i"` → expression régulière avec flags
+   */
   levelMap: Record<string, StatusLevel>;
 }
 
+/** Source de données pour la pré-détection communautaire d'incidents */
 export type PreDetectionSource = 'reddit' | 'hn' | 'downdetector'
 
+/**
+ * Configuration de la pré-détection communautaire.
+ *
+ * La pré-détection interroge des sources tierces (Reddit, HackerNews, DownDetector)
+ * pour détecter les incidents AVANT qu'ils remontent sur la page de statut officielle.
+ * Elle ne se déclenche que si le statut actuel est `operational`.
+ */
 export interface PreDetectionConfig {
+  /** Active ou désactive la pré-détection pour ce service */
   enabled: boolean
+  /** Source à interroger */
   source: PreDetectionSource
-  /** Reddit: nom du subreddit (ex: "github") · HN: terme de recherche · DD: URL complète */
+  /**
+   * Cible de la recherche, selon la source :
+   * - Reddit      : nom du subreddit (ex: `"github"`)
+   * - HN          : terme de recherche (ex: `"GitHub"`)
+   * - DownDetector: URL complète (ex: `"https://downdetector.fr/statut/github/"`)
+   */
   target: string
-  /** Mots-clés supplémentaires (défaut: "down outage not working") */
+  /**
+   * Mots-clés supplémentaires pour filtrer les posts (Reddit/HN).
+   * Défaut : `"down outage unavailable incident"`
+   */
   keywords?: string
-  /** Reddit/HN: nb de posts · DownDetector: nb signalements (défaut: 100) */
+  /**
+   * Seuil de déclenchement :
+   * - Reddit/HN   : nombre minimum de posts récents (défaut: 3)
+   * - DownDetector: nombre de signalements (défaut: 100)
+   */
   threshold: number
 }
 
-/** @deprecated Alias pour rétro-compatibilité */
+/** @deprecated Alias pour rétro-compatibilité — utiliser PreDetectionConfig */
 export type DownDetectorConfig = PreDetectionConfig
 
+/**
+ * Configuration complète d'un service à surveiller.
+ *
+ * Un service est une URL externe interrogée à intervalle régulier.
+ * La réponse est transformée par un adapter en StatusSnapshot.
+ */
 export interface ServiceConfig {
+  /** UUID généré à la création */
   id: string;
+  /** Nom affiché dans le tableau de bord */
   name: string;
+  /** URL de l'API de statut à interroger */
   url: string;
+  /** Méthode HTTP (GET dans la grande majorité des cas) */
   method: HttpMethod;
+  /** En-têtes HTTP supplémentaires (ex: Authorization, API keys) */
   headers: Record<string, string>;
+  /** Corps de la requête (POST uniquement) */
   body?: string;
+  /**
+   * Clé de l'adapter à utiliser pour parser la réponse.
+   * Valeurs possibles : "github", "atlassian", "aws", "azuredevops", "rss", "custom", "auto"
+   */
   adapter: string;
+  /** Mapping personnalisé — requis si adapter === "custom" */
   customMapping?: CustomMapping;
+  /** Configuration de pré-détection communautaire (optionnelle) */
   preDetection?: PreDetectionConfig;
+  /** Nom du groupe d'affichage (optionnel, pour regrouper visuellement) */
   group?: string;
-  pollInterval: number; // secondes, max 120
-  enabled: boolean;
-  createdAt: string;
-}
-
-export interface SubServiceConfig {
-  id: string;
-  name: string;
-  url: string;
-  method: HttpMethod;
-  headers: Record<string, string>;
-  body?: string;
-  adapter: string;
-  customMapping?: CustomMapping;
-  enabled: boolean;
-}
-
-export interface CompositeServiceConfig {
-  id: string;
-  type: "composite";
-  name: string;
-  group?: string;
-  enabled: boolean;
-  createdAt: string;
+  /** Intervalle de polling en secondes (1–20 min) */
   pollInterval: number;
-  children: SubServiceConfig[];
+  /** Active ou désactive ce service */
+  enabled: boolean;
+  /** Date de création ISO 8601 */
+  createdAt: string;
 }
 
+/**
+ * Configuration d'un sous-service appartenant à un service composite.
+ *
+ * Similaire à ServiceConfig mais sans `group`, `pollInterval`, `createdAt`
+ * (hérités du composite parent) ni `preDetection` (non supporté au niveau enfant).
+ * L'adapter et le mapping peuvent hériter des valeurs `defaultAdapter`/`defaultMapping`
+ * du composite parent si non spécifiés ici.
+ */
+export interface SubServiceConfig {
+  /** UUID généré à la création */
+  id: string;
+  /** Nom affiché pour ce sous-service */
+  name: string;
+  /** URL de l'API de statut */
+  url: string;
+  /** Méthode HTTP */
+  method: HttpMethod;
+  /** En-têtes HTTP supplémentaires */
+  headers: Record<string, string>;
+  /** Corps de la requête (POST uniquement) */
+  body?: string;
+  /**
+   * Adapter à utiliser. Si vide ou "auto" ET que le composite a un `defaultAdapter`,
+   * c'est le `defaultAdapter` du composite qui est utilisé.
+   */
+  adapter: string;
+  /**
+   * Mapping personnalisé spécifique à cet enfant.
+   * Si absent, hérite du `defaultMapping` du composite parent.
+   */
+  customMapping?: CustomMapping;
+  /** Active ou désactive ce sous-service */
+  enabled: boolean;
+}
+
+/**
+ * Configuration d'un service composite (groupe de sous-services).
+ *
+ * Un composite agrège plusieurs URL sous un même service logique.
+ * Chaque enfant est polléé indépendamment mais au même intervalle.
+ * Le niveau global du composite est le pire niveau parmi ses enfants actifs.
+ */
+export interface CompositeServiceConfig {
+  /** UUID généré à la création */
+  id: string;
+  /** Discriminant de type — toujours "composite" */
+  type: "composite";
+  /** Nom affiché dans le tableau de bord */
+  name: string;
+  /** Nom du groupe d'affichage (optionnel) */
+  group?: string;
+  /** Active ou désactive ce composite et tous ses enfants */
+  enabled: boolean;
+  /** Date de création ISO 8601 */
+  createdAt: string;
+  /** Intervalle de polling en secondes partagé par tous les enfants (1–20 min) */
+  pollInterval: number;
+  /** Liste des sous-services à surveiller */
+  children: SubServiceConfig[];
+  /** Adapter appliqué à tous les enfants qui n'ont pas de config d'adapter propre */
+  defaultAdapter?: string;
+  /** Mapping appliqué à tous les enfants qui n'ont pas de customMapping propre */
+  defaultMapping?: CustomMapping;
+}
+
+/**
+ * Ordre de sévérité des niveaux, du moins grave au plus grave.
+ * Utilisé par `worstLevel` pour comparer deux niveaux.
+ *
+ * Note : `inconnu` est placé juste après `operational` car il signifie
+ * "on ne sait pas" plutôt que "c'est cassé".
+ */
 export const LEVEL_ORDER: StatusLevel[] = [
   "operational",
   "inconnu",
@@ -99,48 +271,111 @@ export const LEVEL_ORDER: StatusLevel[] = [
   "majeur",
 ];
 
+/**
+ * Retourne le niveau le plus grave parmi une liste de niveaux.
+ * Utilisé pour calculer le niveau global d'un service composite
+ * ou d'un adapter avec wildcard sur plusieurs composants.
+ *
+ * @param levels - Tableau de niveaux à comparer
+ * @returns Le niveau ayant l'index le plus élevé dans LEVEL_ORDER
+ *
+ * @example
+ * worstLevel(['operational', 'mineur', 'leger']) // → 'mineur'
+ * worstLevel(['operational', 'operational'])      // → 'operational'
+ * worstLevel([])                                  // → 'operational' (valeur par défaut)
+ */
 export function worstLevel(levels: StatusLevel[]): StatusLevel {
   return levels.reduce<StatusLevel>((worst, l) => {
     return LEVEL_ORDER.indexOf(l) > LEVEL_ORDER.indexOf(worst) ? l : worst;
   }, "operational");
 }
 
+/**
+ * Un incident en cours ou résolu sur un service.
+ * Les incidents sont affichés dans le détail d'un service.
+ */
 export interface Incident {
+  /** Identifiant unique de l'incident (souvent fourni par la source) */
   id: string;
+  /** Titre court de l'incident */
   title: string;
+  /** Niveau de sévérité de cet incident */
   level: StatusLevel;
+  /** Date de début ISO 8601 */
   startedAt: string;
+  /** Date de dernière mise à jour ISO 8601 */
   updatedAt: string;
+  /** Description ou dernière mise à jour textuelle (optionnel) */
   message?: string;
+  /** Lien vers la page de détail de l'incident (optionnel) */
   url?: string;
 }
 
+/**
+ * Entrée de message structurée, utilisée pour les flux RSS/Atom
+ * et les adapters custom avec wildcard sur messagePath.
+ *
+ * Contrairement aux Incidents, les MessageEntry sont purement informatives
+ * et n'ont pas de niveau de sévérité propre.
+ */
 export interface MessageEntry {
+  /** Titre de l'entrée */
   title: string;
+  /** Résumé ou description (optionnel) */
   summary?: string;
+  /** Date de publication ou de mise à jour (optionnel) */
   date?: string;
+  /** Lien vers la page de détail (optionnel) */
   url?: string;
 }
 
+/**
+ * Snapshot de statut d'un service à un instant donné.
+ * C'est la structure centrale du tableau de bord — chaque appel de polling
+ * produit un StatusSnapshot qui est stocké dans useStatusStore.
+ */
 export interface StatusSnapshot {
+  /** ID du service (correspond à ServiceConfig.id ou SubServiceConfig.id) */
   serviceId: string;
+  /** Horodatage ISO 8601 de la récupération */
   timestamp: string;
+  /** Niveau de statut calculé par l'adapter */
   level: StatusLevel;
+  /** Message principal décrivant le statut */
   message: string;
+  /** Liste des incidents actifs (peut être vide) */
   incidents: Incident[];
+  /** Entrées de messages structurés (RSS, custom wildcard messagePath) */
   entries?: MessageEntry[];
-  /** true si DownDetector a détecté des signalements élevés ALORS QUE le statut réel est opérationnel */
+  /**
+   * `true` si la pré-détection a détecté des signalements élevés
+   * ALORS QUE le statut officiel est `operational`.
+   * Déclenche un bandeau d'avertissement dans l'UI.
+   */
   preDetected?: boolean
+  /** Nombre de signalements/posts détectés par la pré-détection */
   preDetectedCount?: number
 }
 
+/**
+ * Résultat retourné par tout adapter après parsing de la réponse brute.
+ * C'est le contrat que chaque adapter doit respecter.
+ */
 export interface AdapterResult {
+  /** Niveau de statut global calculé */
   level: StatusLevel;
+  /** Message principal (description du statut global) */
   message: string;
+  /** Entrées structurées optionnelles (RSS, custom wildcard) */
   entries?: MessageEntry[];
+  /** Liste des incidents actifs */
   incidents: Incident[];
 }
 
+/**
+ * Libellés textuels par niveau — utilisés comme fallback si useLevelConfig
+ * n'a pas encore chargé la configuration personnalisée.
+ */
 export const LEVEL_LABELS: Record<StatusLevel, string> = {
   operational: "Opérationnel",
   information: "Information",
@@ -151,6 +386,15 @@ export const LEVEL_LABELS: Record<StatusLevel, string> = {
   inconnu: "Action requise",
 };
 
+/**
+ * Classes CSS Tailwind par niveau pour les différents contextes d'affichage.
+ * Chaque niveau dispose de 5 variantes :
+ * - `bg`     : fond du badge/carte
+ * - `text`   : couleur du texte
+ * - `border` : couleur de la bordure
+ * - `dot`    : couleur du point indicateur
+ * - `banner` : fond coloré plein pour les bandeaux
+ */
 export const LEVEL_COLORS: Record<
   StatusLevel,
   { bg: string; text: string; border: string; dot: string; banner: string }

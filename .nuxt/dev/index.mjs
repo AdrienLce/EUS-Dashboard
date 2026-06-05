@@ -7,7 +7,7 @@ import { parentPort, threadId } from 'node:worker_threads';
 import { escapeHtml } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@vue+shared@3.5.35/node_modules/@vue/shared/dist/shared.cjs.js';
 import viteNodeEntry_mjs from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watche_0d7218ce8b2c50fae6a539e2bf8da1cb/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
 import { viteNodeFetch } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watche_0d7218ce8b2c50fae6a539e2bf8da1cb/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
-import { defineEventHandler as defineEventHandler$1, readBody as readBody$1, createError as createError$1 } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/h3/dist/index.mjs';
+import { defineEventHandler as defineEventHandler$1, readBody as readBody$1, createError as createError$1, setCookie, getQuery as getQuery$2, deleteCookie, getCookie } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/h3/dist/index.mjs';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/ufo@1.6.4/node_modules/ufo/dist/index.mjs';
 import { renderToString } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/vue@3.5.35/node_modules/vue/server-renderer/index.mjs';
@@ -2212,16 +2212,16 @@ _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"1c4f5-EXegc7UiFXOY6Y9XQEdpMsVEexg\"",
-    "mtime": "2026-06-05T01:21:00.642Z",
-    "size": 115957,
+    "etag": "\"1d3bc-mPPyMbnNi1sy7Y8iMVk04qF4TyA\"",
+    "mtime": "2026-06-05T14:13:36.629Z",
+    "size": 119740,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"6decb-U6ZN5gzlNmbJ+cC1OFqZ2xi7nrE\"",
-    "mtime": "2026-06-05T01:21:00.642Z",
-    "size": 450251,
+    "etag": "\"707cc-mPkZvdzEbhwVUpbiCsZgDLjxeRw\"",
+    "mtime": "2026-06-05T14:13:36.629Z",
+    "size": 460748,
     "path": "index.mjs.map"
   }
 };
@@ -2758,6 +2758,10 @@ async function getIslandContext(event) {
 const _lazy_faDKQA = () => Promise.resolve().then(function () { return config_get$1; });
 const _lazy_49KF4l = () => Promise.resolve().then(function () { return config_post$1; });
 const _lazy_KahOJt = () => Promise.resolve().then(function () { return proxy_post$1; });
+const _lazy_CKfsCj = () => Promise.resolve().then(function () { return callback_post$1; });
+const _lazy_UONEKt = () => Promise.resolve().then(function () { return discover_get$1; });
+const _lazy_S1CEPj = () => Promise.resolve().then(function () { return logout_post$1; });
+const _lazy_UoC2MH = () => Promise.resolve().then(function () { return session_get$1; });
 const _lazy_VFdRoB = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
@@ -2765,6 +2769,10 @@ const handlers = [
   { route: '/api/config', handler: _lazy_faDKQA, lazy: true, middleware: false, method: "get" },
   { route: '/api/config', handler: _lazy_49KF4l, lazy: true, middleware: false, method: "post" },
   { route: '/api/proxy', handler: _lazy_KahOJt, lazy: true, middleware: false, method: "post" },
+  { route: '/api/sso/callback', handler: _lazy_CKfsCj, lazy: true, middleware: false, method: "post" },
+  { route: '/api/sso/discover', handler: _lazy_UONEKt, lazy: true, middleware: false, method: "get" },
+  { route: '/api/sso/logout', handler: _lazy_S1CEPj, lazy: true, middleware: false, method: "post" },
+  { route: '/api/sso/session', handler: _lazy_UoC2MH, lazy: true, middleware: false, method: "get" },
   { route: '/__nuxt_error', handler: _lazy_VFdRoB, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_VFdRoB, lazy: true, middleware: false, method: undefined }
@@ -3120,13 +3128,16 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const config_get = defineEventHandler$1(async () => {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f, _g;
   const storage = useStorage("config");
   const services = (_a = await storage.getItem("services")) != null ? _a : [];
   const composites = (_b = await storage.getItem("composites")) != null ? _b : [];
   const order = (_c = await storage.getItem("order")) != null ? _c : [];
   const levels = (_d = await storage.getItem("levels")) != null ? _d : [];
-  return { services, composites, order, levels };
+  const theme = (_e = await storage.getItem("theme")) != null ? _e : "light";
+  const pageStyle = (_f = await storage.getItem("pageStyle")) != null ? _f : "box";
+  const accessControl = (_g = await storage.getItem("accessControl")) != null ? _g : null;
+  return { services, composites, order, levels, theme, pageStyle, accessControl };
 });
 
 const config_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3141,6 +3152,9 @@ const config_post = defineEventHandler$1(async (event) => {
   if (body.composites !== void 0) await storage.setItem("composites", body.composites);
   if (body.order !== void 0) await storage.setItem("order", body.order);
   if (body.levels !== void 0) await storage.setItem("levels", body.levels);
+  if (body.theme !== void 0) await storage.setItem("theme", body.theme);
+  if (body.pageStyle !== void 0) await storage.setItem("pageStyle", body.pageStyle);
+  if (body.accessControl !== void 0) await storage.setItem("accessControl", body.accessControl);
   return { ok: true };
 });
 
@@ -3149,28 +3163,46 @@ const config_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
   default: config_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const proxy_post = defineEventHandler$1(async (event) => {
-  var _a, _b, _c;
-  const req = await readBody$1(event);
-  if (!(req == null ? void 0 : req.url)) {
-    throw createError$1({ statusCode: 400, message: "URL manquante" });
+const cache = /* @__PURE__ */ new Map();
+function getCached(url) {
+  const entry = cache.get(url);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(url);
+    return null;
   }
+  return entry.data;
+}
+function setCached(url, data, ttlSeconds) {
+  if (ttlSeconds <= 0) return;
+  cache.set(url, { data, expiresAt: Date.now() + ttlSeconds * 1e3 });
+}
+const proxy_post = defineEventHandler$1(async (event) => {
+  var _a, _b, _c, _d, _e;
+  const req = await readBody$1(event);
+  if (!(req == null ? void 0 : req.url)) throw createError$1({ statusCode: 400, message: "URL manquante" });
   try {
     const url = new URL(req.url);
-    const hostname = url.hostname;
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0" || hostname.startsWith("192.168.") || hostname.startsWith("10.")) {
+    const h = url.hostname;
+    if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.") || h.startsWith("10.")) {
       throw createError$1({ statusCode: 403, message: "Acc\xE8s r\xE9seau priv\xE9 interdit" });
     }
   } catch (e) {
     if (e.statusCode) throw e;
     throw createError$1({ statusCode: 400, message: "URL invalide" });
   }
+  const isGet = ((_a = req.method) != null ? _a : "GET") === "GET";
+  const ttl = (_b = req.cacheTtl) != null ? _b : 120;
+  if (isGet && !req.forceRefresh) {
+    const cached = getCached(req.url);
+    if (cached !== null) return cached;
+  }
   const fetchOptions = {
-    method: (_a = req.method) != null ? _a : "GET",
+    method: (_c = req.method) != null ? _c : "GET",
     headers: {
       "Accept": "application/json",
       "User-Agent": "StatusDashboard/1.0",
-      ...(_b = req.headers) != null ? _b : {}
+      ...(_d = req.headers) != null ? _d : {}
     }
   };
   if (req.method === "POST" && req.body) {
@@ -3184,16 +3216,91 @@ const proxy_post = defineEventHandler$1(async (event) => {
       message: `Erreur HTTP ${response.status} depuis ${req.url}`
     });
   }
-  const contentType = (_c = response.headers.get("content-type")) != null ? _c : "";
-  if (contentType.includes("application/json")) {
-    return await response.json();
-  }
-  return { _raw: await response.text() };
+  const contentType = (_e = response.headers.get("content-type")) != null ? _e : "";
+  const data = contentType.includes("application/json") ? await response.json() : { _raw: await response.text() };
+  if (isGet) setCached(req.url, data, ttl);
+  return data;
 });
 
 const proxy_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: proxy_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const callback_post = defineEventHandler$1(async (event) => {
+  var _a;
+  const body = await readBody$1(event);
+  const { code, codeVerifier, tokenEndpoint, clientId, redirectUri } = body;
+  if (!code || !codeVerifier || !tokenEndpoint || !clientId) {
+    throw createError$1({ statusCode: 400, message: "Param\xE8tres manquants" });
+  }
+  const params = new URLSearchParams({
+    grant_type: "authorization_code",
+    code,
+    code_verifier: codeVerifier,
+    client_id: clientId,
+    redirect_uri: redirectUri
+  });
+  const res = await fetch(tokenEndpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString()
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw createError$1({ statusCode: 401, message: `Token exchange failed: ${err}` });
+  }
+  const tokens = await res.json();
+  setCookie(event, "sso_session", tokens.access_token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: (_a = tokens.expires_in) != null ? _a : 3600,
+    path: "/"
+  });
+  return { ok: true };
+});
+
+const callback_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: callback_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const discover_get = defineEventHandler$1(async (event) => {
+  const { url } = getQuery$2(event);
+  if (!url || typeof url !== "string") throw createError$1({ statusCode: 400, message: "url manquante" });
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) throw createError$1({ statusCode: res.status, message: `Discovery failed: ${res.status}` });
+    return await res.json();
+  } catch (e) {
+    throw createError$1({ statusCode: 502, message: `Impossible de contacter l'IdP : ${e.message}` });
+  }
+});
+
+const discover_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: discover_get
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const logout_post = defineEventHandler$1((event) => {
+  deleteCookie(event, "sso_session", { path: "/" });
+  return { ok: true };
+});
+
+const logout_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: logout_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const session_get = defineEventHandler$1((event) => {
+  const session = getCookie(event, "sso_session");
+  return { authenticated: !!session };
+});
+
+const session_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: session_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {

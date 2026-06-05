@@ -94,12 +94,13 @@ const selectedChild = computed<SubServiceConfig | null>(() =>
 
 const GLOBAL_ID = '__global__'
 
-// Afficher la vue globale par défaut à l'ouverture
+// Global par défaut à l'ouverture, reset à la fermeture
 watch(
   () => props.open,
   (open) => {
-    if (open) selectedId.value = GLOBAL_ID
+    selectedId.value = open ? GLOBAL_ID : null
   },
+  { immediate: true },
 )
 
 const isGlobal = computed(() => selectedId.value === GLOBAL_ID)

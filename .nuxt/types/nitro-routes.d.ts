@@ -10,6 +10,18 @@ declare module "nitropack/types" {
     '/api/proxy': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/proxy.post').default>>>>
     }
+    '/api/sso/callback': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sso/callback.post').default>>>>
+    }
+    '/api/sso/discover': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sso/discover.get').default>>>>
+    }
+    '/api/sso/logout': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sso/logout.post').default>>>>
+    }
+    '/api/sso/session': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sso/session.get').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@3.21.7_db0@0.3.4_ioredis@5.11.1_magicast@0.5.3_nuxt@3.21.7_@parcel+w_47f8360e7a85f87585b27676be1d8aba/node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }

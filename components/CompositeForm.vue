@@ -3,6 +3,7 @@ import type {
   CompositeServiceConfig,
   SubServiceConfig,
   ServiceConfig,
+  CustomMapping,
 } from "~/types";
 
 const props = defineProps<{
@@ -18,12 +19,27 @@ const emit = defineEmits<{
   ): void;
 }>();
 
+const ADAPTERS = [
+  { value: 'auto', label: 'Auto-détection' },
+  { value: 'rss', label: 'RSS / Atom' },
+  { value: 'atlassian', label: 'Atlassian / Statuspage' },
+  { value: 'github', label: 'GitHub Status' },
+  { value: 'aws', label: 'AWS Health' },
+  { value: 'azuredevops', label: 'Azure DevOps' },
+  { value: 'custom', label: 'Personnalisé (mapping)' },
+]
+
+const defaultMappingInit = (): CustomMapping => ({ statusPath: '', messagePath: '', levelMap: {} })
+
 const form = reactive({
   name: "",
   group: "",
-  pollInterval: 60,
+  pollInterval: 300,
   enabled: true,
   children: [] as SubServiceConfig[],
+  defaultAdapter: 'auto',
+  defaultMappingEnabled: false,
+  defaultMapping: defaultMappingInit(),
 });
 
 // ServiceForm réutilisé pour add/edit child
@@ -45,12 +61,20 @@ watch(
       form.pollInterval = props.editing.pollInterval;
       form.enabled = props.editing.enabled;
       form.children = props.editing.children.map((c) => ({ ...c }));
+      form.defaultAdapter = props.editing.defaultAdapter ?? 'auto';
+      form.defaultMappingEnabled = !!props.editing.defaultMapping;
+      form.defaultMapping = props.editing.defaultMapping
+        ? { ...props.editing.defaultMapping, levelMap: { ...props.editing.defaultMapping.levelMap } }
+        : defaultMappingInit();
     } else {
       form.name = "";
       form.group = "";
       form.pollInterval = 60;
       form.enabled = true;
       form.children = [];
+      form.defaultAdapter = 'auto';
+      form.defaultMappingEnabled = false;
+      form.defaultMapping = defaultMappingInit();
     }
   },
 );
@@ -141,9 +165,13 @@ function submit() {
   emit("save", {
     name: form.name.trim(),
     group: form.group || undefined,
-    pollInterval: Math.min(Math.max(form.pollInterval, 10), 120),
+    pollInterval: Math.min(Math.max(form.pollInterval, 60), 1200),
     enabled: form.enabled,
     children: form.children,
+    defaultAdapter: form.defaultAdapter !== 'auto' ? form.defaultAdapter : undefined,
+    defaultMapping: form.defaultMappingEnabled && form.defaultMapping.statusPath
+      ? { ...form.defaultMapping }
+      : undefined,
   });
 }
 
@@ -247,17 +275,57 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1"
-                    >Intervalle (s)</label
-                  >
-                  <input
-                    v-model.number="form.pollInterval"
-                    type="number"
-                    min="10"
-                    max="120"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Intervalle</label>
+                  <select v-model.number="form.pollInterval" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option v-for="m in 20" :key="m" :value="m * 60">{{ m }} minute{{ m > 1 ? 's' : '' }}</option>
+                  </select>
                 </div>
+              </div>
+
+              <!-- Mapping global ─────────────────────────────── -->
+              <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <label class="text-sm font-medium text-gray-700">Mapping global</label>
+                    <span class="text-xs text-gray-400">(hérité par les sous-services sans config propre)</span>
+                  </div>
+                </div>
+
+                <!-- Adapter par défaut -->
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Adaptateur par défaut</label>
+                  <select v-model="form.defaultAdapter" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option v-for="a in ADAPTERS" :key="a.value" :value="a.value">{{ a.label }}</option>
+                  </select>
+                </div>
+
+                <!-- Mapping personnalisé -->
+                <div class="flex items-center justify-between">
+                  <label class="text-xs text-gray-500">Mapping personnalisé global</label>
+                  <button
+                    type="button"
+                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                    :class="form.defaultMappingEnabled ? 'bg-blue-500' : 'bg-gray-200'"
+                    @click="form.defaultMappingEnabled = !form.defaultMappingEnabled"
+                  >
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform" :class="form.defaultMappingEnabled ? 'translate-x-4' : 'translate-x-0.5'" />
+                  </button>
+                </div>
+
+                <template v-if="form.defaultMappingEnabled">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Chemin statut</label>
+                      <input v-model="form.defaultMapping.statusPath" type="text" placeholder="ex: entries.0.title" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Chemin message</label>
+                      <input v-model="form.defaultMapping.messagePath" type="text" placeholder="ex: entries.*.summary" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                    </div>
+                  </div>
+                  <p class="text-xs text-gray-400">Les sous-services avec leur propre mapping l'utilisent en priorité. Les autres héritent de ce mapping.</p>
+                </template>
               </div>
 
               <!-- Sous-services -->
@@ -422,9 +490,11 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
       "
       @close="childFormOpen = false"
       @save="onChildSave"
-      @select-sibling="
-        openEditChild(form.children.find((c) => c.id === $event.id)!)
-      "
+      :in-composite="true"
+      :inherited-adapter="form.defaultAdapter !== 'auto' ? form.defaultAdapter : undefined"
+      :inherited-mapping="form.defaultMappingEnabled && form.defaultMapping.statusPath ? form.defaultMapping : undefined"
+      @select-sibling="openEditChild(form.children.find((c) => c.id === $event.id)!)"
+      @set-as-default="form.defaultAdapter = $event.adapter; form.defaultMapping = $event.mapping; form.defaultMappingEnabled = true; childFormOpen = false"
     />
   </Teleport>
 </template>
