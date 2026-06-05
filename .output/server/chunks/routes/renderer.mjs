@@ -1,5 +1,5 @@
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'vue-bundle-renderer/runtime';
-import { j as joinRelativeURL, u as useRuntimeConfig, e as encodePath, a as defineRenderHandler, g as getQuery, c as createError, b as getRouteRules, f as getResponseStatusText, h as getResponseStatus, i as useNitroApp } from '../nitro/nitro.mjs';
+import { j as joinRelativeURL, k as useRuntimeConfig, l as encodePath, m as defineRenderHandler, g as getQuery, c as createError, n as getRouteRules, o as getResponseStatusText, q as getResponseStatus, t as useNitroApp } from '../nitro/nitro.mjs';
 import { renderToString } from 'vue/server-renderer';
 import { createHead as createHead$1, propsToString, renderSSRHead } from 'unhead/server';
 import { stringify, uneval } from 'devalue';
@@ -260,7 +260,7 @@ async function renderInlineStyles(usedModules) {
 
 const renderSSRHeadOptions = {"omitLineBreaks":false};
 
-const entryIds = ["node_modules/nuxt/dist/app/entry.js"];
+const entryIds = ["node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis@5.11._sth5bgpnkh32o6o7bw2fqxcoii/node_modules/nuxt/dist/app/entry.js"];
 
 // @ts-expect-error private property consumed by vite-generated url helpers
 globalThis.__buildAssetsURL = buildAssetsURL;

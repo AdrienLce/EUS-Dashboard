@@ -1,7 +1,7 @@
 {
-  "_hash": "bFZZzIBhpniWg7wtzwgGI1A909y1oKddJrTjTdfCiKs",
+  "_hash": "T7NLdZ90pZW22xSeWxN_LOcc9vybQ3OG8yJ6AAmDD-w",
   "project": {
-    "rootDir": "/Users/jordanetinault/Src/privee/dashboard-concentrateur-status"
+    "rootDir": "/Users/jordanbrn/Src/healthchecker"
   },
   "versions": {
     "nuxt": "3.21.7"

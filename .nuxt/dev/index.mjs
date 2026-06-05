@@ -1,50 +1,48 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getQuery as getQuery$1, readBody, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, getResponseStatusText } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getQuery as getQuery$1, readBody, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, setCookie, deleteCookie, getCookie, defineWebSocketHandler, getResponseStatusText } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs';
 import { Server } from 'node:http';
 import { resolve, dirname, join } from 'node:path';
 import crypto$1 from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
-import { escapeHtml } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@vue+shared@3.5.35/node_modules/@vue/shared/dist/shared.cjs.js';
-import viteNodeEntry_mjs from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watche_0d7218ce8b2c50fae6a539e2bf8da1cb/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
-import { viteNodeFetch } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watche_0d7218ce8b2c50fae6a539e2bf8da1cb/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
-import { defineEventHandler as defineEventHandler$1, readBody as readBody$1, createError as createError$1, setCookie, getQuery as getQuery$2, deleteCookie, getCookie } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/h3/dist/index.mjs';
-import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs';
-import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/ufo@1.6.4/node_modules/ufo/dist/index.mjs';
-import { renderToString } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/vue@3.5.35/node_modules/vue/server-renderer/index.mjs';
-import destr, { destr as destr$1 } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/destr@2.0.5/node_modules/destr/dist/index.mjs';
-import { createHooks } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/hookable@5.5.3/node_modules/hookable/dist/index.mjs';
-import { createFetch, Headers as Headers$1 } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/node.mjs';
-import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/node-mock-http@1.0.4/node_modules/node-mock-http/dist/index.mjs';
-import { defineDriver, prefixStorage } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/dist/index.mjs';
-import { createStorage } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/unstorage/dist/index.mjs';
-import unstorage_47drivers_47fs from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/unstorage/drivers/fs.mjs';
-import fsDriver from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/drivers/fs-lite.mjs';
-import lruCache from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/drivers/lru-cache.mjs';
-import { digest, hash as hash$1 } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/ohash@2.0.11/node_modules/ohash/dist/index.mjs';
-import { klona } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/klona@2.0.6/node_modules/klona/dist/index.mjs';
-import { defuFn } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/defu/dist/defu.mjs';
-import { snakeCase } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/scule@1.3.0/node_modules/scule/dist/index.mjs';
-import { getContext } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/unctx@2.5.0/node_modules/unctx/dist/index.mjs';
-import defu from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/defu@6.1.7/node_modules/defu/dist/defu.mjs';
-import { toRouteMatcher, createRouter } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/radix3@1.1.2/node_modules/radix3/dist/index.mjs';
+import wsAdapter from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/crossws@0.3.5/node_modules/crossws/dist/adapters/node.mjs';
+import { escapeHtml } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/@vue+shared@3.5.35/node_modules/@vue/shared/dist/shared.cjs.js';
+import viteNodeEntry_mjs from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watcher@2.5._klavcj4io5663rqdb32blvsu4q/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs';
+import { viteNodeFetch } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watcher@2.5._klavcj4io5663rqdb32blvsu4q/node_modules/@nuxt/vite-builder/dist/vite-node.mjs';
+import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs';
+import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, encodePath, joinRelativeURL } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/ufo@1.6.4/node_modules/ufo/dist/index.mjs';
+import { renderToString } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/vue@3.5.35/node_modules/vue/server-renderer/index.mjs';
+import destr, { destr as destr$1 } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/destr@2.0.5/node_modules/destr/dist/index.mjs';
+import { createHooks } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/hookable@5.5.3/node_modules/hookable/dist/index.mjs';
+import { createFetch, Headers as Headers$1 } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/node.mjs';
+import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/node-mock-http@1.0.4/node_modules/node-mock-http/dist/index.mjs';
+import { createStorage, defineDriver, prefixStorage } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/dist/index.mjs';
+import unstorage_47drivers_47fs from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/drivers/fs.mjs';
+import fsDriver from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/drivers/fs-lite.mjs';
+import lruCache from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unstorage@1.17.5_db0@0.3.4_ioredis@5.11.1/node_modules/unstorage/drivers/lru-cache.mjs';
+import { digest, hash as hash$1 } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/ohash@2.0.11/node_modules/ohash/dist/index.mjs';
+import { klona } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/klona@2.0.6/node_modules/klona/dist/index.mjs';
+import defu, { defuFn } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/defu@6.1.7/node_modules/defu/dist/defu.mjs';
+import { snakeCase } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/scule@1.3.0/node_modules/scule/dist/index.mjs';
+import { getContext } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unctx@2.5.0/node_modules/unctx/dist/index.mjs';
+import { toRouteMatcher, createRouter } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/radix3@1.1.2/node_modules/radix3/dist/index.mjs';
 import { readFile } from 'node:fs/promises';
-import consola, { consola as consola$1 } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/index.mjs';
-import { ErrorParser } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/youch-core@0.3.3/node_modules/youch-core/build/index.js';
-import { Youch } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/youch@4.1.1/node_modules/youch/build/index.js';
-import { SourceMapConsumer } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/source-map@0.7.6/node_modules/source-map/source-map.js';
+import consola, { consola as consola$1 } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/index.mjs';
+import { ErrorParser } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/youch-core@0.3.3/node_modules/youch-core/build/index.js';
+import { Youch } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/youch@4.1.1/node_modules/youch/build/index.js';
+import { SourceMapConsumer } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/source-map@0.7.6/node_modules/source-map/source-map.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { stringify, uneval } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/devalue@5.8.1/node_modules/devalue/index.js';
-import { captureRawStackTrace, parseRawStackTrace } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/errx@0.1.0/node_modules/errx/dist/index.js';
-import { isVNode, isRef, toValue } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/vue@3.5.35/node_modules/vue/index.mjs';
-import _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watche_0d7218ce8b2c50fae6a539e2bf8da1cb/node_modules/@nuxt/vite-builder/dist/fix-stacktrace.mjs';
+import { stringify, uneval } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/devalue@5.8.1/node_modules/devalue/index.js';
+import { captureRawStackTrace, parseRawStackTrace } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/errx@0.1.0/node_modules/errx/dist/index.js';
+import { isVNode, isRef, toValue } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/vue@3.5.35/node_modules/vue/index.mjs';
+import _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/@nuxt+vite-builder@3.21.7_lightningcss@1.32.0_magicast@0.5.3_nuxt@3.21.7_@parcel+watcher@2.5._klavcj4io5663rqdb32blvsu4q/node_modules/@nuxt/vite-builder/dist/fix-stacktrace.mjs';
 import { promises } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname as dirname$1, resolve as resolve$1 } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/pathe/dist/index.mjs';
-import { createHead as createHead$1, propsToString, renderSSRHead } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/unhead@2.1.15/node_modules/unhead/dist/server.mjs';
-import { DeprecationsPlugin, PromisesPlugin, TemplateParamsPlugin, AliasSortingPlugin } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/unhead/dist/plugins.mjs';
-import { walkResolver } from 'file:///Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/unhead@2.1.15/node_modules/unhead/dist/utils.mjs';
+import { dirname as dirname$1, resolve as resolve$1 } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/pathe@2.0.3/node_modules/pathe/dist/index.mjs';
+import { createHead as createHead$1, propsToString, renderSSRHead } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unhead@2.1.15/node_modules/unhead/dist/server.mjs';
+import { DeprecationsPlugin, PromisesPlugin, TemplateParamsPlugin, AliasSortingPlugin } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unhead@2.1.15/node_modules/unhead/dist/plugins.mjs';
+import { walkResolver } from 'file:///Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/unhead@2.1.15/node_modules/unhead/dist/utils.mjs';
 
-const serverAssets = [{"baseName":"server","dir":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/server/assets"}];
+const serverAssets = [{"baseName":"server","dir":"/Users/jordanbrn/Src/healthchecker/server/assets"}];
 
 const assets$1 = createStorage();
 
@@ -65,7 +63,7 @@ function normalizeFsKey (item) {
   return `${prefix}-${hash}`
 }
 
-const _47Users_47jordanetinault_47Src_47privee_47dashboard_45concentrateur_45status_47node_modules_47_46pnpm_47_64nuxt_43nitro_45server_643_4621_467_db0_640_463_464_ioredis_645_4611_461_magicast_640_465_463_nuxt_643_4621_467__64parcel_43w_47f8360e7a85f87585b27676be1d8aba_47node_modules_47_64nuxt_47nitro_45server_47dist_47runtime_47utils_47cache_45driver_46js = defineDriver(
+const _47Users_47jordanbrn_47Src_47healthchecker_47node_modules_47_46pnpm_47_64nuxt_43nitro_45server_643_4621_467_db0_640_463_464_ioredis_645_4611_461_magicast_640_465_463_nuxt_643_4621_467__64parcel_43watcher_hvd4sc4o2b2cm42wq4k2dxoy2i_47node_modules_47_64nuxt_47nitro_45server_47dist_47runtime_47utils_47cache_45driver_46js = defineDriver(
   /**
    * @param {{ base?: string }} opts
    */
@@ -96,12 +94,12 @@ const storage = createStorage({});
 storage.mount('/assets', assets$1);
 
 storage.mount('config', unstorage_47drivers_47fs({"driver":"fs","base":"./data"}));
-storage.mount('root', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status","watchOptions":{"ignored":[null]}}));
-storage.mount('src', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/server","watchOptions":{"ignored":[null]}}));
-storage.mount('cache:nuxt:payload', _47Users_47jordanetinault_47Src_47privee_47dashboard_45concentrateur_45status_47node_modules_47_46pnpm_47_64nuxt_43nitro_45server_643_4621_467_db0_640_463_464_ioredis_645_4611_461_magicast_640_465_463_nuxt_643_4621_467__64parcel_43w_47f8360e7a85f87585b27676be1d8aba_47node_modules_47_64nuxt_47nitro_45server_47dist_47runtime_47utils_47cache_45driver_46js({"driver":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/node_modules/.pnpm/@nuxt+nitro-server@3.21.7_db0@0.3.4_ioredis@5.11.1_magicast@0.5.3_nuxt@3.21.7_@parcel+w_47f8360e7a85f87585b27676be1d8aba/node_modules/@nuxt/nitro-server/dist/runtime/utils/cache-driver.js","base":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/.nuxt/cache/nuxt/payload"}));
-storage.mount('build', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/.nuxt"}));
-storage.mount('cache', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/.nuxt/cache"}));
-storage.mount('data', unstorage_47drivers_47fs({"driver":"fs","base":"/Users/jordanetinault/Src/privee/dashboard-concentrateur-status/.data/kv"}));
+storage.mount('root', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/Users/jordanbrn/Src/healthchecker","watchOptions":{"ignored":[null]}}));
+storage.mount('src', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/Users/jordanbrn/Src/healthchecker/server","watchOptions":{"ignored":[null]}}));
+storage.mount('cache:nuxt:payload', _47Users_47jordanbrn_47Src_47healthchecker_47node_modules_47_46pnpm_47_64nuxt_43nitro_45server_643_4621_467_db0_640_463_464_ioredis_645_4611_461_magicast_640_465_463_nuxt_643_4621_467__64parcel_43watcher_hvd4sc4o2b2cm42wq4k2dxoy2i_47node_modules_47_64nuxt_47nitro_45server_47dist_47runtime_47utils_47cache_45driver_46js({"driver":"/Users/jordanbrn/Src/healthchecker/node_modules/.pnpm/@nuxt+nitro-server@3.21.7_db0@0.3.4_ioredis@5.11.1_magicast@0.5.3_nuxt@3.21.7_@parcel+watcher_hvd4sc4o2b2cm42wq4k2dxoy2i/node_modules/@nuxt/nitro-server/dist/runtime/utils/cache-driver.js","base":"/Users/jordanbrn/Src/healthchecker/.nuxt/cache/nuxt/payload"}));
+storage.mount('build', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/Users/jordanbrn/Src/healthchecker/.nuxt"}));
+storage.mount('cache', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/Users/jordanbrn/Src/healthchecker/.nuxt/cache"}));
+storage.mount('data', unstorage_47drivers_47fs({"driver":"fs","base":"/Users/jordanbrn/Src/healthchecker/.data/kv"}));
 
 function useStorage(base = "") {
   return base ? prefixStorage(storage, base) : storage;
@@ -2096,13 +2094,13 @@ if (!window.__NUXT_DEVTOOLS_TIME_METRIC__) {
 window.__NUXT_DEVTOOLS_TIME_METRIC__.appInit = Date.now()
 `;
 
-const _pFMBiSTKQNlmlfrR04O9cQ0sqy_O2wjpGT4zOHkJkG8 = (function(nitro) {
+const _aHHubYTanCVyH3QNkDzHBKZ65ffYz3v9cAKxilo8dy4 = (function(nitro) {
   nitro.hooks.hook("render:html", (htmlContext) => {
     htmlContext.head.push(`<script>${script}<\/script>`);
   });
 });
 
-const rootDir = "/Users/jordanetinault/Src/privee/dashboard-concentrateur-status";
+const rootDir = "/Users/jordanbrn/Src/healthchecker";
 
 const appHead = {"meta":[{"name":"viewport","content":"width=device-width, initial-scale=1"},{"charset":"utf-8"}],"link":[],"style":[],"script":[],"noscript":[]};
 
@@ -2128,7 +2126,7 @@ const asyncContext = getContext("nuxt-dev", {
 	asyncContext: true,
 	AsyncLocalStorage
 });
-const _mIm28XQOpR4HFPtSj3rxTutNMo3KN2qbnoP2DV392QQ = (nitroApp) => {
+const _NHdRQZrRO68aqBSXYMRLqHE4rvXZPbHBYm3mtTeitk = (nitroApp) => {
 	const handler = nitroApp.h3App.handler;
 	nitroApp.h3App.handler = (event) => {
 		return asyncContext.callAsync({
@@ -2203,25 +2201,706 @@ function onConsoleLog(callback) {
 	consola$1.wrapConsole();
 }
 
+function defineNitroPlugin(def) {
+  return def;
+}
+
+function mapGithubIndicator(indicator) {
+  switch (indicator) {
+    case "none":
+      return "operational";
+    case "minor":
+      return "mineur";
+    case "major":
+      return "majeur";
+    case "critical":
+      return "critique";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "operational";
+  }
+}
+function mapGithubIncidentImpact(impact) {
+  switch (impact) {
+    case "none":
+      return "operational";
+    case "minor":
+      return "mineur";
+    case "major":
+      return "majeur";
+    case "critical":
+      return "critique";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "mineur";
+  }
+}
+function parseGithub(data) {
+  var _a, _b, _c, _d, _e;
+  const summary = data;
+  const incidents = ((_a = summary.incidents) != null ? _a : []).map((inc) => {
+    var _a2, _b2;
+    return {
+      id: inc.id,
+      title: inc.name,
+      level: mapGithubIncidentImpact(inc.impact),
+      startedAt: inc.created_at,
+      updatedAt: inc.updated_at,
+      message: (_b2 = (_a2 = inc.incident_updates) == null ? void 0 : _a2[0]) == null ? void 0 : _b2.body,
+      url: inc.shortlink
+    };
+  });
+  return {
+    level: mapGithubIndicator((_c = (_b = summary.status) == null ? void 0 : _b.indicator) != null ? _c : "none"),
+    message: (_e = (_d = summary.status) == null ? void 0 : _d.description) != null ? _e : "Statut inconnu",
+    incidents
+  };
+}
+
+function mapIndicator$1(indicator) {
+  switch (indicator) {
+    case "none":
+      return "operational";
+    case "minor":
+      return "mineur";
+    case "major":
+      return "majeur";
+    case "critical":
+      return "critique";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "operational";
+  }
+}
+function mapImpact$1(impact) {
+  switch (impact) {
+    case "none":
+      return "operational";
+    case "minor":
+      return "mineur";
+    case "major":
+      return "majeur";
+    case "critical":
+      return "critique";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "mineur";
+  }
+}
+function parseAtlassian(data) {
+  var _a, _b, _c, _d, _e;
+  const summary = data;
+  const incidents = ((_a = summary.incidents) != null ? _a : []).map((inc) => {
+    var _a2, _b2;
+    return {
+      id: inc.id,
+      title: inc.name,
+      level: mapImpact$1(inc.impact),
+      startedAt: inc.created_at,
+      updatedAt: inc.updated_at,
+      message: (_b2 = (_a2 = inc.incident_updates) == null ? void 0 : _a2[0]) == null ? void 0 : _b2.body,
+      url: inc.shortlink
+    };
+  });
+  return {
+    level: mapIndicator$1((_c = (_b = summary.status) == null ? void 0 : _b.indicator) != null ? _c : "none"),
+    message: (_e = (_d = summary.status) == null ? void 0 : _d.description) != null ? _e : "Statut inconnu",
+    incidents
+  };
+}
+
+function mapAwsStatus(status) {
+  const s = status.toLowerCase();
+  if (s.includes("operating normally") || s.includes("service is operating normally")) return "operational";
+  if (s.includes("informational")) return "leger";
+  if (s.includes("service degradation") || s.includes("degraded")) return "mineur";
+  if (s.includes("service disruption") || s.includes("disruption")) return "majeur";
+  if (s.includes("maintenance")) return "maintenance";
+  return "leger";
+}
+function parseAws(data) {
+  var _a;
+  const feed = data;
+  const current = (_a = feed.current_events) != null ? _a : [];
+  if (current.length === 0) {
+    return {
+      level: "operational",
+      message: "Tous les services op\xE9rationnels",
+      incidents: []
+    };
+  }
+  const incidents = current.map((entry, i) => ({
+    id: `aws-${i}-${entry.date}`,
+    title: `[${entry.service_name}] ${entry.summary}`,
+    level: mapAwsStatus(entry.status),
+    startedAt: entry.date,
+    updatedAt: entry.date,
+    message: entry.status,
+    url: entry.url
+  }));
+  const worstLevel = incidents.reduce((worst, inc) => {
+    const order = ["operational", "maintenance", "leger", "mineur", "majeur"];
+    return order.indexOf(inc.level) > order.indexOf(worst) ? inc.level : worst;
+  }, "operational");
+  return {
+    level: worstLevel,
+    message: `${current.length} \xE9v\xE9nement(s) en cours`,
+    incidents
+  };
+}
+
+function mapHealth(health) {
+  switch ((health != null ? health : "").toLowerCase()) {
+    case "healthy":
+      return "operational";
+    case "advisory":
+      return "leger";
+    case "degraded":
+      return "mineur";
+    case "unhealthy":
+      return "majeur";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "operational";
+  }
+}
+function parseAzureDevOps(data) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+  const resp = data;
+  const globalHealth = (_b = (_a = resp.status) == null ? void 0 : _a.health) != null ? _b : "healthy";
+  const globalMessage = (_d = (_c = resp.status) == null ? void 0 : _c.message) != null ? _d : "Statut inconnu";
+  const incidents = [];
+  const updatedAt = (_e = resp.lastUpdated) != null ? _e : (/* @__PURE__ */ new Date()).toISOString();
+  for (const svc of (_f = resp.services) != null ? _f : []) {
+    const name = (_g = svc.displayName) != null ? _g : svc.id;
+    for (const issue of (_h = svc.issues) != null ? _h : []) {
+      incidents.push({
+        id: issue.id,
+        title: `[${name}] ${issue.title}`,
+        level: mapHealth((_i = issue.severity) != null ? _i : "degraded"),
+        startedAt: (_j = issue.startTime) != null ? _j : updatedAt,
+        updatedAt: (_k = issue.lastUpdatedTime) != null ? _k : updatedAt,
+        url: issue.sourceLink
+      });
+    }
+    for (const geo of (_l = svc.geographies) != null ? _l : []) {
+      if (geo.health !== "healthy" && ((_m = svc.issues) != null ? _m : []).length === 0) {
+        incidents.push({
+          id: `${svc.id}-${geo.id}`,
+          title: `[${name}] ${geo.name} \u2014 ${geo.health}`,
+          level: mapHealth(geo.health),
+          startedAt: updatedAt,
+          updatedAt
+        });
+      }
+    }
+  }
+  return {
+    level: mapHealth(globalHealth),
+    message: globalMessage,
+    incidents
+  };
+}
+
+function extractTag(xml, tag) {
+  const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  if (!m) return "";
+  let content = m[1];
+  content = content.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
+  content = content.replace(/<[^>]+>/g, "");
+  return content.trim();
+}
+function extractAttr(xml, tag, attr) {
+  const m = xml.match(new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, "i"));
+  return m ? m[1] : "";
+}
+function extractAll(xml, tag) {
+  var _a;
+  const re = new RegExp(`<${tag}[\\s>][\\s\\S]*?<\\/${tag}>`, "gi");
+  return (_a = xml.match(re)) != null ? _a : [];
+}
+function guessLevel(text) {
+  const t = text.toLowerCase();
+  if (t.includes("resolved") || t.includes("r\xE9solu")) return "operational";
+  if (t.includes("critical") || t.includes("outage") || t.includes("disruption")) return "majeur";
+  if (t.includes("degraded") || t.includes("partial")) return "mineur";
+  if (t.includes("investigating") || t.includes("advisory") || t.includes("warning")) return "leger";
+  if (t.includes("maintenance")) return "maintenance";
+  return "leger";
+}
+function rssToStructured(raw) {
+  const feedTitle = extractTag(raw, "title");
+  const feedUpdated = extractTag(raw, "updated") || extractTag(raw, "lastBuildDate") || "";
+  const rawEntries = [
+    ...extractAll(raw, "entry"),
+    // Atom 1.0
+    ...extractAll(raw, "item")
+    // RSS 2.0
+  ];
+  const entries = rawEntries.map((entry) => ({
+    title: extractTag(entry, "title"),
+    // Tenter summary (Atom), description (RSS), puis content comme dernier recours
+    summary: extractTag(entry, "summary") || extractTag(entry, "description") || extractTag(entry, "content") || "",
+    // Tenter updated (Atom) puis pubDate (RSS)
+    updated: extractTag(entry, "updated") || extractTag(entry, "pubDate") || "",
+    // Tenter href d'attribut (Atom) puis texte de balise (RSS)
+    link: extractAttr(entry, "link", "href") || extractTag(entry, "link") || ""
+  }));
+  return {
+    feed_title: feedTitle,
+    feed_updated: feedUpdated,
+    entry_count: entries.length,
+    entries
+  };
+}
+function parseRss(data) {
+  var _a;
+  const raw = (_a = data == null ? void 0 : data._raw) != null ? _a : "";
+  if (!raw) return { level: "operational", message: "Aucune donn\xE9e", incidents: [] };
+  const structured = rssToStructured(raw);
+  if (structured.entries.length === 0) {
+    return { level: "operational", message: "Aucun incident en cours", incidents: [] };
+  }
+  const incidents = structured.entries.filter((entry) => entry.title.length > 0 && (entry.summary.length > 0 || entry.link.length > 0)).map((entry, i) => ({
+    id: `rss-${i}`,
+    title: entry.title,
+    // Analyser le titre ET le résumé ensemble pour une meilleure détection
+    level: guessLevel(entry.title + " " + entry.summary),
+    startedAt: entry.updated,
+    updatedAt: entry.updated,
+    message: entry.summary || void 0,
+    url: entry.link || void 0
+  }));
+  const worstLevel = incidents.reduce((worst, inc) => {
+    const order = ["operational", "maintenance", "leger", "mineur", "majeur"];
+    return order.indexOf(inc.level) > order.indexOf(worst) ? inc.level : worst;
+  }, "leger");
+  return {
+    level: worstLevel,
+    message: `${incidents.length} entr\xE9e(s) dans le flux`,
+    incidents
+  };
+}
+
+const LEVEL_ORDER = [
+  "operational",
+  "inconnu",
+  "information",
+  "maintenance",
+  "leger",
+  "mineur",
+  "majeur",
+  "critique"
+];
+function worstLevel(levels) {
+  return levels.reduce((worst, l) => {
+    return LEVEL_ORDER.indexOf(l) > LEVEL_ORDER.indexOf(worst) ? l : worst;
+  }, "operational");
+}
+
+function getValueAtPath(obj, path) {
+  if (!path) return obj;
+  const parts = path.split(".");
+  function resolve(current, parts2) {
+    if (parts2.length === 0) return current;
+    const [head, ...rest] = parts2;
+    if (head === "*") {
+      if (!Array.isArray(current)) return void 0;
+      return current.map((item) => resolve(item, rest));
+    }
+    if (current == null) return void 0;
+    if (Array.isArray(current)) {
+      const idx = Number(head);
+      return Number.isNaN(idx) ? void 0 : resolve(current[idx], rest);
+    }
+    if (typeof current !== "object") return void 0;
+    return resolve(current[head], rest);
+  }
+  return resolve(obj, parts);
+}
+function autoDetectLevel(value) {
+  const v = value.toLowerCase();
+  if (["healthy", "operational", "none", "ok", "up", "normal", "allsystemsoperational"].some((k) => v === k || v.includes(k))) return "operational";
+  if (["minor", "advisory", "warning", "degraded_performance", "partial"].some((k) => v.includes(k))) return "leger";
+  if (["major", "degraded", "partial_outage", "major_outage"].some((k) => v.includes(k))) return "majeur";
+  if (["critical", "outage", "disruption", "unhealthy", "down"].some((k) => v.includes(k))) return "critique";
+  if (["maintenance"].some((k) => v.includes(k))) return "maintenance";
+  if (["info", "notice", "update", "annonce"].some((k) => v.includes(k))) return "information";
+  return "inconnu";
+}
+function toDetectableString(v) {
+  if (v == null) return "";
+  if (typeof v === "object") {
+    const o = v;
+    return [o.title, o.name, o.status, o.message, o.description, o.summary].filter((x) => typeof x === "string" && x.length > 0).join(" ");
+  }
+  return String(v);
+}
+function matchLevelMap(value, levelMap) {
+  const v = value.toLowerCase();
+  for (const [pattern, level] of Object.entries(levelMap)) {
+    if (!pattern) continue;
+    if (pattern === value || pattern.toLowerCase() === v) return level;
+    if (pattern.startsWith("~")) {
+      if (v.includes(pattern.slice(1).toLowerCase())) return level;
+      continue;
+    }
+    if (pattern.startsWith("/") && pattern.lastIndexOf("/") > 0) {
+      try {
+        const last = pattern.lastIndexOf("/");
+        const body = pattern.slice(1, last);
+        const flags = pattern.slice(last + 1);
+        if (new RegExp(body, flags).test(value)) return level;
+      } catch {
+      }
+      continue;
+    }
+    if (pattern.includes("*")) {
+      const escaped = pattern.toLowerCase().split("*").map((p) => p.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*");
+      try {
+        if (new RegExp(`^${escaped}$`).test(v)) return level;
+      } catch {
+      }
+    }
+  }
+  return null;
+}
+function resolveLevel(raw, levelMap) {
+  var _a;
+  if (Array.isArray(raw)) {
+    const levels = raw.map(toDetectableString).filter((s2) => s2.length > 0).map((s2) => {
+      var _a2;
+      return (_a2 = matchLevelMap(s2, levelMap)) != null ? _a2 : autoDetectLevel(s2);
+    });
+    return levels.length ? worstLevel(levels) : "operational";
+  }
+  const s = toDetectableString(raw);
+  return s ? (_a = matchLevelMap(s, levelMap)) != null ? _a : autoDetectLevel(s) : "operational";
+}
+function resolveMessage(raw) {
+  if (Array.isArray(raw)) {
+    return raw.map(toDetectableString).filter((s) => s.length > 0).join("\n");
+  }
+  return toDetectableString(raw);
+}
+function resolveData(data) {
+  if (data !== null && typeof data === "object" && "_raw" in data) {
+    const raw = data._raw;
+    if (typeof raw === "string" && (raw.includes("<?xml") || raw.includes("<feed") || raw.includes("<rss"))) {
+      return rssToStructured(raw);
+    }
+  }
+  return data;
+}
+function parseWildcardPath(path) {
+  const starIdx = path.indexOf(".*.");
+  if (starIdx === -1) return null;
+  return {
+    parentPath: path.slice(0, starIdx),
+    field: path.slice(starIdx + 3)
+  };
+}
+function buildIncidents(resolved, statusPath, messagePath, levelMap) {
+  const statusWc = parseWildcardPath(statusPath);
+  if (!statusWc) return [];
+  const wc = statusWc;
+  const msgWc = messagePath ? parseWildcardPath(messagePath) : null;
+  const parentArray = getValueAtPath(resolved, wc.parentPath);
+  if (!Array.isArray(parentArray)) return [];
+  return parentArray.map((item, i) => {
+    var _a, _b, _c, _d, _e, _f, _g;
+    const o = typeof item === "object" && item !== null ? item : {};
+    const titleRaw = statusWc ? getValueAtPath(item, statusWc.field) : (_a = o.title) != null ? _a : msgWc ? getValueAtPath(item, msgWc.field) : void 0;
+    const title = toDetectableString(titleRaw);
+    if (!title) return null;
+    const level = (_b = levelMap[title]) != null ? _b : autoDetectLevel(title);
+    const messageRaw = msgWc ? getValueAtPath(item, msgWc.field) : (_d = (_c = o.summary) != null ? _c : o.description) != null ? _d : o.message;
+    const message = toDetectableString(messageRaw) || void 0;
+    const updatedAt = String((_g = (_f = (_e = o.updated) != null ? _e : o.pubDate) != null ? _f : o.date) != null ? _g : (/* @__PURE__ */ new Date()).toISOString());
+    const url = typeof o.link === "string" && o.link ? o.link : void 0;
+    const incident = { id: `custom-${i}`, title, level, startedAt: updatedAt, updatedAt };
+    if (message && message !== title) incident.message = message;
+    if (url) incident.url = url;
+    return incident;
+  }).filter((inc) => inc !== null);
+}
+function buildMessageEntries(resolved, msgPath) {
+  var _a, _b, _c, _d, _e, _f, _g, _h;
+  const isWild = msgPath.includes(".*");
+  if (!isWild) return void 0;
+  const wc = (_a = parseWildcardPath(msgPath + (msgPath.endsWith(".*") ? "." : ""))) != null ? _a : parseWildcardPath(msgPath);
+  if (!wc) return void 0;
+  const arr = getValueAtPath(resolved, wc.parentPath);
+  if (!Array.isArray(arr)) return void 0;
+  const entries = [];
+  for (const item of arr) {
+    if (item == null) continue;
+    const o = typeof item === "object" ? item : {};
+    const fieldValue = wc.field ? toDetectableString(getValueAtPath(item, wc.field)) : "";
+    const title = wc.field ? toDetectableString(o.title) || fieldValue : toDetectableString((_b = o.title) != null ? _b : o.name);
+    const summary = wc.field ? fieldValue !== title ? fieldValue : toDetectableString((_c = o.summary) != null ? _c : o.description) : toDetectableString((_e = (_d = o.summary) != null ? _d : o.description) != null ? _e : o.message);
+    if (!title && !summary) continue;
+    entries.push({
+      title: title || summary,
+      summary: summary && summary !== title ? summary : void 0,
+      date: String((_h = (_g = (_f = o.updated) != null ? _f : o.pubDate) != null ? _g : o.date) != null ? _h : ""),
+      url: typeof o.link === "string" && o.link ? o.link : void 0
+    });
+  }
+  return entries.length ? entries : void 0;
+}
+function parseCustom(data, mapping) {
+  const resolved = resolveData(data);
+  const rawStatus = getValueAtPath(resolved, mapping.statusPath);
+  const level = resolveLevel(rawStatus, mapping.levelMap);
+  const rawMessage = mapping.messagePath ? getValueAtPath(resolved, mapping.messagePath) : rawStatus;
+  const message = resolveMessage(rawMessage) || "Statut inconnu";
+  const incidents = buildIncidents(resolved, mapping.statusPath, mapping.messagePath, mapping.levelMap);
+  const entries = mapping.messagePath ? buildMessageEntries(resolved, mapping.messagePath) : void 0;
+  return { level, message, incidents, entries };
+}
+
+function mapIndicator(indicator) {
+  switch (indicator) {
+    case "none":
+      return "operational";
+    case "minor":
+      return "leger";
+    case "major":
+      return "mineur";
+    case "critical":
+      return "majeur";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "inconnu";
+  }
+}
+function mapImpact(impact) {
+  switch (impact) {
+    case "none":
+      return "operational";
+    case "minor":
+      return "leger";
+    case "major":
+      return "mineur";
+    case "critical":
+      return "majeur";
+    case "maintenance":
+      return "maintenance";
+    default:
+      return "leger";
+  }
+}
+function parseBloomberg(data) {
+  var _a, _b, _c, _d, _e;
+  const summary = data;
+  const incidents = ((_a = summary.incidents) != null ? _a : []).map((inc) => {
+    var _a2, _b2;
+    return {
+      id: inc.id,
+      title: inc.name,
+      level: mapImpact(inc.impact),
+      startedAt: inc.created_at,
+      updatedAt: inc.updated_at,
+      message: (_b2 = (_a2 = inc.incident_updates) == null ? void 0 : _a2[0]) == null ? void 0 : _b2.body,
+      url: inc.shortlink
+    };
+  });
+  return {
+    level: mapIndicator((_c = (_b = summary.status) == null ? void 0 : _b.indicator) != null ? _c : "none"),
+    message: (_e = (_d = summary.status) == null ? void 0 : _d.description) != null ? _e : "Statut inconnu",
+    incidents
+  };
+}
+
+const ADAPTERS = {
+  github: parseGithub,
+  atlassian: parseAtlassian,
+  // Notion utilise le format Atlassian Statuspage standard
+  notion: parseAtlassian,
+  aws: parseAws,
+  azuredevops: parseAzureDevOps,
+  bloomberg: parseBloomberg,
+  rss: parseRss
+};
+function runAdapter(adapterKey, data, customMapping) {
+  if (adapterKey === "custom" && customMapping) {
+    return parseCustom(data, customMapping);
+  }
+  const fn = ADAPTERS[adapterKey];
+  if (fn) return fn(data);
+  if (typeof data === "object" && data !== null && "status" in data) {
+    const d = data;
+    if (typeof d.status === "object" && d.status !== null && "indicator" in d.status) {
+      return parseAtlassian(data);
+    }
+  }
+  return {
+    level: "operational",
+    message: "Format non reconnu",
+    incidents: []
+  };
+}
+
+const statusMap = /* @__PURE__ */ new Map();
+const peers = /* @__PURE__ */ new Set();
+const refreshFns = /* @__PURE__ */ new Map();
+const poller = {
+  reload: async () => {
+  }
+};
+function broadcast(data) {
+  const msg = JSON.stringify(data);
+  for (const peer of peers) {
+    try {
+      peer.send(msg);
+    } catch {
+      peers.delete(peer);
+    }
+  }
+}
+
+const TICK_MS = 5e3;
+const SSRF_BLOCKED = /* @__PURE__ */ new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
+const tasks$1 = /* @__PURE__ */ new Map();
+let masterTimer = null;
+function tick() {
+  const now = Date.now();
+  for (const [, task] of tasks$1) {
+    if (now >= task.nextDue) {
+      task.nextDue = now + task.intervalMs;
+      task.fn().catch(() => {
+      });
+    }
+  }
+}
+function startMaster() {
+  if (masterTimer !== null) return;
+  masterTimer = setInterval(tick, TICK_MS);
+}
+function stopMaster() {
+  if (masterTimer === null) return;
+  clearInterval(masterTimer);
+  masterTimer = null;
+}
+function addTask(id, intervalMs, fn) {
+  fn().catch(() => {
+  });
+  tasks$1.set(id, { intervalMs, nextDue: Date.now() + intervalMs, fn });
+  startMaster();
+}
+function clearAllTasks() {
+  tasks$1.clear();
+  refreshFns.clear();
+  stopMaster();
+}
+async function serverFetch(url, method, headers, body) {
+  var _a;
+  const u = new URL(url);
+  const h = u.hostname;
+  if (SSRF_BLOCKED.has(h) || h.startsWith("192.168.") || h.startsWith("10.")) {
+    throw Object.assign(new Error("Acc\xE8s r\xE9seau priv\xE9 interdit"), { statusCode: 403 });
+  }
+  const opts = {
+    method,
+    headers: { "Accept": "application/json", "User-Agent": "StatusDashboard/1.0", ...headers }
+  };
+  if (method === "POST" && body) {
+    opts.body = body;
+    opts.headers["Content-Type"] = "application/json";
+  }
+  const res = await fetch(url, opts);
+  if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { statusCode: res.status });
+  const ct = (_a = res.headers.get("content-type")) != null ? _a : "";
+  return ct.includes("application/json") ? await res.json() : { _raw: await res.text() };
+}
+async function pollOne(id, url, method, headers, body, adapter, customMapping) {
+  var _a;
+  let snap;
+  try {
+    const data = await serverFetch(url, method, headers, body);
+    const result = runAdapter(adapter, data, customMapping);
+    snap = {
+      serviceId: id,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      level: result.level,
+      message: result.message,
+      incidents: result.incidents
+    };
+    if (result.entries) snap.entries = result.entries;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Erreur";
+    const code = (_a = err == null ? void 0 : err.statusCode) != null ? _a : 0;
+    const isAuth = code === 401 || code === 403;
+    const isProxy = code === 429 || code === 502 || code === 503 || msg.includes("ECONNREFUSED") || msg.includes("ETIMEDOUT");
+    const level = isAuth || isProxy ? "inconnu" : "majeur";
+    const message = isAuth ? "Acc\xE8s refus\xE9 \u2014 authentification requise" : isProxy ? `Requ\xEAte bloqu\xE9e (${code || "r\xE9seau"})` : `Erreur: ${msg}`;
+    snap = { serviceId: id, timestamp: (/* @__PURE__ */ new Date()).toISOString(), level, message, incidents: [] };
+  }
+  statusMap.set(id, snap);
+  broadcast({ type: "snapshot", data: snap });
+}
+async function reload() {
+  var _a, _b;
+  clearAllTasks();
+  const storage = useStorage("config");
+  const [rawServices, rawComposites] = await Promise.all([
+    storage.getItem("services"),
+    storage.getItem("composites")
+  ]);
+  const services = rawServices != null ? rawServices : [];
+  const composites = rawComposites != null ? rawComposites : [];
+  for (const svc of services) {
+    if (!svc.enabled) continue;
+    const ms = Math.min(svc.pollInterval, 1200) * 1e3;
+    const fn = () => pollOne(svc.id, svc.url, svc.method, svc.headers, svc.body, svc.adapter, svc.customMapping);
+    addTask(svc.id, ms, fn);
+    refreshFns.set(svc.id, fn);
+  }
+  for (const composite of composites) {
+    if (!composite.enabled) continue;
+    const ms = Math.min(composite.pollInterval, 1200) * 1e3;
+    for (const child of composite.children) {
+      if (!child.enabled) continue;
+      const effectiveAdapter = child.adapter && child.adapter !== "auto" ? child.adapter : (_a = composite.defaultAdapter) != null ? _a : child.adapter;
+      const effectiveMapping = (_b = child.customMapping) != null ? _b : composite.defaultMapping;
+      const fn = () => pollOne(child.id, child.url, child.method, child.headers, child.body, effectiveAdapter, effectiveMapping);
+      addTask(`${composite.id}::${child.id}`, ms, fn);
+      refreshFns.set(child.id, fn);
+    }
+  }
+}
+const _L5kPUxAvhB28YMZTrbSSBw5z6mBUIZ07hhSpoGxoVkc = defineNitroPlugin(async () => {
+  poller.reload = reload;
+  await reload();
+});
+
 const plugins = [
-  _pFMBiSTKQNlmlfrR04O9cQ0sqy_O2wjpGT4zOHkJkG8,
-_mIm28XQOpR4HFPtSj3rxTutNMo3KN2qbnoP2DV392QQ,
+  _aHHubYTanCVyH3QNkDzHBKZ65ffYz3v9cAKxilo8dy4,
+_NHdRQZrRO68aqBSXYMRLqHE4rvXZPbHBYm3mtTeitk,
+_L5kPUxAvhB28YMZTrbSSBw5z6mBUIZ07hhSpoGxoVkc,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
 const assets = {
   "/index.mjs": {
     "type": "text/javascript; charset=utf-8",
-    "etag": "\"1d3bc-mPPyMbnNi1sy7Y8iMVk04qF4TyA\"",
-    "mtime": "2026-06-05T14:13:36.629Z",
-    "size": 119740,
+    "etag": "\"2319b-kbaojTfUclN5QImj3LitXarybLU\"",
+    "mtime": "2026-06-05T18:55:20.364Z",
+    "size": 143771,
     "path": "index.mjs"
   },
   "/index.mjs.map": {
     "type": "application/json",
-    "etag": "\"707cc-mPkZvdzEbhwVUpbiCsZgDLjxeRw\"",
-    "mtime": "2026-06-05T14:13:36.629Z",
-    "size": 460748,
+    "etag": "\"89756-oFQO/8GBNhvzzHhiDOZL/ZmY/9c\"",
+    "mtime": "2026-06-05T18:55:20.364Z",
+    "size": 563030,
     "path": "index.mjs.map"
   }
 };
@@ -2249,7 +2928,7 @@ function getAsset (id) {
 
 const METHODS = /* @__PURE__ */ new Set(["HEAD", "GET"]);
 const EncodingMap = { gzip: ".gz", br: ".br" };
-const _dIBa9D = eventHandler((event) => {
+const _28nSbm = eventHandler((event) => {
   if (event.method && !METHODS.has(event.method)) {
     return;
   }
@@ -2755,27 +3434,29 @@ async function getIslandContext(event) {
 	};
 }
 
-const _lazy_faDKQA = () => Promise.resolve().then(function () { return config_get$1; });
-const _lazy_49KF4l = () => Promise.resolve().then(function () { return config_post$1; });
-const _lazy_KahOJt = () => Promise.resolve().then(function () { return proxy_post$1; });
-const _lazy_CKfsCj = () => Promise.resolve().then(function () { return callback_post$1; });
-const _lazy_UONEKt = () => Promise.resolve().then(function () { return discover_get$1; });
-const _lazy_S1CEPj = () => Promise.resolve().then(function () { return logout_post$1; });
-const _lazy_UoC2MH = () => Promise.resolve().then(function () { return session_get$1; });
-const _lazy_VFdRoB = () => Promise.resolve().then(function () { return renderer; });
+const _lazy_r7wjGb = () => Promise.resolve().then(function () { return config_get$1; });
+const _lazy_bGVl8e = () => Promise.resolve().then(function () { return config_post$1; });
+const _lazy_PdxyN7 = () => Promise.resolve().then(function () { return proxy_post$1; });
+const _lazy_oHGMdI = () => Promise.resolve().then(function () { return callback_post$1; });
+const _lazy_A3M5Kg = () => Promise.resolve().then(function () { return discover_get$1; });
+const _lazy_QJLXJO = () => Promise.resolve().then(function () { return logout_post$1; });
+const _lazy_zZ1x8e = () => Promise.resolve().then(function () { return session_get$1; });
+const _lazy_qHfu_k = () => Promise.resolve().then(function () { return ws$1; });
+const _lazy_9GJQOp = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
-  { route: '', handler: _dIBa9D, lazy: false, middleware: true, method: undefined },
-  { route: '/api/config', handler: _lazy_faDKQA, lazy: true, middleware: false, method: "get" },
-  { route: '/api/config', handler: _lazy_49KF4l, lazy: true, middleware: false, method: "post" },
-  { route: '/api/proxy', handler: _lazy_KahOJt, lazy: true, middleware: false, method: "post" },
-  { route: '/api/sso/callback', handler: _lazy_CKfsCj, lazy: true, middleware: false, method: "post" },
-  { route: '/api/sso/discover', handler: _lazy_UONEKt, lazy: true, middleware: false, method: "get" },
-  { route: '/api/sso/logout', handler: _lazy_S1CEPj, lazy: true, middleware: false, method: "post" },
-  { route: '/api/sso/session', handler: _lazy_UoC2MH, lazy: true, middleware: false, method: "get" },
-  { route: '/__nuxt_error', handler: _lazy_VFdRoB, lazy: true, middleware: false, method: undefined },
+  { route: '', handler: _28nSbm, lazy: false, middleware: true, method: undefined },
+  { route: '/api/config', handler: _lazy_r7wjGb, lazy: true, middleware: false, method: "get" },
+  { route: '/api/config', handler: _lazy_bGVl8e, lazy: true, middleware: false, method: "post" },
+  { route: '/api/proxy', handler: _lazy_PdxyN7, lazy: true, middleware: false, method: "post" },
+  { route: '/api/sso/callback', handler: _lazy_oHGMdI, lazy: true, middleware: false, method: "post" },
+  { route: '/api/sso/discover', handler: _lazy_A3M5Kg, lazy: true, middleware: false, method: "get" },
+  { route: '/api/sso/logout', handler: _lazy_QJLXJO, lazy: true, middleware: false, method: "post" },
+  { route: '/api/sso/session', handler: _lazy_zZ1x8e, lazy: true, middleware: false, method: "get" },
+  { route: '/api/ws', handler: _lazy_qHfu_k, lazy: true, middleware: false, method: undefined },
+  { route: '/__nuxt_error', handler: _lazy_9GJQOp, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
-  { route: '/**', handler: _lazy_VFdRoB, lazy: true, middleware: false, method: undefined }
+  { route: '/**', handler: _lazy_9GJQOp, lazy: true, middleware: false, method: undefined }
 ];
 
 function createNitroApp() {
@@ -3015,6 +3696,10 @@ listen().catch(() => listen(
   console.error("Dev worker failed to listen:", error);
   return shutdown();
 });
+{
+  const { handleUpgrade } = wsAdapter(nitroApp.h3App.websocket);
+  server$1.on("upgrade", handleUpgrade);
+}
 nitroApp.router.get(
   "/_nitro/tasks",
   defineEventHandler(async (event) => {
@@ -3127,7 +3812,7 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   default: styles
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const config_get = defineEventHandler$1(async () => {
+const config_get = defineEventHandler(async () => {
   var _a, _b, _c, _d, _e, _f, _g;
   const storage = useStorage("config");
   const services = (_a = await storage.getItem("services")) != null ? _a : [];
@@ -3145,8 +3830,8 @@ const config_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProper
   default: config_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const config_post = defineEventHandler$1(async (event) => {
-  const body = await readBody$1(event);
+const config_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
   const storage = useStorage("config");
   if (body.services !== void 0) await storage.setItem("services", body.services);
   if (body.composites !== void 0) await storage.setItem("composites", body.composites);
@@ -3155,6 +3840,9 @@ const config_post = defineEventHandler$1(async (event) => {
   if (body.theme !== void 0) await storage.setItem("theme", body.theme);
   if (body.pageStyle !== void 0) await storage.setItem("pageStyle", body.pageStyle);
   if (body.accessControl !== void 0) await storage.setItem("accessControl", body.accessControl);
+  if (body.services !== void 0 || body.composites !== void 0) {
+    await poller.reload();
+  }
   return { ok: true };
 });
 
@@ -3177,19 +3865,19 @@ function setCached(url, data, ttlSeconds) {
   if (ttlSeconds <= 0) return;
   cache.set(url, { data, expiresAt: Date.now() + ttlSeconds * 1e3 });
 }
-const proxy_post = defineEventHandler$1(async (event) => {
+const proxy_post = defineEventHandler(async (event) => {
   var _a, _b, _c, _d, _e;
-  const req = await readBody$1(event);
-  if (!(req == null ? void 0 : req.url)) throw createError$1({ statusCode: 400, message: "URL manquante" });
+  const req = await readBody(event);
+  if (!(req == null ? void 0 : req.url)) throw createError({ statusCode: 400, message: "URL manquante" });
   try {
     const url = new URL(req.url);
     const h = url.hostname;
     if (h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h.startsWith("192.168.") || h.startsWith("10.")) {
-      throw createError$1({ statusCode: 403, message: "Acc\xE8s r\xE9seau priv\xE9 interdit" });
+      throw createError({ statusCode: 403, message: "Acc\xE8s r\xE9seau priv\xE9 interdit" });
     }
   } catch (e) {
     if (e.statusCode) throw e;
-    throw createError$1({ statusCode: 400, message: "URL invalide" });
+    throw createError({ statusCode: 400, message: "URL invalide" });
   }
   const isGet = ((_a = req.method) != null ? _a : "GET") === "GET";
   const ttl = (_b = req.cacheTtl) != null ? _b : 120;
@@ -3211,7 +3899,7 @@ const proxy_post = defineEventHandler$1(async (event) => {
   }
   const response = await fetch(req.url, fetchOptions);
   if (!response.ok) {
-    throw createError$1({
+    throw createError({
       statusCode: response.status,
       message: `Erreur HTTP ${response.status} depuis ${req.url}`
     });
@@ -3227,12 +3915,12 @@ const proxy_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProper
   default: proxy_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const callback_post = defineEventHandler$1(async (event) => {
+const callback_post = defineEventHandler(async (event) => {
   var _a;
-  const body = await readBody$1(event);
+  const body = await readBody(event);
   const { code, codeVerifier, tokenEndpoint, clientId, redirectUri } = body;
   if (!code || !codeVerifier || !tokenEndpoint || !clientId) {
-    throw createError$1({ statusCode: 400, message: "Param\xE8tres manquants" });
+    throw createError({ statusCode: 400, message: "Param\xE8tres manquants" });
   }
   const params = new URLSearchParams({
     grant_type: "authorization_code",
@@ -3248,7 +3936,7 @@ const callback_post = defineEventHandler$1(async (event) => {
   });
   if (!res.ok) {
     const err = await res.text();
-    throw createError$1({ statusCode: 401, message: `Token exchange failed: ${err}` });
+    throw createError({ statusCode: 401, message: `Token exchange failed: ${err}` });
   }
   const tokens = await res.json();
   setCookie(event, "sso_session", tokens.access_token, {
@@ -3266,15 +3954,15 @@ const callback_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePro
   default: callback_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const discover_get = defineEventHandler$1(async (event) => {
-  const { url } = getQuery$2(event);
-  if (!url || typeof url !== "string") throw createError$1({ statusCode: 400, message: "url manquante" });
+const discover_get = defineEventHandler(async (event) => {
+  const { url } = getQuery$1(event);
+  if (!url || typeof url !== "string") throw createError({ statusCode: 400, message: "url manquante" });
   try {
     const res = await fetch(url, { headers: { Accept: "application/json" } });
-    if (!res.ok) throw createError$1({ statusCode: res.status, message: `Discovery failed: ${res.status}` });
+    if (!res.ok) throw createError({ statusCode: res.status, message: `Discovery failed: ${res.status}` });
     return await res.json();
   } catch (e) {
-    throw createError$1({ statusCode: 502, message: `Impossible de contacter l'IdP : ${e.message}` });
+    throw createError({ statusCode: 502, message: `Impossible de contacter l'IdP : ${e.message}` });
   }
 });
 
@@ -3283,7 +3971,7 @@ const discover_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProp
   default: discover_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const logout_post = defineEventHandler$1((event) => {
+const logout_post = defineEventHandler((event) => {
   deleteCookie(event, "sso_session", { path: "/" });
   return { ok: true };
 });
@@ -3293,7 +3981,7 @@ const logout_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
   default: logout_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const session_get = defineEventHandler$1((event) => {
+const session_get = defineEventHandler((event) => {
   const session = getCookie(event, "sso_session");
   return { authenticated: !!session };
 });
@@ -3301,6 +3989,34 @@ const session_get = defineEventHandler$1((event) => {
 const session_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: session_get
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const ws = defineWebSocketHandler({
+  open(peer) {
+    peers.add(peer);
+    peer.send(JSON.stringify({ type: "init", data: Object.fromEntries(statusMap) }));
+  },
+  async message(peer, message) {
+    try {
+      const msg = JSON.parse(message.text());
+      if (msg.type === "refresh" && msg.serviceId) {
+        const fn = refreshFns.get(msg.serviceId);
+        if (fn) await fn();
+      }
+    } catch {
+    }
+  },
+  close(peer) {
+    peers.delete(peer);
+  },
+  error(peer) {
+    peers.delete(peer);
+  }
+});
+
+const ws$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: ws
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {

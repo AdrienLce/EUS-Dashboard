@@ -22,8 +22,11 @@ declare module "nitropack/types" {
     '/api/sso/session': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sso/session.get').default>>>>
     }
+    '/api/ws': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/ws').default>>>>
+    }
     '/__nuxt_error': {
-      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@3.21.7_db0@0.3.4_ioredis@5.11.1_magicast@0.5.3_nuxt@3.21.7_@parcel+w_47f8360e7a85f87585b27676be1d8aba/node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@3.21.7_db0@0.3.4_ioredis@5.11.1_magicast@0.5.3_nuxt@3.21.7_@parcel+watcher_hvd4sc4o2b2cm42wq4k2dxoy2i/node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }
     '/__nuxt_island/**': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/#internal/nuxt/island-renderer').default>>>>
