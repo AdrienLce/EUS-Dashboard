@@ -20,6 +20,7 @@ import { parseAws } from "./aws";
 import { parseAzureDevOps } from "./azuredevops";
 import { parseRss } from "./rss";
 import { parseCustom } from "./custom";
+import { parseBloomberg } from "./bloomberg";
 
 /**
  * Union des clés d'adapters reconnus par le système.
@@ -37,6 +38,7 @@ export type AdapterKey =
   | "atlassian"
   | "aws"
   | "azuredevops"
+  | "bloomberg"
   | "rss"
   | "custom"
   | "auto";
@@ -52,6 +54,7 @@ const ADAPTERS: Record<string, (data: unknown) => AdapterResult> = {
   notion: parseAtlassian,
   aws: parseAws,
   azuredevops: parseAzureDevOps,
+  bloomberg: parseBloomberg,
   rss: parseRss,
 };
 
@@ -117,6 +120,31 @@ export function runAdapter(
     incidents: [],
   };
 }
+
+/**
+ * Métadonnées UI de chaque adapter : libellé affiché dans le dropdown + chemins JSON
+ * utilisés pour l'aperçu de mapping dans ServiceForm.
+ * Ajouter un adapter ici suffit pour le rendre visible dans l'interface.
+ */
+export interface AdapterMeta {
+  value: string
+  label: string
+  statusPath?: string
+  messagePath?: string
+  note?: string
+}
+
+export const ADAPTER_META: AdapterMeta[] = [
+  { value: "github",      label: "GitHub Status",         statusPath: "status.indicator", messagePath: "status.description" },
+  { value: "atlassian",   label: "Atlassian / Statuspage", statusPath: "status.indicator", messagePath: "status.description" },
+  { value: "aws",         label: "AWS Health",             statusPath: "", note: "Basé sur current_events[] — pas de chemin unique" },
+  { value: "azuredevops", label: "Azure DevOps",           statusPath: "status.health",    messagePath: "status.message" },
+  { value: "bloomberg",   label: "Bloomberg",              statusPath: "status.indicator", messagePath: "status.description" },
+  { value: "rss",         label: "RSS / Atom",             statusPath: "entries.0.title",  messagePath: "entries.0.summary", note: "Flux RSS parsé — chemins sur structure convertie (entries.0.title, entry_count…)" },
+  { value: "notion",      label: "Notion",                 statusPath: "status.indicator", messagePath: "status.description" },
+  { value: "custom",      label: "Personnalisé (mapping)" },
+  { value: "auto",        label: "Auto-détection" },
+]
 
 /**
  * Services pré-configurés disponibles dans le formulaire d'ajout rapide de l'UI.

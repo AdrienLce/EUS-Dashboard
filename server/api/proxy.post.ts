@@ -10,7 +10,7 @@
  * la réponse cachée sans rappeler le service externe.
  *
  * Cela évite les erreurs 429 (Too Many Requests) sur les services qui rate-limitent
- * les appels répétés depuis la même IP serveur (ex: ICE, DownDetector).
+ * les appels répétés depuis la même IP serveur.
  *
  * Le client peut forcer un rafraîchissement en passant `{ forceRefresh: true }`.
  */

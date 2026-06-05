@@ -29,16 +29,7 @@ const gridClass = computed(() => {
 const { enabledServices } = useServices();
 const { enabledComposites } = useComposites();
 const { currentStatus, getHistory } = useStatusStore();
-const {
-  loading,
-  errors,
-  startPolling,
-  stopPolling,
-  refreshService,
-  startCompositePolling,
-  stopCompositePolling,
-  refreshComposite,
-} = usePolling();
+const { loading, errors, refreshService, refreshComposite } = usePolling();
 
 const selectedService = ref<ServiceConfig | null>(null);
 const historyOpen = ref(false);
@@ -171,45 +162,6 @@ function openHistory(service: ServiceConfig) {
   historyOpen.value = true;
 }
 
-onMounted(() => {
-  for (const svc of enabledServices.value) startPolling(svc);
-  for (const c of enabledComposites.value) startCompositePolling(c);
-});
-
-watch(
-  enabledServices,
-  (newList, oldList) => {
-    const newIds = new Set(newList.map((s) => s.id));
-    const oldIds = new Set(oldList.map((s) => s.id));
-    for (const svc of newList) {
-      if (!oldIds.has(svc.id)) startPolling(svc);
-    }
-    for (const svc of oldList) {
-      if (!newIds.has(svc.id)) stopPolling(svc.id);
-    }
-  },
-  { deep: true },
-);
-
-watch(
-  enabledComposites,
-  (newList, oldList) => {
-    const newIds = new Set(newList.map((c) => c.id));
-    const oldIds = new Set(oldList.map((c) => c.id));
-    for (const c of newList) {
-      if (!oldIds.has(c.id)) startCompositePolling(c);
-    }
-    for (const c of oldList) {
-      if (!newIds.has(c.id)) stopCompositePolling(c.id);
-    }
-  },
-  { deep: true },
-);
-
-onUnmounted(() => {
-  const { stopAll } = usePolling();
-  stopAll();
-});
 </script>
 
 <template>

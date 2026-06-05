@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { StatusSnapshot } from "~/types";
 import { LEVEL_COLORS, LEVEL_LABELS } from "~/types";
+import { useLevelConfig } from "~/composables/useLevelConfig";
 
 interface SubEntry {
   id: string;
@@ -25,11 +26,9 @@ const emit = defineEmits<{
 
 const isComposite = computed(() => !!props.subServices);
 
-// Si pré-détection active ET statut réel opérationnel → afficher comme 'information'
-const preDetected = computed(() => !!props.snapshot?.preDetected && props.snapshot?.level === 'operational')
-const level = computed(() => preDetected.value ? 'information' : (props.snapshot?.level ?? 'operational') as import('~/types').StatusLevel)
+const level = computed(() => (props.snapshot?.level ?? 'operational') as import('~/types').StatusLevel)
 const colors = computed(() => LEVEL_COLORS[level.value]);
-const statusLabel = computed(() => preDetected.value ? 'Pré-détection' : LEVEL_LABELS[level.value]);
+const statusLabel = computed(() => LEVEL_LABELS[level.value]);
 
 const lastUpdated = computed(() => {
   // Composite : prendre le timestamp le plus récent parmi les enfants
@@ -49,6 +48,21 @@ const lastUpdated = computed(() => {
 
 const incidentCount = computed(() => props.snapshot?.incidents?.length ?? 0);
 
+const { getConfig } = useLevelConfig();
+const compactRingStyle = computed(() => {
+  if (level.value === 'operational' || level.value === 'inconnu') return {}
+  const hex = getConfig(level.value).color
+  return { boxShadow: `0 0 0 2px ${hex}` }
+});
+
+const displayMessage = computed(() => {
+  if (!isComposite.value && incidentCount.value === 1) {
+    const inc = props.snapshot!.incidents[0]
+    return inc.message ? `${inc.title} — ${inc.message}` : inc.title
+  }
+  return props.snapshot?.message
+});
+
 const degradedCount = computed(
   () =>
     (props.subServices ?? []).filter(
@@ -62,6 +76,7 @@ const degradedCount = computed(
   <button
     v-if="compact"
     class="group w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-100 bg-white hover:bg-gray-50 transition-colors"
+    :style="compactRingStyle"
     @click="emit('click')"
   >
     <span class="w-2 h-2 rounded-full shrink-0" :class="colors.dot" />
@@ -129,10 +144,7 @@ const degradedCount = computed(
       <!-- Message (simple et composite) -->
       <p class="mt-3 text-sm text-gray-600 line-clamp-2 min-h-[2.5rem]">
         <span v-if="error" class="text-red-600">{{ error }}</span>
-        <span v-else-if="preDetected" class="text-violet-600">
-          Incident possible détecté via DownDetector{{ snapshot?.preDetectedCount ? ` (${snapshot.preDetectedCount} signalements)` : '' }} — statut officiel : Opérationnel
-        </span>
-        <span v-else-if="snapshot?.message">{{ snapshot.message }}</span>
+        <span v-else-if="displayMessage">{{ displayMessage }}</span>
         <span v-else class="text-gray-400 italic">En attente de données…</span>
       </p>
 

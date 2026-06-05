@@ -115,43 +115,6 @@ export interface CustomMapping {
   levelMap: Record<string, StatusLevel>;
 }
 
-/** Source de données pour la pré-détection communautaire d'incidents */
-export type PreDetectionSource = 'reddit' | 'hn' | 'downdetector'
-
-/**
- * Configuration de la pré-détection communautaire.
- *
- * La pré-détection interroge des sources tierces (Reddit, HackerNews, DownDetector)
- * pour détecter les incidents AVANT qu'ils remontent sur la page de statut officielle.
- * Elle ne se déclenche que si le statut actuel est `operational`.
- */
-export interface PreDetectionConfig {
-  /** Active ou désactive la pré-détection pour ce service */
-  enabled: boolean
-  /** Source à interroger */
-  source: PreDetectionSource
-  /**
-   * Cible de la recherche, selon la source :
-   * - Reddit      : nom du subreddit (ex: `"github"`)
-   * - HN          : terme de recherche (ex: `"GitHub"`)
-   * - DownDetector: URL complète (ex: `"https://downdetector.fr/statut/github/"`)
-   */
-  target: string
-  /**
-   * Mots-clés supplémentaires pour filtrer les posts (Reddit/HN).
-   * Défaut : `"down outage unavailable incident"`
-   */
-  keywords?: string
-  /**
-   * Seuil de déclenchement :
-   * - Reddit/HN   : nombre minimum de posts récents (défaut: 3)
-   * - DownDetector: nombre de signalements (défaut: 100)
-   */
-  threshold: number
-}
-
-/** @deprecated Alias pour rétro-compatibilité — utiliser PreDetectionConfig */
-export type DownDetectorConfig = PreDetectionConfig
 
 /**
  * Configuration complète d'un service à surveiller.
@@ -179,8 +142,6 @@ export interface ServiceConfig {
   adapter: string;
   /** Mapping personnalisé — requis si adapter === "custom" */
   customMapping?: CustomMapping;
-  /** Configuration de pré-détection communautaire (optionnelle) */
-  preDetection?: PreDetectionConfig;
   /** Nom du groupe d'affichage (optionnel, pour regrouper visuellement) */
   group?: string;
   /** Intervalle de polling en secondes (1–20 min) */
@@ -195,7 +156,6 @@ export interface ServiceConfig {
  * Configuration d'un sous-service appartenant à un service composite.
  *
  * Similaire à ServiceConfig mais sans `group`, `pollInterval`, `createdAt`
- * (hérités du composite parent) ni `preDetection` (non supporté au niveau enfant).
  * L'adapter et le mapping peuvent hériter des valeurs `defaultAdapter`/`defaultMapping`
  * du composite parent si non spécifiés ici.
  */
@@ -350,14 +310,6 @@ export interface StatusSnapshot {
   incidents: Incident[];
   /** Entrées de messages structurés (RSS, custom wildcard messagePath) */
   entries?: MessageEntry[];
-  /**
-   * `true` si la pré-détection a détecté des signalements élevés
-   * ALORS QUE le statut officiel est `operational`.
-   * Déclenche un bandeau d'avertissement dans l'UI.
-   */
-  preDetected?: boolean
-  /** Nombre de signalements/posts détectés par la pré-détection */
-  preDetectedCount?: number
 }
 
 /**

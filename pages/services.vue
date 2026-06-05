@@ -5,6 +5,7 @@ import { useComposites } from "~/composables/useComposites";
 import { useStatusStore } from "~/composables/useStatusStore";
 import { useOrdering } from "~/composables/useOrdering";
 import { useDisplayMode } from "~/composables/useDisplayMode";
+import { useLevelConfig } from "~/composables/useLevelConfig";
 
 
 definePageMeta({ middleware: 'auth' })
@@ -103,6 +104,7 @@ const ADAPTER_LABELS: Record<string, string> = {
 };
 
 const { pageStyle } = useDisplayMode()
+const { levels } = useLevelConfig()
 const containerClass = computed(() => pageStyle.value === 'large' ? 'w-full px-4 sm:px-6' : 'max-w-6xl mx-auto px-4 sm:px-6')
 
 const totalCount = computed(
@@ -504,11 +506,7 @@ function onDragEnd() {
           Légende des niveaux
         </p>
         <div class="flex flex-wrap gap-3">
-          <StatusBadge level="operational" size="sm" />
-          <StatusBadge level="leger" size="sm" />
-          <StatusBadge level="mineur" size="sm" />
-          <StatusBadge level="majeur" size="sm" />
-          <StatusBadge level="maintenance" size="sm" />
+          <StatusBadge v-for="lvl in levels" :key="lvl.id" :level="lvl.id" size="sm" />
         </div>
       </div>
     </main>
