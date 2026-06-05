@@ -18,6 +18,7 @@ export const CompositeDetailModal: typeof import("../components/CompositeDetailM
 export const CompositeForm: typeof import("../components/CompositeForm.vue")['default']
 export const HistoryModal: typeof import("../components/HistoryModal.vue")['default']
 export const JsonTree: typeof import("../components/JsonTree.vue")['default']
+export const LevelConfigModal: typeof import("../components/LevelConfigModal.vue")['default']
 export const ServiceCard: typeof import("../components/ServiceCard.vue")['default']
 export const ServiceForm: typeof import("../components/ServiceForm.vue")['default']
 export const ServiceFormAuth: typeof import("../components/ServiceFormAuth.vue")['default']
@@ -51,6 +52,7 @@ export const LazyCompositeDetailModal: LazyComponent<typeof import("../component
 export const LazyCompositeForm: LazyComponent<typeof import("../components/CompositeForm.vue")['default']>
 export const LazyHistoryModal: LazyComponent<typeof import("../components/HistoryModal.vue")['default']>
 export const LazyJsonTree: LazyComponent<typeof import("../components/JsonTree.vue")['default']>
+export const LazyLevelConfigModal: LazyComponent<typeof import("../components/LevelConfigModal.vue")['default']>
 export const LazyServiceCard: LazyComponent<typeof import("../components/ServiceCard.vue")['default']>
 export const LazyServiceForm: LazyComponent<typeof import("../components/ServiceForm.vue")['default']>
 export const LazyServiceFormAuth: LazyComponent<typeof import("../components/ServiceFormAuth.vue")['default']>

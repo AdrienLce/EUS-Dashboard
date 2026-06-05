@@ -1,36 +1,34 @@
 <script setup lang="ts">
 import type { StatusLevel } from '~/types'
-import { LEVEL_LABELS, LEVEL_COLORS } from '~/types'
+import { useLevelConfig, levelStyles } from '~/composables/useLevelConfig'
 
 const props = defineProps<{
   level: StatusLevel
   size?: 'sm' | 'md'
 }>()
 
+const { getConfig } = useLevelConfig()
 const size = computed(() => props.size ?? 'md')
-const colors = computed(() => LEVEL_COLORS[props.level])
-const label = computed(() => LEVEL_LABELS[props.level])
+
+const config = computed(() => getConfig(props.level))
+const styles = computed(() => levelStyles(config.value.color))
+const isActive = computed(() => props.level !== 'operational' && props.level !== 'inconnu')
 </script>
 
 <template>
   <span
-    class="inline-flex items-center gap-1.5 rounded-full font-medium"
-    :class="[
-      colors.bg,
-      colors.text,
-      colors.border,
-      'border',
-      size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm',
-    ]"
+    class="inline-flex items-center gap-1.5 rounded-full font-medium border"
+    :class="size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-sm'"
+    :style="styles.badge"
   >
     <span
       class="rounded-full shrink-0"
       :class="[
-        colors.dot,
         size === 'sm' ? 'w-1.5 h-1.5' : 'w-2 h-2',
-        level === 'operational' || level === 'inconnu' ? '' : 'animate-pulse',
+        isActive ? 'animate-pulse' : '',
       ]"
+      :style="styles.dot"
     />
-    {{ label }}
+    {{ config.label }}
   </span>
 </template>

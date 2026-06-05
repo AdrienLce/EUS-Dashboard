@@ -18,6 +18,7 @@ interface _GlobalComponents {
   CompositeForm: typeof import("../../components/CompositeForm.vue")['default']
   HistoryModal: typeof import("../../components/HistoryModal.vue")['default']
   JsonTree: typeof import("../../components/JsonTree.vue")['default']
+  LevelConfigModal: typeof import("../../components/LevelConfigModal.vue")['default']
   ServiceCard: typeof import("../../components/ServiceCard.vue")['default']
   ServiceForm: typeof import("../../components/ServiceForm.vue")['default']
   ServiceFormAuth: typeof import("../../components/ServiceFormAuth.vue")['default']
@@ -51,6 +52,7 @@ interface _GlobalComponents {
   LazyCompositeForm: LazyComponent<typeof import("../../components/CompositeForm.vue")['default']>
   LazyHistoryModal: LazyComponent<typeof import("../../components/HistoryModal.vue")['default']>
   LazyJsonTree: LazyComponent<typeof import("../../components/JsonTree.vue")['default']>
+  LazyLevelConfigModal: LazyComponent<typeof import("../../components/LevelConfigModal.vue")['default']>
   LazyServiceCard: LazyComponent<typeof import("../../components/ServiceCard.vue")['default']>
   LazyServiceForm: LazyComponent<typeof import("../../components/ServiceForm.vue")['default']>
   LazyServiceFormAuth: LazyComponent<typeof import("../../components/ServiceFormAuth.vue")['default']>

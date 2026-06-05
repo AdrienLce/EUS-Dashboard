@@ -32,6 +32,7 @@ export { definePageMeta } from '../node_modules/.pnpm/nuxt@3.21.7_@parcel+watche
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useComposites } from '../composables/useComposites';
 export { useDisplayMode } from '../composables/useDisplayMode';
+export { levelStyles, useLevelConfig } from '../composables/useLevelConfig';
 export { useOrdering } from '../composables/useOrdering';
 export { usePolling } from '../composables/usePolling';
 export { useScheduler } from '../composables/useScheduler';

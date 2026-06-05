@@ -43,6 +43,7 @@ declare global {
   const isShallow: typeof import('../../node_modules/vue').isShallow
   const isVue2: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/compat/vue-demi').isVue2
   const isVue3: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/compat/vue-demi').isVue3
+  const levelStyles: typeof import('../../composables/useLevelConfig').levelStyles
   const loadPayload: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/payload').loadPayload
   const markRaw: typeof import('../../node_modules/vue').markRaw
   const navigateTo: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/router').navigateTo
@@ -111,6 +112,7 @@ declare global {
   const useId: typeof import('../../node_modules/vue').useId
   const useLazyAsyncData: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/asyncData').useLazyAsyncData
   const useLazyFetch: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/fetch').useLazyFetch
+  const useLevelConfig: typeof import('../../composables/useLevelConfig').useLevelConfig
   const useLink: typeof import('../../node_modules/vue-router').useLink
   const useLoadingIndicator: typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/loading-indicator').useLoadingIndicator
   const useModel: typeof import('../../node_modules/vue').useModel
@@ -249,6 +251,7 @@ declare module 'vue' {
     readonly isShallow: UnwrapRef<typeof import('../../node_modules/vue')['isShallow']>
     readonly isVue2: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/compat/vue-demi')['isVue2']>
     readonly isVue3: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/compat/vue-demi')['isVue3']>
+    readonly levelStyles: UnwrapRef<typeof import('../../composables/useLevelConfig')['levelStyles']>
     readonly loadPayload: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/payload')['loadPayload']>
     readonly markRaw: UnwrapRef<typeof import('../../node_modules/vue')['markRaw']>
     readonly navigateTo: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/router')['navigateTo']>
@@ -317,6 +320,7 @@ declare module 'vue' {
     readonly useId: UnwrapRef<typeof import('../../node_modules/vue')['useId']>
     readonly useLazyAsyncData: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/asyncData')['useLazyAsyncData']>
     readonly useLazyFetch: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/fetch')['useLazyFetch']>
+    readonly useLevelConfig: UnwrapRef<typeof import('../../composables/useLevelConfig')['useLevelConfig']>
     readonly useLink: UnwrapRef<typeof import('../../node_modules/vue-router')['useLink']>
     readonly useLoadingIndicator: UnwrapRef<typeof import('../../node_modules/.pnpm/nuxt@3.21.7_@parcel+watcher@2.5.6_@vue+compiler-sfc@3.5.35_cac@6.7.14_db0@0.3.4_ioredis_e1e6aa07e4674352370d1ca9f621336b/node_modules/nuxt/dist/app/composables/loading-indicator')['useLoadingIndicator']>
     readonly useModel: UnwrapRef<typeof import('../../node_modules/vue')['useModel']>

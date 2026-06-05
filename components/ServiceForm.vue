@@ -58,6 +58,11 @@ const defaultForm = () => ({
   group: "",
   pollInterval: 60,
   enabled: true,
+  pdEnabled: false,
+  pdSource: 'reddit' as 'reddit' | 'hn' | 'downdetector',
+  pdTarget: "",
+  pdKeywords: "",
+  pdThreshold: 3,
 });
 
 const defaultAuth = () => ({
@@ -232,6 +237,11 @@ function loadForm() {
     form.group = props.editing.group ?? "";
     form.pollInterval = props.editing.pollInterval;
     form.enabled = props.editing.enabled;
+    form.pdEnabled = props.editing.preDetection?.enabled ?? false;
+    form.pdSource = (props.editing.preDetection?.source ?? 'reddit') as typeof form.pdSource;
+    form.pdTarget = props.editing.preDetection?.target ?? '';
+    form.pdKeywords = props.editing.preDetection?.keywords ?? '';
+    form.pdThreshold = props.editing.preDetection?.threshold ?? 3;
     const detectedKey = detectAuthFromHeaders(props.editing.headers);
     form.headers = Object.entries(props.editing.headers)
       .filter(([k]) => k !== detectedKey)
@@ -442,6 +452,9 @@ function submit() {
     group: form.group || undefined,
     pollInterval: Math.min(Math.max(form.pollInterval, 10), 120),
     enabled: form.enabled,
+    preDetection: form.pdEnabled && form.pdTarget.trim()
+      ? { enabled: true, source: form.pdSource, target: form.pdTarget.trim(), keywords: form.pdKeywords || undefined, threshold: form.pdThreshold || 3 }
+      : undefined,
   });
 }
 
@@ -905,6 +918,91 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <!-- Pré-détection DownDetector -->
+                <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      <label class="text-sm font-medium text-gray-700">Pré-détection communautaire</label>
+                    </div>
+                    <button
+                      type="button"
+                      class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors shrink-0"
+                      :class="form.pdEnabled ? 'bg-violet-500' : 'bg-gray-200'"
+                      @click="form.pdEnabled = !form.pdEnabled"
+                    >
+                      <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform" :class="form.pdEnabled ? 'translate-x-4' : 'translate-x-0.5'" />
+                    </button>
+                  </div>
+
+                  <template v-if="form.pdEnabled">
+                    <p class="text-xs text-violet-600 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2">
+                      Si le statut officiel est <strong>Opérationnel</strong> mais que la communauté signale des problèmes, la carte affiche <strong>Pré-détection</strong> en violet. Un incident réel reste toujours prioritaire.
+                    </p>
+
+                    <!-- Source -->
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Source</label>
+                      <div class="flex gap-2">
+                        <button
+                          v-for="src in [{ value: 'reddit', label: 'Reddit' }, { value: 'hn', label: 'HackerNews' }, { value: 'downdetector', label: 'DownDetector' }]"
+                          :key="src.value"
+                          type="button"
+                          class="flex-1 px-3 py-2 text-sm rounded-lg border transition-colors"
+                          :class="form.pdSource === src.value ? 'bg-violet-50 border-violet-300 text-violet-700 font-medium' : 'border-gray-200 text-gray-500 hover:bg-gray-50'"
+                          @click="form.pdSource = src.value as typeof form.pdSource; form.pdThreshold = src.value === 'downdetector' ? 100 : 3"
+                        >{{ src.label }}</button>
+                      </div>
+                    </div>
+
+                    <!-- Target selon source -->
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">
+                        {{ form.pdSource === 'reddit' ? 'Subreddit' : form.pdSource === 'hn' ? 'Terme de recherche' : 'URL DownDetector' }}
+                      </label>
+                      <input
+                        v-model="form.pdTarget"
+                        :type="form.pdSource === 'downdetector' ? 'url' : 'text'"
+                        :placeholder="form.pdSource === 'reddit' ? 'github' : form.pdSource === 'hn' ? 'GitHub' : 'https://downdetector.fr/statut/github/'"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                      />
+                      <p v-if="form.pdSource === 'reddit'" class="text-xs text-gray-400 mt-1">
+                        Cherche dans r/{{ form.pdTarget || 'subreddit' }} les posts récents (1h) contenant les mots-clés.
+                      </p>
+                    </div>
+
+                    <!-- Mots-clés (Reddit/HN) -->
+                    <div v-if="form.pdSource !== 'downdetector'">
+                      <label class="block text-xs text-gray-500 mb-1">Mots-clés (optionnel)</label>
+                      <input
+                        v-model="form.pdKeywords"
+                        type="text"
+                        placeholder="down outage unavailable incident"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                      />
+                    </div>
+
+                    <!-- Seuil -->
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Seuil de déclenchement</label>
+                      <input
+                        v-model.number="form.pdThreshold"
+                        type="number"
+                        min="1"
+                        :max="form.pdSource === 'downdetector' ? 10000 : 50"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                      />
+                      <p class="text-xs text-gray-400 mt-1">
+                        <template v-if="form.pdSource === 'reddit'">Nb de posts Reddit dans la dernière heure. Défaut : 3.</template>
+                        <template v-else-if="form.pdSource === 'hn'">Nb de posts HackerNews dans la dernière heure. Défaut : 2.</template>
+                        <template v-else>Nb de signalements. Défaut : 100. Se déclenche aussi si ≥ 2.5× la baseline.</template>
+                      </p>
+                    </div>
+
+                    <p v-if="form.pdSource === 'downdetector'" class="text-xs text-gray-400 italic">⚠️ Peut être bloqué par Cloudflare. Si bloqué, la pré-détection reste inactive sans erreur.</p>
+                  </template>
                 </div>
 
                 <!-- Headers supplémentaires -->

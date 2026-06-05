@@ -4,7 +4,27 @@ export type StatusLevel =
   | "mineur"
   | "majeur"
   | "maintenance"
+  | "information"
   | "inconnu";
+
+export interface LevelConfig {
+  id: StatusLevel
+  /** Libellé affiché — personnalisable */
+  label: string
+  /** Libellé de référence — non modifiable, rappelle la sémantique du niveau */
+  reference: string
+  color: string // hex, ex: "#22c55e"
+}
+
+export const DEFAULT_LEVEL_CONFIGS: LevelConfig[] = [
+  { id: 'operational',  label: 'Opérationnel',       reference: 'Tout fonctionne normalement',         color: '#22c55e' },
+  { id: 'information',  label: 'Information',         reference: 'Message informatif sans impact',      color: '#8b5cf6' },
+  { id: 'leger',        label: 'Légère perturbation', reference: 'Dégradation partielle non critique',  color: '#eab308' },
+  { id: 'mineur',       label: 'Incident mineur',     reference: 'Impact partiel sur le service',       color: '#f97316' },
+  { id: 'majeur',       label: 'Incident majeur',     reference: 'Interruption ou impact fort',         color: '#ef4444' },
+  { id: 'maintenance',  label: 'Maintenance',         reference: 'Maintenance planifiée ou en cours',   color: '#3b82f6' },
+  { id: 'inconnu',      label: 'Action requise',      reference: 'Statut indéterminé / auth manquante', color: '#9ca3af' },
+]
 
 export type HttpMethod = "GET" | "POST";
 
@@ -13,6 +33,22 @@ export interface CustomMapping {
   messagePath?: string;
   levelMap: Record<string, StatusLevel>;
 }
+
+export type PreDetectionSource = 'reddit' | 'hn' | 'downdetector'
+
+export interface PreDetectionConfig {
+  enabled: boolean
+  source: PreDetectionSource
+  /** Reddit: nom du subreddit (ex: "github") · HN: terme de recherche · DD: URL complète */
+  target: string
+  /** Mots-clés supplémentaires (défaut: "down outage not working") */
+  keywords?: string
+  /** Reddit/HN: nb de posts · DownDetector: nb signalements (défaut: 100) */
+  threshold: number
+}
+
+/** @deprecated Alias pour rétro-compatibilité */
+export type DownDetectorConfig = PreDetectionConfig
 
 export interface ServiceConfig {
   id: string;
@@ -23,6 +59,7 @@ export interface ServiceConfig {
   body?: string;
   adapter: string;
   customMapping?: CustomMapping;
+  preDetection?: PreDetectionConfig;
   group?: string;
   pollInterval: number; // secondes, max 120
   enabled: boolean;
@@ -55,6 +92,7 @@ export interface CompositeServiceConfig {
 export const LEVEL_ORDER: StatusLevel[] = [
   "operational",
   "inconnu",
+  "information",
   "maintenance",
   "leger",
   "mineur",
@@ -91,6 +129,9 @@ export interface StatusSnapshot {
   message: string;
   incidents: Incident[];
   entries?: MessageEntry[];
+  /** true si DownDetector a détecté des signalements élevés ALORS QUE le statut réel est opérationnel */
+  preDetected?: boolean
+  preDetectedCount?: number
 }
 
 export interface AdapterResult {
@@ -102,6 +143,7 @@ export interface AdapterResult {
 
 export const LEVEL_LABELS: Record<StatusLevel, string> = {
   operational: "Opérationnel",
+  information: "Information",
   leger: "Légère perturbation",
   mineur: "Incident mineur",
   majeur: "Incident majeur",
@@ -147,6 +189,13 @@ export const LEVEL_COLORS: Record<
     border: "border-blue-200",
     dot: "bg-blue-500",
     banner: "bg-blue-500 text-white",
+  },
+  information: {
+    bg: "bg-violet-50",
+    text: "text-violet-700",
+    border: "border-violet-200",
+    dot: "bg-violet-500",
+    banner: "bg-violet-500 text-white",
   },
   inconnu: {
     bg: "bg-gray-50",

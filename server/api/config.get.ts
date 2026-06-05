@@ -5,5 +5,6 @@ export default defineEventHandler(async () => {
   const services = await storage.getItem('services') ?? []
   const composites = await storage.getItem('composites') ?? []
   const order = await storage.getItem('order') ?? []
-  return { services, composites, order }
+  const levels = await storage.getItem('levels') ?? []
+  return { services, composites, order, levels }
 })

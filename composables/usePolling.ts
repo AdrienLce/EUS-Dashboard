@@ -1,11 +1,46 @@
 import { ref } from 'vue'
 import type { ServiceConfig, SubServiceConfig, CompositeServiceConfig } from '~/types'
 import { runAdapter } from '~/adapters/index'
+import { buildPreDetectionUrl, parsePreDetection } from '~/adapters/predetection'
 import { useStatusStore } from './useStatusStore'
 import { useScheduler } from './useScheduler'
 
 const loading = ref<Record<string, boolean>>({})
 const errors = ref<Record<string, string | null>>({})
+
+async function checkPreDetection(
+  snap: import('~/types').StatusSnapshot,
+  pd: import('~/types').PreDetectionConfig | undefined,
+) {
+  if (!pd?.enabled || !pd.target || snap.level !== 'operational') return
+  try {
+    const fetchUrl = buildPreDetectionUrl(pd)
+    if (!fetchUrl) return
+
+    const headers: Record<string, string> = pd.source === 'reddit'
+      ? { 'User-Agent': 'status-dashboard/1.0' }
+      : pd.source === 'downdetector'
+        ? {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8',
+            'Accept-Language': 'fr-FR,fr;q=0.9',
+            'Referer': 'https://www.google.com/',
+          }
+        : {}
+
+    const data = await $fetch('/api/proxy', {
+      method: 'POST',
+      body: { url: fetchUrl, method: 'GET', headers },
+    })
+
+    const result = parsePreDetection(pd.source, data, pd)
+    if (result?.triggered) {
+      snap.preDetected = true
+      snap.preDetectedCount = result.count
+    }
+  }
+  catch { /* silencieux — best-effort */ }
+}
 
 async function fetchOne(
   id: string,
@@ -15,6 +50,7 @@ async function fetchOne(
   body: string | undefined,
   adapter: string,
   customMapping: ServiceConfig['customMapping'],
+  preDetection?: import('~/types').PreDetectionConfig,
 ) {
   loading.value[id] = true
   errors.value[id] = null
@@ -31,6 +67,7 @@ async function fetchOne(
       incidents: result.incidents,
     }
     if (result.entries) snap.entries = result.entries
+    await checkPreDetection(snap, preDetection)
     pushSnapshot(snap)
   }
   catch (err: unknown) {
@@ -53,7 +90,8 @@ async function fetchOne(
 }
 
 function makeFetchFn(svc: ServiceConfig | SubServiceConfig) {
-  return () => fetchOne(svc.id, svc.url, svc.method, svc.headers, svc.body, svc.adapter, svc.customMapping)
+  const pd = 'preDetection' in svc ? (svc as ServiceConfig).preDetection : undefined
+  return () => fetchOne(svc.id, svc.url, svc.method, svc.headers, svc.body, svc.adapter, svc.customMapping, pd)
 }
 
 export function usePolling() {

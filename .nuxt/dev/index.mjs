@@ -2209,7 +2209,22 @@ _mIm28XQOpR4HFPtSj3rxTutNMo3KN2qbnoP2DV392QQ,
 _wH6JrtIxmaSoA8lCPWFnE9z4lQeXW6H5z3l5aymEQw
 ];
 
-const assets = {};
+const assets = {
+  "/index.mjs": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"1c4f5-EXegc7UiFXOY6Y9XQEdpMsVEexg\"",
+    "mtime": "2026-06-05T01:21:00.642Z",
+    "size": 115957,
+    "path": "index.mjs"
+  },
+  "/index.mjs.map": {
+    "type": "application/json",
+    "etag": "\"6decb-U6ZN5gzlNmbJ+cC1OFqZ2xi7nrE\"",
+    "mtime": "2026-06-05T01:21:00.642Z",
+    "size": 450251,
+    "path": "index.mjs.map"
+  }
+};
 
 function readAsset (id) {
   const serverDir = dirname$1(fileURLToPath(globalThis._importMeta_.url));
@@ -3105,12 +3120,13 @@ const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 }, Symbol.toStringTag, { value: 'Module' }));
 
 const config_get = defineEventHandler$1(async () => {
-  var _a, _b, _c;
+  var _a, _b, _c, _d;
   const storage = useStorage("config");
   const services = (_a = await storage.getItem("services")) != null ? _a : [];
   const composites = (_b = await storage.getItem("composites")) != null ? _b : [];
   const order = (_c = await storage.getItem("order")) != null ? _c : [];
-  return { services, composites, order };
+  const levels = (_d = await storage.getItem("levels")) != null ? _d : [];
+  return { services, composites, order, levels };
 });
 
 const config_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3124,6 +3140,7 @@ const config_post = defineEventHandler$1(async (event) => {
   if (body.services !== void 0) await storage.setItem("services", body.services);
   if (body.composites !== void 0) await storage.setItem("composites", body.composites);
   if (body.order !== void 0) await storage.setItem("order", body.order);
+  if (body.levels !== void 0) await storage.setItem("levels", body.levels);
   return { ok: true };
 });
 

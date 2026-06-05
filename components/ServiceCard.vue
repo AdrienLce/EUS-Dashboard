@@ -25,9 +25,11 @@ const emit = defineEmits<{
 
 const isComposite = computed(() => !!props.subServices);
 
-const level = computed(() => props.snapshot?.level ?? "operational");
+// Si pré-détection active ET statut réel opérationnel → afficher comme 'information'
+const preDetected = computed(() => !!props.snapshot?.preDetected && props.snapshot?.level === 'operational')
+const level = computed(() => preDetected.value ? 'information' : (props.snapshot?.level ?? 'operational') as import('~/types').StatusLevel)
 const colors = computed(() => LEVEL_COLORS[level.value]);
-const statusLabel = computed(() => LEVEL_LABELS[level.value]);
+const statusLabel = computed(() => preDetected.value ? 'Pré-détection' : LEVEL_LABELS[level.value]);
 
 const lastUpdated = computed(() => {
   // Composite : prendre le timestamp le plus récent parmi les enfants
@@ -127,6 +129,9 @@ const degradedCount = computed(
       <!-- Message (simple et composite) -->
       <p class="mt-3 text-sm text-gray-600 line-clamp-2 min-h-[2.5rem]">
         <span v-if="error" class="text-red-600">{{ error }}</span>
+        <span v-else-if="preDetected" class="text-violet-600">
+          Incident possible détecté via DownDetector{{ snapshot?.preDetectedCount ? ` (${snapshot.preDetectedCount} signalements)` : '' }} — statut officiel : Opérationnel
+        </span>
         <span v-else-if="snapshot?.message">{{ snapshot.message }}</span>
         <span v-else class="text-gray-400 italic">En attente de données…</span>
       </p>

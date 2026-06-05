@@ -5,6 +5,8 @@ import { useComposites } from "~/composables/useComposites";
 import { useStatusStore } from "~/composables/useStatusStore";
 import { useOrdering } from "~/composables/useOrdering";
 
+const levelConfigOpen = ref(false);
+
 useHead({ title: "Services — Status Concentrateur" });
 
 const { services, addService, updateService, removeService, toggleService } =
@@ -193,10 +195,19 @@ function onDragEnd() {
             >{{ totalCount }}</span
           >
         </div>
-        <button
-          class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
-          @click="openAdd"
-        >
+        <div class="flex items-center gap-2">
+          <!-- Personnaliser les niveaux -->
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            @click="levelConfigOpen = true"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+            Niveaux
+          </button>
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+            @click="openAdd"
+          >
           <svg
             class="w-4 h-4"
             fill="none"
@@ -211,9 +222,11 @@ function onDragEnd() {
             />
           </svg>
           Ajouter
-        </button>
+          </button>
+        </div>
       </div>
     </nav>
+    <LevelConfigModal :open="levelConfigOpen" @close="levelConfigOpen = false" />
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-3">
       <!-- Empty state -->

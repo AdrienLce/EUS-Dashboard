@@ -4,6 +4,7 @@ interface ConfigBody {
   services?: unknown[]
   composites?: unknown[]
   order?: string[]
+  levels?: unknown[]
 }
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +14,7 @@ export default defineEventHandler(async (event) => {
   if (body.services !== undefined) await storage.setItem('services', body.services)
   if (body.composites !== undefined) await storage.setItem('composites', body.composites)
   if (body.order !== undefined) await storage.setItem('order', body.order)
+  if (body.levels !== undefined) await storage.setItem('levels', body.levels)
 
   return { ok: true }
 })
