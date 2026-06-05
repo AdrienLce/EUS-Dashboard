@@ -160,13 +160,6 @@ export const PRESET_SERVICES = [
     headers: {},
   },
   {
-    name: "AWS",
-    url: "https://health.aws.amazon.com/health/status",
-    method: "GET" as const,
-    adapter: "aws",
-    headers: {},
-  },
-  {
     name: "Azure DevOps (Europe)",
     url: "https://status.dev.azure.com/_apis/status/health?geographies=EU&api-version=7.0-preview.1",
     method: "GET" as const,

@@ -79,9 +79,20 @@ function mapAwsStatus(status: string): StatusLevel {
  * @returns AdapterResult avec le niveau global et la liste des événements actifs
  */
 export function parseAws(data: unknown): AdapterResult {
+  // L'URL health.aws.amazon.com/health/status retourne du HTML (SPA) — le proxy encapsule
+  // dans { _raw } au lieu de parser du JSON. On détecte ce cas pour éviter un faux "operational".
+  if (typeof data === 'object' && data !== null && '_raw' in data) {
+    return {
+      level: 'inconnu',
+      message: "Réponse non-JSON reçue — vérifier l'URL du feed AWS",
+      incidents: [],
+    }
+  }
+
   const feed = data as AwsFeed
 
-  const current = feed.current_events ?? []
+  // Supporte les deux noms de champ : "current_events" (nouvelle API) et "current" (ancien data.json)
+  const current = feed.current_events ?? (feed as Record<string, unknown>).current as AwsEntry[] ?? []
 
   // Pas d'événements en cours → tout est opérationnel
   if (current.length === 0) {
