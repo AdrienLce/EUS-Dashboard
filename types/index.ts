@@ -27,6 +27,7 @@ export type StatusLevel =
   | "leger"
   | "mineur"
   | "majeur"
+  | "critique"
   | "maintenance"
   | "information"
   | "inconnu";
@@ -61,6 +62,7 @@ export const DEFAULT_LEVEL_CONFIGS: LevelConfig[] = [
   { id: 'leger',        label: 'Légère perturbation', reference: 'Dégradation partielle non critique',  color: '#eab308' },
   { id: 'mineur',       label: 'Incident mineur',     reference: 'Impact partiel sur le service',       color: '#f97316' },
   { id: 'majeur',       label: 'Incident majeur',     reference: 'Interruption ou impact fort',         color: '#ef4444' },
+  { id: 'critique',     label: 'Incident critique',   reference: 'Panne totale ou interruption critique', color: '#7f1d1d' },
   { id: 'maintenance',  label: 'Maintenance',         reference: 'Maintenance planifiée ou en cours',   color: '#3b82f6' },
   { id: 'inconnu',      label: 'Action requise',      reference: 'Statut indéterminé / auth manquante', color: '#9ca3af' },
 ]
@@ -269,6 +271,7 @@ export const LEVEL_ORDER: StatusLevel[] = [
   "leger",
   "mineur",
   "majeur",
+  "critique",
 ];
 
 /**
@@ -382,6 +385,7 @@ export const LEVEL_LABELS: Record<StatusLevel, string> = {
   leger: "Légère perturbation",
   mineur: "Incident mineur",
   majeur: "Incident majeur",
+  critique: "Incident critique",
   maintenance: "Maintenance",
   inconnu: "Action requise",
 };
@@ -426,6 +430,13 @@ export const LEVEL_COLORS: Record<
     border: "border-red-200",
     dot: "bg-red-500",
     banner: "bg-red-500 text-white",
+  },
+  critique: {
+    bg: "bg-red-100",
+    text: "text-red-950",
+    border: "border-red-900",
+    dot: "bg-red-950",
+    banner: "bg-red-950 text-white",
   },
   maintenance: {
     bg: "bg-blue-50",

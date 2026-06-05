@@ -89,8 +89,8 @@ export function autoDetectLevel(value: string): StatusLevel {
   const v = value.toLowerCase()
   if (['healthy', 'operational', 'none', 'ok', 'up', 'normal', 'allsystemsoperational'].some((k) => v === k || v.includes(k))) return 'operational'
   if (['minor', 'advisory', 'warning', 'degraded_performance', 'partial'].some((k) => v.includes(k))) return 'leger'
-  if (['major', 'degraded', 'partial_outage'].some((k) => v.includes(k))) return 'mineur'
-  if (['critical', 'outage', 'disruption', 'unhealthy', 'down', 'major_outage'].some((k) => v.includes(k))) return 'majeur'
+  if (['major', 'degraded', 'partial_outage', 'major_outage'].some((k) => v.includes(k))) return 'majeur'
+  if (['critical', 'outage', 'disruption', 'unhealthy', 'down'].some((k) => v.includes(k))) return 'critique'
   if (['maintenance'].some((k) => v.includes(k))) return 'maintenance'
   if (['info', 'notice', 'update', 'annonce'].some((k) => v.includes(k))) return 'information'
   return 'inconnu'

@@ -36,6 +36,7 @@
  */
 
 import type { AdapterResult, Incident, StatusLevel } from '~/types'
+import { worstLevel } from '~/types'
 
 /** Structure du champ status.indicator dans la réponse Atlassian */
 interface AtlassianStatus {
@@ -81,9 +82,9 @@ interface AtlassianSummary {
 function mapIndicator(indicator: string): StatusLevel {
   switch (indicator) {
     case 'none':        return 'operational'
-    case 'minor':       return 'leger'
-    case 'major':       return 'mineur'
-    case 'critical':    return 'majeur'
+    case 'minor':       return 'mineur'
+    case 'major':       return 'majeur'
+    case 'critical':    return 'critique'
     case 'maintenance': return 'maintenance'
     default:            return 'operational'
   }
@@ -99,11 +100,11 @@ function mapIndicator(indicator: string): StatusLevel {
 function mapImpact(impact: string): StatusLevel {
   switch (impact) {
     case 'none':        return 'operational'
-    case 'minor':       return 'leger'
-    case 'major':       return 'mineur'
-    case 'critical':    return 'majeur'
+    case 'minor':       return 'mineur'
+    case 'major':       return 'majeur'
+    case 'critical':    return 'critique'
     case 'maintenance': return 'maintenance'
-    default:            return 'leger'
+    default:            return 'mineur'
   }
 }
 

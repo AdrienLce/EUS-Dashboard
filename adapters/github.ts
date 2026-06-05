@@ -72,9 +72,9 @@ interface GithubSummary {
 function mapGithubIndicator(indicator: string): StatusLevel {
   switch (indicator) {
     case 'none':        return 'operational'
-    case 'minor':       return 'leger'
-    case 'major':       return 'mineur'
-    case 'critical':    return 'majeur'
+    case 'minor':       return 'mineur'
+    case 'major':       return 'majeur'
+    case 'critical':    return 'critique'
     case 'maintenance': return 'maintenance'
     default:            return 'operational'
   }
@@ -88,11 +88,11 @@ function mapGithubIndicator(indicator: string): StatusLevel {
 function mapGithubIncidentImpact(impact: string): StatusLevel {
   switch (impact) {
     case 'none':        return 'operational'
-    case 'minor':       return 'leger'
-    case 'major':       return 'mineur'
-    case 'critical':    return 'majeur'
+    case 'minor':       return 'mineur'
+    case 'major':       return 'majeur'
+    case 'critical':    return 'critique'
     case 'maintenance': return 'maintenance'
-    default:            return 'leger'
+    default:            return 'mineur'
   }
 }
 
