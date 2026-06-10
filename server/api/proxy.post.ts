@@ -26,6 +26,8 @@ interface ProxyRequest {
   cacheTtl?: number
   /** Ignore le cache et force un nouvel appel */
   forceRefresh?: boolean
+  /** Mode ping : retourne { _statusCode, _ok } sans parser le body */
+  isPing?: boolean
 }
 
 // Cache mémoire côté serveur : Map<url, { data, expiresAt }>
@@ -86,6 +88,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const response = await fetch(req.url, fetchOptions)
+
+  // Mode ping : retourner le code HTTP sans parser le body
+  if (req.isPing) {
+    return { _statusCode: response.status, _ok: response.ok }
+  }
 
   if (!response.ok) {
     throw createError({

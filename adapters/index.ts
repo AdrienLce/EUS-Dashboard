@@ -21,6 +21,7 @@ import { parseAzureDevOps } from "./azuredevops";
 import { parseRss } from "./rss";
 import { parseCustom } from "./custom";
 import { parseBloomberg } from "./bloomberg";
+import { parsePing } from "./ping";
 
 /**
  * Union des clés d'adapters reconnus par le système.
@@ -31,6 +32,7 @@ import { parseBloomberg } from "./bloomberg";
  * - `azuredevops`: Azure DevOps Health API
  * - `rss`        : Flux RSS/Atom (retourné en { _raw: xml })
  * - `custom`     : Mapping personnalisé via CustomMapping
+ * - `ping`       : Ping HTTP — 2xx = opérationnel, autre = erreur
  * - `auto`       : Auto-détection du format (tente Atlassian en fallback)
  */
 export type AdapterKey =
@@ -41,6 +43,7 @@ export type AdapterKey =
   | "bloomberg"
   | "rss"
   | "custom"
+  | "ping"
   | "auto";
 
 /**
@@ -50,12 +53,12 @@ export type AdapterKey =
 const ADAPTERS: Record<string, (data: unknown) => AdapterResult> = {
   github: parseGithub,
   atlassian: parseAtlassian,
-  // Notion utilise le format Atlassian Statuspage standard
   notion: parseAtlassian,
   aws: parseAws,
   azuredevops: parseAzureDevOps,
   bloomberg: parseBloomberg,
   rss: parseRss,
+  ping: parsePing,
 };
 
 /**
@@ -142,6 +145,7 @@ export const ADAPTER_META: AdapterMeta[] = [
   { value: "bloomberg",   label: "Bloomberg",              statusPath: "status.indicator", messagePath: "status.description" },
   { value: "rss",         label: "RSS / Atom",             statusPath: "entries.0.title",  messagePath: "entries.0.summary", note: "Flux RSS parsé — chemins sur structure convertie (entries.0.title, entry_count…)" },
   { value: "notion",      label: "Notion",                 statusPath: "status.indicator", messagePath: "status.description" },
+  { value: "ping",        label: "Ping HTTP", note: "2xx = opérationnel · 5xx = majeur · 4xx = mineur · timeout = majeur" },
   { value: "custom",      label: "Personnalisé (mapping)" },
   { value: "auto",        label: "Auto-détection" },
 ]

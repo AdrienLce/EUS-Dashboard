@@ -18,17 +18,19 @@ const props = defineProps<{
   siblings?: SiblingEntry[];
   inComposite?: boolean;
   inheritedAdapter?: string;
-  inheritedMapping?: import('~/types').CustomMapping;
-}>(); 
+  inheritedMapping?: import("~/types").CustomMapping;
+}>();
 
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "save", config: Omit<ServiceConfig, "id" | "createdAt">): void;
   (e: "save-and-close", config: Omit<ServiceConfig, "id" | "createdAt">): void;
   (e: "select-sibling", sibling: SiblingEntry): void;
-  (e: "set-as-default", payload: { adapter: string; mapping: import("~/types").CustomMapping }): void;
+  (
+    e: "set-as-default",
+    payload: { adapter: string; mapping: import("~/types").CustomMapping },
+  ): void;
 }>();
-
 
 const LEVELS = Object.entries(LEVEL_LABELS).map(([value, label]) => ({
   value: value as StatusLevel,
@@ -77,26 +79,27 @@ const mapping = reactive(defaultMapping());
 
 // ── Adapter path metadata — dérivé de ADAPTER_META (source unique dans adapters/index.ts)
 const ADAPTER_PATHS = Object.fromEntries(
-  ADAPTER_META
-    .filter((a) => a.statusPath !== undefined)
-    .map((a) => [a.value, { statusPath: a.statusPath!, messagePath: a.messagePath, note: a.note }])
+  ADAPTER_META.filter((a) => a.statusPath !== undefined).map((a) => [
+    a.value,
+    { statusPath: a.statusPath!, messagePath: a.messagePath, note: a.note },
+  ]),
 );
 
 const adapterInfo = computed(() => ADAPTER_PATHS[form.adapter] ?? null);
 
 // Héritage du composite parent
-const isInheritingAdapter = computed(() =>
-  !!props.inheritedAdapter && (!form.adapter || form.adapter === 'auto')
-)
-const isInheritingMapping = computed(() =>
-  !!props.inheritedMapping && !mapping.statusPath
-)
+const isInheritingAdapter = computed(
+  () => !!props.inheritedAdapter && (!form.adapter || form.adapter === "auto"),
+);
+const isInheritingMapping = computed(
+  () => !!props.inheritedMapping && !mapping.statusPath,
+);
 const effectiveAdapter = computed(() =>
-  isInheritingAdapter.value ? props.inheritedAdapter : form.adapter
-)
+  isInheritingAdapter.value ? props.inheritedAdapter : form.adapter,
+);
 const effectiveMapping = computed(() =>
-  isInheritingMapping.value ? props.inheritedMapping : null
-)
+  isInheritingMapping.value ? props.inheritedMapping : null,
+);
 
 const resolvedAdapterValues = computed(() => {
   if (!testResult.value || !adapterInfo.value) return null;
@@ -294,10 +297,13 @@ async function runTest() {
         method: form.method,
         headers,
         body: form.body || undefined,
+        isPing: form.adapter === "ping",
       },
     });
     testResult.value = data;
-    testHttpStatus.value = 200;
+    testHttpStatus.value = form.adapter === "ping"
+      ? (data as { _statusCode?: number })._statusCode ?? 200
+      : 200;
   } catch (err: unknown) {
     const e = err as { statusCode?: number; message?: string };
     testHttpStatus.value = e.statusCode ?? 0;
@@ -478,7 +484,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
         >
           <div
             v-if="open"
-            class="relative w-full max-w-[95vw] max-h-[92vh] bg-white rounded-2xl shadow-xl flex flex-col"
+            class="relative w-full max-w-[95vw] h-full max-h-[92vh] bg-white rounded-2xl shadow-xl flex flex-col"
           >
             <!-- Header -->
             <div
@@ -581,9 +587,26 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <!-- Adapter -->
                 <div>
                   <div class="flex items-center justify-between mb-1">
-                    <label class="block text-sm font-medium text-gray-700">Adaptateur</label>
-                    <span v-if="isInheritingAdapter" class="text-xs text-emerald-600 flex items-center gap-1">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    <label class="block text-sm font-medium text-gray-700"
+                      >Adaptateur</label
+                    >
+                    <span
+                      v-if="isInheritingAdapter"
+                      class="text-xs text-emerald-600 flex items-center gap-1"
+                    >
+                      <svg
+                        class="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                        />
+                      </svg>
                       Hérité du groupe ({{ props.inheritedAdapter }})
                     </span>
                   </div>
@@ -667,19 +690,51 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 space-y-2"
                 >
                   <div class="flex items-center justify-between">
-                    <p class="text-xs font-medium text-emerald-700 flex items-center gap-1.5">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    <p
+                      class="text-xs font-medium text-emerald-700 flex items-center gap-1.5"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                        />
+                      </svg>
                       Mapping hérité du groupe
                     </p>
                     <button
                       type="button"
                       class="text-xs text-emerald-600 hover:text-emerald-800 underline"
-                      @click="mapping.statusPath = effectiveMapping?.statusPath ?? ''; mapping.messagePath = effectiveMapping?.messagePath ?? ''; mapping.levelMap = { ...(effectiveMapping?.levelMap ?? {}) }; form.adapter = 'custom'"
-                    >Personnaliser</button>
+                      @click="
+                        mapping.statusPath = effectiveMapping?.statusPath ?? '';
+                        mapping.messagePath =
+                          effectiveMapping?.messagePath ?? '';
+                        mapping.levelMap = {
+                          ...(effectiveMapping?.levelMap ?? {}),
+                        };
+                        form.adapter = 'custom';
+                      "
+                    >
+                      Personnaliser
+                    </button>
                   </div>
-                  <div class="grid grid-cols-2 gap-2 text-xs font-mono text-emerald-800">
-                    <div><span class="text-emerald-500">statut :</span> {{ effectiveMapping?.statusPath }}</div>
-                    <div v-if="effectiveMapping?.messagePath"><span class="text-emerald-500">message :</span> {{ effectiveMapping?.messagePath }}</div>
+                  <div
+                    class="grid grid-cols-2 gap-2 text-xs font-mono text-emerald-800"
+                  >
+                    <div>
+                      <span class="text-emerald-500">statut :</span>
+                      {{ effectiveMapping?.statusPath }}
+                    </div>
+                    <div v-if="effectiveMapping?.messagePath">
+                      <span class="text-emerald-500">message :</span>
+                      {{ effectiveMapping?.messagePath }}
+                    </div>
                   </div>
                 </div>
 
@@ -813,9 +868,30 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   v-if="inComposite && mapping.statusPath"
                   class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
                   type="button"
-                  @click="emit('set-as-default', { adapter: form.adapter, mapping: { statusPath: mapping.statusPath, messagePath: mapping.messagePath || undefined, levelMap: { ...mapping.levelMap } } })"
+                  @click="
+                    emit('set-as-default', {
+                      adapter: form.adapter,
+                      mapping: {
+                        statusPath: mapping.statusPath,
+                        messagePath: mapping.messagePath || undefined,
+                        levelMap: { ...mapping.levelMap },
+                      },
+                    })
+                  "
                 >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                  <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                    />
+                  </svg>
                   Définir comme mapping global du groupe
                 </button>
 
@@ -1033,9 +1109,16 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <!-- Intervalle + Groupe -->
                 <div class="grid grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Intervalle</label>
-                    <select v-model.number="form.pollInterval" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                      <option v-for="m in 20" :key="m" :value="m * 60">{{ m }} minute{{ m > 1 ? 's' : '' }}</option>
+                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                      >Intervalle</label
+                    >
+                    <select
+                      v-model.number="form.pollInterval"
+                      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      <option v-for="m in 20" :key="m" :value="m * 60">
+                        {{ m }} minute{{ m > 1 ? "s" : "" }}
+                      </option>
                     </select>
                   </div>
                   <div v-if="!siblings?.length">

@@ -28,7 +28,7 @@ export function triggerRefresh(serviceId: string) {
 }
 
 /** Fetch direct depuis le serveur (pas via le proxy HTTP interne) */
-async function serverFetch(url: string, method: string, headers: Record<string, string>, body?: string): Promise<unknown> {
+async function serverFetch(url: string, method: string, headers: Record<string, string>, body?: string, isPing = false): Promise<unknown> {
   const options: RequestInit = {
     method,
     headers: {
@@ -40,6 +40,16 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
   if (method === 'POST' && body) {
     options.body = body
     ;(options.headers as Record<string, string>)['Content-Type'] = 'application/json'
+  }
+
+  // Pour ping : capturer le code HTTP même en cas d'erreur
+  if (isPing) {
+    try {
+      const res = await fetch(url, options)
+      return { _statusCode: res.status, _ok: res.ok }
+    } catch {
+      return { _statusCode: 0, _ok: false }
+    }
   }
 
   const res = await fetch(url, options)
@@ -54,7 +64,7 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
 /** Poll un service, run l'adapter, broadcast le snapshot */
 async function pollService(svc: ServiceConfig | SubServiceConfig) {
   try {
-    const data = await serverFetch(svc.url, svc.method, svc.headers, svc.body)
+    const data = await serverFetch(svc.url, svc.method, svc.headers, svc.body, svc.adapter === 'ping')
     const result = runAdapter(svc.adapter, data, svc.customMapping)
 
     const snapshot: StatusSnapshot = {
