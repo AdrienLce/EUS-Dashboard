@@ -24,6 +24,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "close"): void;
   (e: "save", config: Omit<ServiceConfig, "id" | "createdAt">): void;
+  (e: "save-and-close", config: Omit<ServiceConfig, "id" | "createdAt">): void;
   (e: "select-sibling", sibling: SiblingEntry): void;
   (e: "set-as-default", payload: { adapter: string; mapping: import("~/types").CustomMapping }): void;
 }>();
@@ -405,15 +406,13 @@ function buildAuthHeader(): { key: string; value: string } | null {
 }
 
 // ── Save ─────────────────────────────────────────────────────
-function submit() {
-  if (!form.name.trim() || !form.url.trim()) return;
+function buildPayload() {
   const headers: Record<string, string> = {};
   const authHeader = buildAuthHeader();
   if (authHeader) headers[authHeader.key] = authHeader.value;
   for (const h of form.headers) {
     if (h.key.trim()) headers[h.key.trim()] = h.value;
   }
-
   const customMapping: CustomMapping | undefined =
     form.adapter === "custom" && mapping.statusPath
       ? {
@@ -422,8 +421,7 @@ function submit() {
           levelMap: { ...mapping.levelMap },
         }
       : undefined;
-
-  emit("save", {
+  return {
     name: form.name.trim(),
     url: form.url.trim(),
     method: form.method,
@@ -434,7 +432,17 @@ function submit() {
     group: form.group || undefined,
     pollInterval: Math.min(Math.max(form.pollInterval, 60), 1200),
     enabled: form.enabled,
-  });
+  };
+}
+
+function submit() {
+  if (!form.name.trim() || !form.url.trim()) return;
+  emit("save", buildPayload());
+}
+
+function submitAndClose() {
+  if (!form.name.trim() || !form.url.trim()) return;
+  emit("save-and-close", buildPayload());
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -1383,11 +1391,18 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 Annuler
               </button>
               <button
-                class="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                class="px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                 :disabled="!form.name.trim() || !form.url.trim()"
                 @click="submit"
               >
                 {{ editing ? "Enregistrer" : "Ajouter" }}
+              </button>
+              <button
+                class="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                :disabled="!form.name.trim() || !form.url.trim()"
+                @click="submitAndClose"
+              >
+                {{ editing ? "Enregistrer et Fermer" : "Ajouter et Fermer" }}
               </button>
             </div>
           </div>

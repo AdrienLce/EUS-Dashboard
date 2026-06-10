@@ -10,7 +10,9 @@ export default defineNuxtConfig({
       watch: {
         // Exclure le dossier data/ du watcher Vite — sinon chaque écriture
         // de config (theme, services...) déclenche un HMR reload en dev
-        ignored: ['**/data/**'],
+        ignored: ['**/data/**', '**/.git/**', '**/node_modules/**'],
+        // Utilise watchman (installé via brew) — évite EMFILE sur macOS
+        usePolling: false,
       },
     },
   },

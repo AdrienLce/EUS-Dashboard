@@ -13,6 +13,10 @@
     "nuxt": "^3.13.0"
   },
   "devDependencies": {
+    "fb-watchman": "^2.0.2",
     "tailwindcss": "^4.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@parcel/watcher", "esbuild"]
   }
 }

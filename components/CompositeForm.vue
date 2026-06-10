@@ -5,6 +5,9 @@ import type {
   ServiceConfig,
   CustomMapping,
 } from "~/types";
+import { useToast } from "~/composables/useToast";
+
+const { add: toast } = useToast();
 
 const props = defineProps<{
   open: boolean;
@@ -20,16 +23,20 @@ const emit = defineEmits<{
 }>();
 
 const ADAPTERS = [
-  { value: 'auto', label: 'Auto-détection' },
-  { value: 'rss', label: 'RSS / Atom' },
-  { value: 'atlassian', label: 'Atlassian / Statuspage' },
-  { value: 'github', label: 'GitHub Status' },
-  { value: 'aws', label: 'AWS Health' },
-  { value: 'azuredevops', label: 'Azure DevOps' },
-  { value: 'custom', label: 'Personnalisé (mapping)' },
-]
+  { value: "auto", label: "Auto-détection" },
+  { value: "rss", label: "RSS / Atom" },
+  { value: "atlassian", label: "Atlassian / Statuspage" },
+  { value: "github", label: "GitHub Status" },
+  { value: "aws", label: "AWS Health" },
+  { value: "azuredevops", label: "Azure DevOps" },
+  { value: "custom", label: "Personnalisé (mapping)" },
+];
 
-const defaultMappingInit = (): CustomMapping => ({ statusPath: '', messagePath: '', levelMap: {} })
+const defaultMappingInit = (): CustomMapping => ({
+  statusPath: "",
+  messagePath: "",
+  levelMap: {},
+});
 
 const form = reactive({
   name: "",
@@ -37,7 +44,7 @@ const form = reactive({
   pollInterval: 300,
   enabled: true,
   children: [] as SubServiceConfig[],
-  defaultAdapter: 'auto',
+  defaultAdapter: "auto",
   defaultMappingEnabled: false,
   defaultMapping: defaultMappingInit(),
 });
@@ -61,10 +68,13 @@ watch(
       form.pollInterval = props.editing.pollInterval;
       form.enabled = props.editing.enabled;
       form.children = props.editing.children.map((c) => ({ ...c }));
-      form.defaultAdapter = props.editing.defaultAdapter ?? 'auto';
+      form.defaultAdapter = props.editing.defaultAdapter ?? "auto";
       form.defaultMappingEnabled = !!props.editing.defaultMapping;
       form.defaultMapping = props.editing.defaultMapping
-        ? { ...props.editing.defaultMapping, levelMap: { ...props.editing.defaultMapping.levelMap } }
+        ? {
+            ...props.editing.defaultMapping,
+            levelMap: { ...props.editing.defaultMapping.levelMap },
+          }
         : defaultMappingInit();
     } else {
       form.name = "";
@@ -72,7 +82,7 @@ watch(
       form.pollInterval = 60;
       form.enabled = true;
       form.children = [];
-      form.defaultAdapter = 'auto';
+      form.defaultAdapter = "auto";
       form.defaultMappingEnabled = false;
       form.defaultMapping = defaultMappingInit();
     }
@@ -105,7 +115,7 @@ function openEditChild(child: SubServiceConfig) {
   childFormOpen.value = true;
 }
 
-function onChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
+function applyChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
   const sub: SubServiceConfig = {
     id: editingChildId.value ?? crypto.randomUUID(),
     name: config.name,
@@ -123,42 +133,60 @@ function onChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
     if (idx !== -1) form.children[idx] = sub;
   } else {
     form.children.push(sub);
+    editingChildId.value = sub.id;
   }
+}
 
+function onChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
+  applyChildSave(config);
+  toast(`"${config.name}" enregistré`);
+}
+
+function onChildSaveAndClose(config: Omit<ServiceConfig, "id" | "createdAt">) {
+  applyChildSave(config);
+  toast(`"${config.name}" enregistré`);
   childFormOpen.value = false;
+  editingChildId.value = null;
 }
 
 function removeChild(id: string) {
-  form.children = form.children.filter((c) => c.id !== id)
+  form.children = form.children.filter((c) => c.id !== id);
 }
 
 function toggleChildEnabled(id: string) {
-  const c = form.children.find((c) => c.id === id)
-  if (c) c.enabled = !c.enabled
+  const c = form.children.find((c) => c.id === id);
+  if (c) c.enabled = !c.enabled;
 }
 
 // ── DnD sous-services ────────────────────────────────────────
-const childDragIndex = ref<number | null>(null)
-const childDragOver = ref<number | null>(null)
+const childDragIndex = ref<number | null>(null);
+const childDragOver = ref<number | null>(null);
 
 function onChildDragStart(i: number, e: DragEvent) {
-  childDragIndex.value = i
-  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+  childDragIndex.value = i;
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
 }
 function onChildDragOver(i: number, e: DragEvent) {
-  e.preventDefault()
-  childDragOver.value = i
+  e.preventDefault();
+  childDragOver.value = i;
 }
 function onChildDrop(i: number) {
-  if (childDragIndex.value === null || childDragIndex.value === i) { childDragIndex.value = null; childDragOver.value = null; return }
-  const list = [...form.children]
-  const [moved] = list.splice(childDragIndex.value, 1)
-  list.splice(i, 0, moved)
-  form.children = list
-  childDragIndex.value = null
-  childDragOver.value = null
+  if (childDragIndex.value === null || childDragIndex.value === i) {
+    childDragIndex.value = null;
+    childDragOver.value = null;
+    return;
+  }
+  const list = [...form.children];
+  const [moved] = list.splice(childDragIndex.value, 1);
+  list.splice(i, 0, moved);
+  form.children = list;
+  childDragIndex.value = null;
+  childDragOver.value = null;
 }
-function onChildDragEnd() { childDragIndex.value = null; childDragOver.value = null }
+function onChildDragEnd() {
+  childDragIndex.value = null;
+  childDragOver.value = null;
+}
 
 function submit() {
   if (!form.name.trim()) return;
@@ -168,10 +196,12 @@ function submit() {
     pollInterval: Math.min(Math.max(form.pollInterval, 60), 1200),
     enabled: form.enabled,
     children: form.children,
-    defaultAdapter: form.defaultAdapter !== 'auto' ? form.defaultAdapter : undefined,
-    defaultMapping: form.defaultMappingEnabled && form.defaultMapping.statusPath
-      ? { ...form.defaultMapping }
-      : undefined,
+    defaultAdapter:
+      form.defaultAdapter !== "auto" ? form.defaultAdapter : undefined,
+    defaultMapping:
+      form.defaultMappingEnabled && form.defaultMapping.statusPath
+        ? { ...form.defaultMapping }
+        : undefined,
   });
 }
 
@@ -205,7 +235,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
         >
           <div
             v-if="open"
-            class="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-xl flex flex-col"
+            class="relative w-full max-w-6xl h-full max-h-[75vh] bg-white rounded-2xl shadow-xl flex flex-col"
           >
             <!-- Header -->
             <div
@@ -249,10 +279,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-              <!-- Infos composite -->
-              <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
+            <!-- Body — 2 colonnes -->
+            <div class="flex-1 overflow-hidden flex min-h-0">
+              <!-- Colonne gauche : config -->
+              <div
+                class="w-1/2 border-r border-gray-100 overflow-y-auto px-6 py-5 space-y-5"
+              >
+                <!-- Nom -->
+                <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
                     >Nom <span class="text-red-500">*</span></label
                   >
@@ -263,74 +297,214 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1"
-                    >Section</label
-                  >
-                  <input
-                    v-model="form.group"
-                    type="text"
-                    placeholder="ex: Trading"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Intervalle</label>
-                  <select v-model.number="form.pollInterval" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option v-for="m in 20" :key="m" :value="m * 60">{{ m }} minute{{ m > 1 ? 's' : '' }}</option>
-                  </select>
-                </div>
-              </div>
 
-              <!-- Mapping global ─────────────────────────────── -->
-              <div class="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    <label class="text-sm font-medium text-gray-700">Mapping global</label>
-                    <span class="text-xs text-gray-400">(hérité par les sous-services sans config propre)</span>
+                <!-- Section + Intervalle -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                      >Section</label
+                    >
+                    <input
+                      v-model="form.group"
+                      type="text"
+                      placeholder="ex: Trading"
+                      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1"
+                      >Intervalle</label
+                    >
+                    <select
+                      v-model.number="form.pollInterval"
+                      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      <option v-for="m in 20" :key="m" :value="m * 60">
+                        {{ m }} minute{{ m > 1 ? "s" : "" }}
+                      </option>
+                    </select>
                   </div>
                 </div>
 
-                <!-- Adapter par défaut -->
-                <div>
-                  <label class="block text-xs text-gray-500 mb-1">Adaptateur par défaut</label>
-                  <select v-model="form.defaultAdapter" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option v-for="a in ADAPTERS" :key="a.value" :value="a.value">{{ a.label }}</option>
-                  </select>
-                </div>
-
-                <!-- Mapping personnalisé -->
-                <div class="flex items-center justify-between">
-                  <label class="text-xs text-gray-500">Mapping personnalisé global</label>
-                  <button
-                    type="button"
-                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                    :class="form.defaultMappingEnabled ? 'bg-blue-500' : 'bg-gray-200'"
-                    @click="form.defaultMappingEnabled = !form.defaultMappingEnabled"
-                  >
-                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform" :class="form.defaultMappingEnabled ? 'translate-x-4' : 'translate-x-0.5'" />
-                  </button>
-                </div>
-
-                <template v-if="form.defaultMappingEnabled">
-                  <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-xs text-gray-500 mb-1">Chemin statut</label>
-                      <input v-model="form.defaultMapping.statusPath" type="text" placeholder="ex: entries.0.title" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                <!-- Mapping global -->
+                <div
+                  class="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3"
+                >
+                  <div class="flex justify-between items-center gap-2">
+                    <div class="flex items-center gap-2">
+                      <svg
+                        class="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                      <span class="text-sm font-medium text-gray-700"
+                        >Mapping global</span
+                      >
+                      <span class="text-xs text-gray-400"
+                        >hérité par défaut</span
+                      >
                     </div>
-                    <div>
-                      <label class="block text-xs text-gray-500 mb-1">Chemin message</label>
-                      <input v-model="form.defaultMapping.messagePath" type="text" placeholder="ex: entries.*.summary" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+                    <div class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                        :class="
+                          form.defaultMappingEnabled
+                            ? 'bg-blue-500'
+                            : 'bg-gray-200'
+                        "
+                        @click="
+                          form.defaultMappingEnabled =
+                            !form.defaultMappingEnabled
+                        "
+                      >
+                        <span
+                          class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform"
+                          :class="
+                            form.defaultMappingEnabled
+                              ? 'translate-x-4'
+                              : 'translate-x-0.5'
+                          "
+                        />
+                      </button>
                     </div>
                   </div>
-                  <p class="text-xs text-gray-400">Les sous-services avec leur propre mapping l'utilisent en priorité. Les autres héritent de ce mapping.</p>
-                </template>
+
+                  <template v-if="form.defaultMappingEnabled">
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1"
+                        >Adaptateur par défaut</label
+                      >
+                      <select
+                        v-model="form.defaultAdapter"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        <option
+                          v-for="a in ADAPTERS"
+                          :key="a.value"
+                          :value="a.value"
+                        >
+                          {{ a.label }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-gray-500 mb-1"
+                          >Chemin statut</label
+                        >
+                        <input
+                          v-model="form.defaultMapping.statusPath"
+                          type="text"
+                          placeholder="ex: entries.0.title"
+                          class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-gray-500 mb-1"
+                          >Chemin message</label
+                        >
+                        <input
+                          v-model="form.defaultMapping.messagePath"
+                          type="text"
+                          placeholder="ex: entries.*.summary"
+                          class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- levelMap -->
+                    <div>
+                      <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs text-gray-500"
+                          >Table de correspondance</label
+                        >
+                        <button
+                          type="button"
+                          class="text-xs text-blue-500 hover:text-blue-700"
+                          @click="
+                            form.defaultMapping.levelMap[''] = 'operational'
+                          "
+                        >
+                          + Ajouter
+                        </button>
+                      </div>
+                      <div class="space-y-1.5">
+                        <div
+                          v-for="(_, key) in form.defaultMapping.levelMap"
+                          :key="key"
+                          class="flex items-center gap-2"
+                        >
+                          <input
+                            :value="key"
+                            type="text"
+                            placeholder="valeur API"
+                            class="flex-1 rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            @change="
+                              (e) => {
+                                const newKey = (e.target as HTMLInputElement)
+                                  .value;
+                                const val = form.defaultMapping.levelMap[key];
+                                delete form.defaultMapping.levelMap[key];
+                                form.defaultMapping.levelMap[newKey] = val;
+                              }
+                            "
+                          />
+                          <span class="text-gray-300 text-xs">→</span>
+                          <select
+                            v-model="form.defaultMapping.levelMap[key]"
+                            class="rounded border border-gray-200 px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="operational">Opérationnel</option>
+                            <option value="information">Information</option>
+                            <option value="leger">Légère</option>
+                            <option value="mineur">Mineur</option>
+                            <option value="majeur">Majeur</option>
+                            <option value="critique">Critique</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="inconnu">Inconnu</option>
+                          </select>
+                          <button
+                            type="button"
+                            class="text-gray-300 hover:text-red-400 transition-colors"
+                            @click="delete form.defaultMapping.levelMap[key]"
+                          >
+                            <svg
+                              class="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <p class="text-xs text-gray-400 mt-2">
+                        Les sous-services avec leur propre mapping l'utilisent
+                        en priorité.
+                      </p>
+                    </div>
+                  </template>
+                </div>
               </div>
 
-              <!-- Sous-services -->
-              <div>
-                <div class="flex items-center justify-between mb-3">
+              <!-- Colonne droite : sous-services -->
+              <div class="w-1/2 overflow-y-auto px-6 py-5 flex flex-col gap-4">
+                <div class="flex items-center justify-between">
                   <h3 class="text-sm font-medium text-gray-700">
                     Sous-services
                     <span class="text-gray-400 font-normal"
@@ -360,9 +534,9 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
 
                 <div
                   v-if="form.children.length === 0"
-                  class="text-center py-8 rounded-xl border border-dashed border-gray-200 text-gray-400 text-sm"
+                  class="flex-1 flex items-center justify-center rounded-xl border border-dashed border-gray-200 text-gray-400 text-sm py-12"
                 >
-                  Aucun sous-service — ajoutez des flux RSS ou endpoints
+                  Aucun sous-service
                 </div>
 
                 <div v-else class="space-y-2">
@@ -372,7 +546,9 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     draggable="true"
                     class="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 transition-all select-none"
                     :class="[
-                      childDragOver === ci && childDragIndex !== ci ? 'border-blue-400 scale-[1.01]' : 'border-gray-100',
+                      childDragOver === ci && childDragIndex !== ci
+                        ? 'border-blue-400 scale-[1.01]'
+                        : 'border-gray-100',
                       childDragIndex === ci ? 'opacity-40' : '',
                       !child.enabled ? 'opacity-50' : '',
                     ]"
@@ -381,9 +557,21 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     @drop="onChildDrop(ci)"
                     @dragend="onChildDragEnd"
                   >
-                    <!-- Drag handle -->
-                    <div class="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 shrink-0">
-                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+                    <div
+                      class="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 shrink-0"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle cx="9" cy="6" r="1.5" />
+                        <circle cx="15" cy="6" r="1.5" />
+                        <circle cx="9" cy="12" r="1.5" />
+                        <circle cx="15" cy="12" r="1.5" />
+                        <circle cx="9" cy="18" r="1.5" />
+                        <circle cx="15" cy="18" r="1.5" />
+                      </svg>
                     </div>
                     <button
                       class="shrink-0 relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
@@ -397,7 +585,6 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         "
                       />
                     </button>
-
                     <div class="flex-1 min-w-0">
                       <p class="text-sm font-medium text-gray-800 truncate">
                         {{ child.name }}
@@ -406,12 +593,10 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         {{ child.url }}
                       </p>
                     </div>
-
                     <span
                       class="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-600 shrink-0"
-                      >{{ child.adapter }}</span
+                      >{{ child.adapter || "hérité" }}</span
                     >
-
                     <div class="flex gap-1 shrink-0">
                       <button
                         class="p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
@@ -455,6 +640,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               </div>
             </div>
 
+            <!-- Footer -->
             <div
               class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 shrink-0"
             >
@@ -488,13 +674,30 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
           adapter: c.adapter,
         }))
       "
-      @close="childFormOpen = false"
+      @close="
+        childFormOpen = false;
+        editingChildId = null;
+      "
       @save="onChildSave"
+      @save-and-close="onChildSaveAndClose"
       :in-composite="true"
-      :inherited-adapter="form.defaultAdapter !== 'auto' ? form.defaultAdapter : undefined"
-      :inherited-mapping="form.defaultMappingEnabled && form.defaultMapping.statusPath ? form.defaultMapping : undefined"
-      @select-sibling="openEditChild(form.children.find((c) => c.id === $event.id)!)"
-      @set-as-default="form.defaultAdapter = $event.adapter; form.defaultMapping = $event.mapping; form.defaultMappingEnabled = true; childFormOpen = false"
+      :inherited-adapter="
+        form.defaultAdapter !== 'auto' ? form.defaultAdapter : undefined
+      "
+      :inherited-mapping="
+        form.defaultMappingEnabled && form.defaultMapping.statusPath
+          ? form.defaultMapping
+          : undefined
+      "
+      @select-sibling="
+        openEditChild(form.children.find((c) => c.id === $event.id)!)
+      "
+      @set-as-default="
+        form.defaultAdapter = $event.adapter;
+        form.defaultMapping = $event.mapping;
+        form.defaultMappingEnabled = true;
+        childFormOpen = false;
+      "
     />
   </Teleport>
 </template>

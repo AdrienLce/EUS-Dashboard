@@ -63,5 +63,23 @@ export default defineEventHandler(async (event) => {
     await poller.reload()
   }
 
+  // Broadcaster la config mise à jour à tous les clients WS
+  // et recharger le scheduler immédiatement si services/composites changent
+  const configChanged = body.services !== undefined || body.composites !== undefined || body.order !== undefined
+  if (configChanged) {
+    // Recharger le scheduler (nouveaux services, suppressions, toggles)
+    import('../plugins/scheduler').then(({ reloadSchedulers }) => reloadSchedulers()).catch(() => {})
+
+    // Lire la config complète et la broadcaster
+    const full = {
+      services:   await storage.getItem('services')   ?? [],
+      composites: await storage.getItem('composites') ?? [],
+      order:      await storage.getItem('order')      ?? [],
+    }
+    import('../routes/_ws').then(({ broadcast }) => {
+      broadcast({ type: 'config', data: full })
+    }).catch(() => {})
+  }
+
   return { ok: true }
 })

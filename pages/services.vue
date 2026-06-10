@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import type { ServiceConfig, CompositeServiceConfig } from "~/types";
+import type { ServiceConfig, CompositeServiceConfig, SubServiceConfig } from "~/types";
 import { useServices } from "~/composables/useServices";
 import { useComposites } from "~/composables/useComposites";
 import { useStatusStore } from "~/composables/useStatusStore";
 import { useOrdering } from "~/composables/useOrdering";
 import { useDisplayMode } from "~/composables/useDisplayMode";
 import { useLevelConfig } from "~/composables/useLevelConfig";
-
+import { useToast } from "~/composables/useToast";
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: "Services — Status Concentrateur" });
+
+const { add: toast } = useToast();
 
 const { services, addService, updateService, removeService, toggleService } =
   useServices();
@@ -20,6 +22,39 @@ const {
   removeComposite,
   toggleComposite,
 } = useComposites();
+
+// ── Déplacer un service dans un groupe ───────────────────────
+const moveModalOpen = ref(false);
+const movingService = ref<ServiceConfig | null>(null);
+
+function openMoveModal(svc: ServiceConfig) {
+  movingService.value = svc;
+  moveModalOpen.value = true;
+}
+
+function moveToComposite(compositeId: string) {
+  const svc = movingService.value;
+  if (!svc) return;
+  const composite = composites.value.find(c => c.id === compositeId);
+  if (!composite) return;
+
+  const sub: SubServiceConfig = {
+    id: svc.id,
+    name: svc.name,
+    url: svc.url,
+    method: svc.method,
+    headers: svc.headers,
+    adapter: svc.adapter,
+    enabled: svc.enabled,
+    ...(svc.body !== undefined && { body: svc.body }),
+    ...(svc.customMapping && { customMapping: svc.customMapping }),
+  };
+
+  updateComposite(compositeId, { children: [...composite.children, sub] });
+  removeService(svc.id);
+  moveModalOpen.value = false;
+  movingService.value = null;
+}
 const { currentStatus, clearHistory } = useStatusStore();
 
 // ── Choix du type à l'ajout ─────────────────────────────────
@@ -50,9 +85,20 @@ function openEdit(svc: ServiceConfig) {
 }
 
 function onSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
-  if (editingService.value) updateService(editingService.value.id, config);
-  else addService(config);
+  if (editingService.value) {
+    updateService(editingService.value.id, config);
+    toast(`"${config.name}" enregistré`);
+  } else {
+    const svc = addService(config);
+    editingService.value = svc;
+    toast(`"${config.name}" ajouté`);
+  }
+}
+
+function onSaveAndClose(config: Omit<ServiceConfig, "id" | "createdAt">) {
+  onSave(config);
   formOpen.value = false;
+  editingService.value = null;
 }
 
 function confirmDelete(id: string) {
@@ -77,9 +123,9 @@ function openEditComposite(c: CompositeServiceConfig) {
 function onSaveComposite(
   config: Omit<CompositeServiceConfig, "id" | "createdAt" | "type">,
 ) {
-  if (editingComposite.value)
-    updateComposite(editingComposite.value.id, config);
+  if (editingComposite.value) updateComposite(editingComposite.value.id, config);
   else addComposite(config);
+  toast(`Groupe "${config.name}" enregistré`);
   compositeFormOpen.value = false;
 }
 
@@ -335,6 +381,17 @@ function onDragEnd() {
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
+            <!-- Déplacer dans un groupe -->
+            <button
+              v-if="composites.length > 0"
+              class="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+              title="Déplacer dans un groupe"
+              @click="openMoveModal(item as ServiceConfig)"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+              </svg>
+            </button>
             <button
               class="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
               @click="openEdit(item as ServiceConfig)"
@@ -593,11 +650,47 @@ function onDragEnd() {
       </Transition>
     </Teleport>
 
+    <!-- Modale : déplacer dans un groupe -->
+    <Teleport to="body">
+      <Transition enter-active-class="transition duration-150" enter-from-class="opacity-0" enter-to-class="opacity-100">
+        <div v-if="moveModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="moveModalOpen = false" />
+          <div class="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm space-y-3">
+            <h2 class="font-semibold text-gray-900 text-lg">Déplacer dans un groupe</h2>
+            <p class="text-sm text-gray-500">
+              Choisissez le groupe dans lequel déplacer
+              <span class="font-medium text-gray-900">{{ movingService?.name }}</span>.
+            </p>
+            <div class="space-y-2 mt-2">
+              <button
+                v-for="c in composites"
+                :key="c.id"
+                class="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
+                @click="moveToComposite(c.id)"
+              >
+                <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ c.name }}</p>
+                  <p class="text-xs text-gray-400">{{ c.children.length }} sous-service{{ c.children.length !== 1 ? 's' : '' }}</p>
+                </div>
+              </button>
+            </div>
+            <button class="w-full text-sm text-gray-400 hover:text-gray-600 pt-1" @click="moveModalOpen = false">Annuler</button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <ServiceForm
       :open="formOpen"
       :editing="editingService"
-      @close="formOpen = false"
+      @close="formOpen = false; editingService = null"
       @save="onSave"
+      @save-and-close="onSaveAndClose"
     />
     <CompositeForm
       :open="compositeFormOpen"

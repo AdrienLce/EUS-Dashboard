@@ -10,7 +10,7 @@ import { buildSummary } from "~/utils/summarize";
 import { useServices } from "~/composables/useServices";
 import { useComposites } from "~/composables/useComposites";
 import { useStatusStore } from "~/composables/useStatusStore";
-import { usePolling } from "~/composables/usePolling";
+import { useRealtimeStatus } from "~/composables/useRealtimeStatus";
 
 useHead({ title: "Dashboard — Status Concentrateur" });
 
@@ -29,7 +29,14 @@ const gridClass = computed(() => {
 const { enabledServices } = useServices();
 const { enabledComposites } = useComposites();
 const { currentStatus, getHistory } = useStatusStore();
-const { loading, errors, refreshService, refreshComposite } = usePolling();
+const { requestRefresh } = useRealtimeStatus();
+const loading = ref<Record<string, boolean>>({});
+const errors = ref<Record<string, string | null>>({});
+
+function refreshService(svc: { id: string }) { requestRefresh(svc.id) }
+function refreshComposite(c: { children: { id: string; enabled: boolean }[] }) {
+  c.children.filter(ch => ch.enabled).forEach(ch => requestRefresh(ch.id))
+}
 
 const selectedService = ref<ServiceConfig | null>(null);
 const historyOpen = ref(false);
