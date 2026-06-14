@@ -1,0 +1,5 @@
+# Dependencies for the Python tooling in this folder.
+# Install with:  pip install -r python-tools/requirements.txt
+reportlab>=4.5   # build_euda_pdf.py — the Sentinel EUDA documentation PDF
+pillow>=10.0     # build_logo.py — renders the logo prototypes + asset set
+numpy>=1.26      # build_logo.py — gradient generation
