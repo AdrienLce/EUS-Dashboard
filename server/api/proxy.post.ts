@@ -16,6 +16,7 @@
  */
 
 import { defineEventHandler, readBody, createError } from 'h3'
+import { fetch as httpFetch, type RequestInit as HttpRequestInit } from 'undici'
 
 interface ProxyRequest {
   url: string
@@ -73,11 +74,14 @@ export default defineEventHandler(async (event) => {
     if (cached !== null) return cached
   }
 
-  const fetchOptions: RequestInit = {
+  const fetchOptions: HttpRequestInit = {
     method: req.method ?? 'GET',
     headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'StatusDashboard/1.0',
+      // Browser-like headers: some status edges (Cloudflare/bot protection) reject
+      // non-browser clients. Per-service headers can still override these.
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       ...(req.headers ?? {}),
     },
   }
@@ -87,7 +91,21 @@ export default defineEventHandler(async (event) => {
     ;(fetchOptions.headers as Record<string, string>)['Content-Type'] = 'application/json'
   }
 
-  const response = await fetch(req.url, fetchOptions)
+  let response: Awaited<ReturnType<typeof httpFetch>>
+  try {
+    response = await httpFetch(req.url, fetchOptions)
+  }
+  catch (e: unknown) {
+    // Connection-level failure (DNS/TLS/timeout/reset/proxy) — surface the real
+    // cause instead of a generic 500 so it can be diagnosed from the UI.
+    const cause = (e as { cause?: { code?: string; message?: string } }).cause
+    const detail = cause?.code || cause?.message || (e as Error).message || 'fetch failed'
+    throw createError({
+      statusCode: 502,
+      statusMessage: 'Upstream unreachable',
+      message: `Could not reach ${req.url}: ${detail}`,
+    })
+  }
 
   // Ping mode: return the HTTP status code without parsing the body
   if (req.isPing) {

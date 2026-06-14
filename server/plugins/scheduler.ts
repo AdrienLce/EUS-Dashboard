@@ -8,6 +8,7 @@
  * Reloads the config every 30s to detect new services.
  */
 
+import { fetch as httpFetch, type RequestInit as HttpRequestInit } from 'undici'
 import { runAdapter } from '../../adapters/index'
 import { broadcast } from '../routes/_ws'
 import type { ServiceConfig, SubServiceConfig, CompositeServiceConfig, StatusSnapshot } from '../../types/index'
@@ -29,11 +30,14 @@ export function triggerRefresh(serviceId: string) {
 
 /** Direct fetch from the server (not via the internal HTTP proxy) */
 async function serverFetch(url: string, method: string, headers: Record<string, string>, body?: string, isPing = false): Promise<unknown> {
-  const options: RequestInit = {
+  const options: HttpRequestInit = {
     method,
     headers: {
-      Accept: 'application/json',
-      'User-Agent': 'StatusDashboard-Server/1.0',
+      // Browser-like headers: some status edges (Cloudflare/bot protection) reject
+      // non-browser clients. Per-service headers can still override these.
+      Accept: 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       ...headers,
     },
   }
@@ -45,7 +49,7 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
   // For ping: capture the HTTP status code even on error
   if (isPing) {
     try {
-      const res = await fetch(url, options)
+      const res = await httpFetch(url, options)
       return { _statusCode: res.status, _ok: res.ok }
     } catch {
       return { _statusCode: 0, _ok: false }
@@ -80,21 +84,40 @@ async function pollService(svc: ServiceConfig | SubServiceConfig) {
     broadcast({ type: 'snapshot', data: snapshot })
   }
   catch (err: unknown) {
-    const msg = (err as Error).message ?? 'Error'
-    const statusCode = (err as { statusCode?: number })?.statusCode ?? 0
-    const isProxy = statusCode === 429 || statusCode === 502 || statusCode === 503
-      || msg.includes('429') || msg.includes('ECONNREFUSED')
-    const isAuth = statusCode === 401 || statusCode === 403
+    const e = err as Error & { statusCode?: number; cause?: { code?: string; message?: string } }
+    const statusCode = e?.statusCode ?? 0
+    const causeCode = e?.cause?.code || e?.cause?.message
+    const msg = e?.message ?? 'Error'
+    const probe = `${msg} ${causeCode ?? ''}`
+
+    // Transport-level failure (DNS/TLS/timeout/reset/proxy): we couldn't reach the
+    // STATUS SOURCE — that is not the same as the monitored service being down, so
+    // show it as "unknown" (gray), not a red "major incident".
+    const isTransport = msg.includes('fetch failed')
+      || /ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|UND_ERR|ENETUNREACH|certificate|TLS|SSL/i.test(probe)
+    const isAuth = statusCode === 401 || statusCode === 403 || msg.includes('401') || msg.includes('403')
+    const isRate = statusCode === 429 || statusCode === 502 || statusCode === 503 || statusCode === 504 || msg.includes('429')
+
+    let level: StatusSnapshot['level']
+    let message: string
+    if (isAuth) {
+      level = 'inconnu'; message = 'Access denied — authentication required'
+    }
+    else if (isTransport) {
+      level = 'inconnu'; message = `Status source unreachable${causeCode ? ` — ${causeCode}` : ''}`
+    }
+    else if (isRate) {
+      level = 'inconnu'; message = `Request blocked (${statusCode || 'rate limit'})`
+    }
+    else {
+      level = 'majeur'; message = `Error: ${msg}`
+    }
 
     const errSnap: StatusSnapshot = {
       serviceId: svc.id,
       timestamp: new Date().toISOString(),
-      level: (isAuth || isProxy) ? 'inconnu' : 'majeur',
-      message: isAuth
-        ? 'Access denied — authentication required'
-        : isProxy
-          ? `Request blocked (${statusCode || 'network'})`
-          : `Error: ${msg}`,
+      level,
+      message,
       incidents: [],
     }
     lastSnapshots.set(svc.id, errSnap)

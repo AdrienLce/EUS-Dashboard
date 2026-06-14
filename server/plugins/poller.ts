@@ -1,3 +1,4 @@
+import { fetch as httpFetch, type RequestInit as HttpRequestInit } from 'undici'
 import { runAdapter } from '~/adapters/index'
 import type { ServiceConfig, CompositeServiceConfig, StatusSnapshot } from '~/types'
 import { statusMap, broadcast, refreshFns, poller } from '../lib/pollerState'
@@ -54,16 +55,23 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
     throw Object.assign(new Error('Private network access forbidden'), { statusCode: 403 })
   }
 
-  const opts: RequestInit = {
+  const opts: HttpRequestInit = {
     method,
-    headers: { 'Accept': 'application/json', 'User-Agent': 'StatusDashboard/1.0', ...headers },
+    headers: {
+      // Browser-like headers: some status edges (Cloudflare/bot protection) reject
+      // non-browser clients. Per-service headers can still override these.
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      ...headers,
+    },
   }
   if (method === 'POST' && body) {
     opts.body = body
     ;(opts.headers as Record<string, string>)['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(url, opts)
+  const res = await httpFetch(url, opts)
   if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { statusCode: res.status })
 
   const ct = res.headers.get('content-type') ?? ''
@@ -93,17 +101,33 @@ async function pollOne(
     if (result.entries) snap.entries = result.entries
   }
   catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error'
-    const code = (err as { statusCode?: number })?.statusCode ?? 0
+    const e = err as Error & { statusCode?: number; cause?: { code?: string; message?: string } }
+    const code = e?.statusCode ?? 0
+    const causeCode = e?.cause?.code || e?.cause?.message
+    const msg = e instanceof Error ? e.message : 'Error'
+    const probe = `${msg} ${causeCode ?? ''}`
+
+    // Transport-level failure: we couldn't reach the status source — show "unknown"
+    // (gray), not a red "major incident" (which would falsely imply the service is down).
+    const isTransport = msg.includes('fetch failed')
+      || /ETIMEDOUT|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|UND_ERR|ENETUNREACH|certificate|TLS|SSL/i.test(probe)
     const isAuth = code === 401 || code === 403
-    const isProxy = code === 429 || code === 502 || code === 503
-      || msg.includes('ECONNREFUSED') || msg.includes('ETIMEDOUT')
-    const level = (isAuth || isProxy) ? 'inconnu' as const : 'majeur' as const
-    const message = isAuth
-      ? 'Access denied — authentication required'
-      : isProxy
-        ? `Request blocked (${code || 'network'})`
-        : `Error: ${msg}`
+    const isRate = code === 429 || code === 502 || code === 503 || code === 504
+
+    let level: StatusSnapshot['level']
+    let message: string
+    if (isAuth) {
+      level = 'inconnu'; message = 'Access denied — authentication required'
+    }
+    else if (isTransport) {
+      level = 'inconnu'; message = `Status source unreachable${causeCode ? ` — ${causeCode}` : ''}`
+    }
+    else if (isRate) {
+      level = 'inconnu'; message = `Request blocked (${code || 'rate limit'})`
+    }
+    else {
+      level = 'majeur'; message = `Error: ${msg}`
+    }
     snap = { serviceId: id, timestamp: new Date().toISOString(), level, message, incidents: [] }
   }
 
