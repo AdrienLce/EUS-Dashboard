@@ -71,6 +71,10 @@ const defaultMapping = (): CustomMapping => ({
   statusPath: "",
   messagePath: "",
   levelMap: {},
+  incidentsPath: "",
+  incidentTitlePath: "",
+  incidentLevelPath: "",
+  incidentMessagePath: "",
 });
 
 const form = reactive(defaultForm());
@@ -156,6 +160,7 @@ const highlightedPaths = computed(() => {
   const paths: string[] = [];
   if (mapping.statusPath) paths.push(mapping.statusPath);
   if (mapping.messagePath) paths.push(mapping.messagePath);
+  if (mapping.incidentsPath) paths.push(mapping.incidentsPath);
   return paths;
 });
 
@@ -168,6 +173,10 @@ const parsedPreview = computed(() => {
       statusPath: mapping.statusPath,
       messagePath: mapping.messagePath || undefined,
       levelMap: mapping.levelMap,
+      incidentsPath: mapping.incidentsPath || undefined,
+      incidentTitlePath: mapping.incidentTitlePath || undefined,
+      incidentLevelPath: mapping.incidentLevelPath || undefined,
+      incidentMessagePath: mapping.incidentMessagePath || undefined,
     });
   } catch {
     return null;
@@ -233,9 +242,14 @@ function loadForm() {
       .filter(([k]) => k !== detectedKey)
       .map(([key, value]) => ({ key, value }));
     if (props.editing.customMapping) {
-      mapping.statusPath = props.editing.customMapping.statusPath;
-      mapping.messagePath = props.editing.customMapping.messagePath ?? "";
-      mapping.levelMap = { ...props.editing.customMapping.levelMap };
+      const cm = props.editing.customMapping;
+      mapping.statusPath = cm.statusPath;
+      mapping.messagePath = cm.messagePath ?? "";
+      mapping.levelMap = { ...cm.levelMap };
+      mapping.incidentsPath = cm.incidentsPath ?? "";
+      mapping.incidentTitlePath = cm.incidentTitlePath ?? "";
+      mapping.incidentLevelPath = cm.incidentLevelPath ?? "";
+      mapping.incidentMessagePath = cm.incidentMessagePath ?? "";
     } else {
       Object.assign(mapping, defaultMapping());
     }
@@ -370,6 +384,48 @@ function applyMappingItem(target: "status" | "message") {
   mapPopup.value = null;
 }
 
+// ── Mapping incidents ─────────────────────────────────────────
+// Chemin du tableau d'incidents déduit du clic : "incidents.0.name" → "incidents"
+// (.+? non gourmand → on prend le PREMIER niveau de tableau rencontré)
+const incidentArrayPath = computed(() => {
+  if (!mapPopup.value) return null;
+  const m = mapPopup.value.path.match(/^(.+?)\.\d+(?:\..+)?$/);
+  return m ? m[1] : null;
+});
+
+// Champ relatif à un item d'incident, déduit du clic : "incidents.0.name" → "name"
+const incidentFieldFromClick = computed(() => {
+  if (!mapPopup.value) return null;
+  const m = mapPopup.value.path.match(/^.+?\.\d+\.(.+)$/);
+  return m ? m[1] : null;
+});
+
+function applyIncidentsList() {
+  if (!incidentArrayPath.value) return;
+  mapping.incidentsPath = incidentArrayPath.value;
+  form.adapter = "custom";
+  mapPopup.value = null;
+}
+
+function applyIncidentField(target: "title" | "level" | "message") {
+  const field = incidentFieldFromClick.value;
+  if (!field) return;
+  // S'assurer que la liste d'incidents est définie
+  if (!mapping.incidentsPath && incidentArrayPath.value) {
+    mapping.incidentsPath = incidentArrayPath.value;
+  }
+  if (target === "title") mapping.incidentTitlePath = field;
+  else if (target === "level") {
+    mapping.incidentLevelPath = field;
+    const val = String(mapPopup.value?.value ?? "");
+    if (val && !mapping.levelMap[val]) {
+      mapping.levelMap[val] = autoDetectLevel(val);
+    }
+  } else mapping.incidentMessagePath = field;
+  form.adapter = "custom";
+  mapPopup.value = null;
+}
+
 function removeLevelEntry(val: string) {
   delete mapping.levelMap[val];
 }
@@ -420,11 +476,15 @@ function buildPayload() {
     if (h.key.trim()) headers[h.key.trim()] = h.value;
   }
   const customMapping: CustomMapping | undefined =
-    form.adapter === "custom" && mapping.statusPath
+    form.adapter === "custom" && (mapping.statusPath || mapping.incidentsPath)
       ? {
           statusPath: mapping.statusPath,
           messagePath: mapping.messagePath || undefined,
           levelMap: { ...mapping.levelMap },
+          incidentsPath: mapping.incidentsPath || undefined,
+          incidentTitlePath: mapping.incidentTitlePath || undefined,
+          incidentLevelPath: mapping.incidentLevelPath || undefined,
+          incidentMessagePath: mapping.incidentMessagePath || undefined,
         }
       : undefined;
   return {
@@ -718,6 +778,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         mapping.levelMap = {
                           ...(effectiveMapping?.levelMap ?? {}),
                         };
+                        mapping.incidentsPath =
+                          effectiveMapping?.incidentsPath ?? '';
+                        mapping.incidentTitlePath =
+                          effectiveMapping?.incidentTitlePath ?? '';
+                        mapping.incidentLevelPath =
+                          effectiveMapping?.incidentLevelPath ?? '';
+                        mapping.incidentMessagePath =
+                          effectiveMapping?.incidentMessagePath ?? '';
                         form.adapter = 'custom';
                       "
                     >
@@ -785,6 +853,53 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       />
                     </div>
+                  </div>
+
+                  <!-- Incidents mapping -->
+                  <div class="pt-2 border-t border-blue-100 space-y-2">
+                    <label class="block text-xs text-gray-500">
+                      Chemin incidents (liste)
+                      <span class="text-gray-400 font-normal normal-case">— optionnel</span>
+                    </label>
+                    <input
+                      v-model="mapping.incidentsPath"
+                      type="text"
+                      placeholder="ex: incidents · result.incidents"
+                      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    />
+                    <div v-if="mapping.incidentsPath" class="grid grid-cols-3 gap-2">
+                      <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">Champ titre</label>
+                        <input
+                          v-model="mapping.incidentTitlePath"
+                          type="text"
+                          placeholder="name"
+                          class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">Champ niveau</label>
+                        <input
+                          v-model="mapping.incidentLevelPath"
+                          type="text"
+                          placeholder="impact"
+                          class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label class="block text-[11px] text-gray-400 mb-1">Champ message</label>
+                        <input
+                          v-model="mapping.incidentMessagePath"
+                          type="text"
+                          placeholder="body"
+                          class="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        />
+                      </div>
+                    </div>
+                    <p v-if="mapping.incidentsPath" class="text-[11px] text-gray-400">
+                      Le niveau utilise la table de correspondance ci-dessous. Champs vides = détection auto
+                      (name/title · impact/status · body/description).
+                    </p>
                   </div>
 
                   <!-- Level map entries -->
@@ -875,6 +990,10 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         statusPath: mapping.statusPath,
                         messagePath: mapping.messagePath || undefined,
                         levelMap: { ...mapping.levelMap },
+                        incidentsPath: mapping.incidentsPath || undefined,
+                        incidentTitlePath: mapping.incidentTitlePath || undefined,
+                        incidentLevelPath: mapping.incidentLevelPath || undefined,
+                        incidentMessagePath: mapping.incidentMessagePath || undefined,
                       },
                     })
                   "
@@ -1310,6 +1429,43 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </button>
                     </div>
                   </div>
+                  <!-- Boutons incidents (si dans un tableau) -->
+                  <div
+                    v-if="incidentArrayPath"
+                    class="space-y-2 pt-2 border-t border-blue-100"
+                  >
+                    <p class="text-xs text-blue-500 mb-1.5">
+                      Incidents — liste
+                      <code class="font-mono bg-blue-100 px-1 rounded">{{ incidentArrayPath }}</code>
+                      :
+                    </p>
+                    <button
+                      class="w-full px-3 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                      @click="applyIncidentsList"
+                    >
+                      Définir comme liste d'incidents
+                    </button>
+                    <div v-if="incidentFieldFromClick" class="grid grid-cols-3 gap-2">
+                      <button
+                        class="px-2 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                        @click="applyIncidentField('title')"
+                      >
+                        → Titre
+                      </button>
+                      <button
+                        class="px-2 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                        @click="applyIncidentField('level')"
+                      >
+                        → Niveau
+                      </button>
+                      <button
+                        class="px-2 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
+                        @click="applyIncidentField('message')"
+                      >
+                        → Message
+                      </button>
+                    </div>
+                  </div>
                   <button
                     class="absolute top-3 right-3 p-1 text-blue-400 hover:text-blue-600"
                     @click="mapPopup = null"
@@ -1332,7 +1488,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
 
                 <!-- Parse preview -->
                 <div
-                  v-if="parsedPreview && mapping.statusPath"
+                  v-if="parsedPreview && (mapping.statusPath || mapping.incidentsPath)"
                   class="mx-5 mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3 flex items-center gap-3 shrink-0"
                 >
                   <StatusBadge :level="parsedPreview.level" size="sm" />

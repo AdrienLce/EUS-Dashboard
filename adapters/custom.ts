@@ -257,6 +257,83 @@ function parseWildcardPath(path: string): { parentPath: string; field: string } 
 }
 
 /**
+ * Retourne la première valeur non vide parmi une liste de clés natives d'un objet.
+ * Utilisé pour la détection automatique des champs d'incident (titre, niveau, message…)
+ * quand aucun chemin explicite n'est fourni dans le mapping.
+ *
+ * @param o    - Objet incident
+ * @param keys - Clés candidates, par ordre de priorité
+ * @returns La première valeur non null/non vide, ou undefined
+ */
+function pickNative(o: Record<string, unknown>, keys: string[]): unknown {
+  for (const k of keys) {
+    const v = o[k]
+    if (v != null && v !== '') return v
+  }
+  return undefined
+}
+
+/**
+ * Génère des Incidents depuis un tableau d'incidents pointé par `incidentsPath`.
+ *
+ * Chaque champ (titre, niveau, message) peut être ciblé explicitement via un chemin
+ * relatif à l'élément (`incidentTitlePath`, `incidentLevelPath`, `incidentMessagePath`),
+ * sinon il est détecté automatiquement parmi les noms de champ usuels.
+ * Le niveau est résolu via `levelMap` (matchLevelMap) puis auto-détection en secours.
+ *
+ * @param resolved - Données JSON après résolution (RSS converti si nécessaire)
+ * @param mapping  - Mapping complet (utilise incidentsPath + champs incident + levelMap)
+ * @returns Tableau d'Incidents (vide si le chemin ne pointe pas sur un tableau)
+ */
+function buildIncidentsFromPath(resolved: unknown, mapping: CustomMapping): Incident[] {
+  const arr = getValueAtPath(resolved, mapping.incidentsPath!)
+  if (!Array.isArray(arr)) return []
+  const levelMap = mapping.levelMap ?? {}
+
+  return arr
+    .map((item, i) => {
+      const o = (typeof item === 'object' && item !== null) ? (item as Record<string, unknown>) : {}
+
+      // Titre : chemin explicite, sinon champs natifs usuels
+      const titleRaw = mapping.incidentTitlePath
+        ? getValueAtPath(item, mapping.incidentTitlePath)
+        : pickNative(o, ['title', 'name', 'headline', 'summary'])
+      const title = toDetectableString(titleRaw)
+
+      // Niveau : chemin explicite, sinon champs natifs ; converti via levelMap puis auto-détection
+      const levelRaw = mapping.incidentLevelPath
+        ? getValueAtPath(item, mapping.incidentLevelPath)
+        : pickNative(o, ['level', 'impact', 'severity', 'status'])
+      const levelStr = toDetectableString(levelRaw)
+      const level: StatusLevel = levelStr
+        ? (matchLevelMap(levelStr, levelMap) ?? autoDetectLevel(levelStr))
+        : (title ? autoDetectLevel(title) : 'inconnu')
+
+      // Message : chemin explicite (sous-chemins supportés), sinon champs natifs
+      const messageRaw = mapping.incidentMessagePath
+        ? getValueAtPath(item, mapping.incidentMessagePath)
+        : pickNative(o, ['body', 'description', 'message', 'summary'])
+      const message = toDetectableString(messageRaw) || undefined
+
+      const title2 = title || message
+      if (!title2) return null
+
+      const url = toDetectableString(pickNative(o, ['url', 'shortlink', 'link', 'href'])) || undefined
+      const updatedAt = String(
+        pickNative(o, ['updated_at', 'updatedAt', 'updated', 'pubDate', 'date', 'created_at', 'startedAt'])
+          ?? new Date().toISOString(),
+      )
+      const id = toDetectableString(pickNative(o, ['id', 'guid'])) || `custom-${i}`
+
+      const incident: Incident = { id, title: title2, level, startedAt: updatedAt, updatedAt }
+      if (message && message !== title2) incident.message = message
+      if (url) incident.url = url
+      return incident
+    })
+    .filter((inc): inc is Incident => inc !== null)
+}
+
+/**
  * Génère des Incidents depuis un tableau d'items quand statusPath contient un wildcard.
  *
  * Logique :
@@ -426,16 +503,29 @@ export function parseCustom(data: unknown, mapping: CustomMapping): AdapterResul
 
   // Étape 2 & 3 : extraire la valeur de statut et déterminer le niveau
   const rawStatus = getValueAtPath(resolved, mapping.statusPath)
-  const level = resolveLevel(rawStatus, mapping.levelMap)
+  let level = resolveLevel(rawStatus, mapping.levelMap)
+
+  // Étape 5 : construire les incidents.
+  // Si un `incidentsPath` explicite est fourni, on l'utilise (mapping dédié, au même
+  // titre que statut/message). Sinon, comportement historique : wildcard sur statusPath.
+  const incidents = mapping.incidentsPath
+    ? buildIncidentsFromPath(resolved, mapping)
+    : buildIncidents(resolved, mapping.statusPath, mapping.messagePath, mapping.levelMap)
+
+  // Si aucun statusPath n'est défini mais que des incidents existent, le niveau global
+  // reflète le pire incident — un mapping peut ainsi ne décrire QUE des incidents.
+  if (!mapping.statusPath && incidents.length) {
+    level = worstLevel(incidents.map((inc) => inc.level))
+  }
 
   // Étape 4 : extraire le message (messagePath prioritaire, statusPath en fallback)
   const rawMessage = mapping.messagePath
     ? getValueAtPath(resolved, mapping.messagePath)
     : rawStatus
-  const message = resolveMessage(rawMessage) || 'Statut inconnu'
+  let message = resolveMessage(rawMessage)
+  if (!message) message = incidents.length ? `${incidents.length} incident(s)` : 'Statut inconnu'
 
-  // Étapes 5 & 6 : construire incidents et entries selon les wildcards détectés
-  const incidents = buildIncidents(resolved, mapping.statusPath, mapping.messagePath, mapping.levelMap)
+  // Étape 6 : construire les entries selon le wildcard de messagePath
   const entries = mapping.messagePath
     ? buildMessageEntries(resolved, mapping.messagePath)
     : undefined

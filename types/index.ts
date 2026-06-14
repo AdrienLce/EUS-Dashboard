@@ -111,8 +111,36 @@ export interface CustomMapping {
    * - Wildcard : `"healthy*"` → toute valeur commençant par "healthy"
    * - Contains : `"~advisory"` → toute valeur contenant "advisory"
    * - Regex    : `"/^(none|healthy)$/i"` → expression régulière avec flags
+   *
+   * Sert aussi à mapper le niveau de chaque incident (via `incidentLevelPath`).
    */
   levelMap: Record<string, StatusLevel>;
+  /**
+   * Chemin vers le tableau d'incidents dans la réponse, en notation pointée.
+   * Quand il est défini, les incidents sont extraits explicitement de ce tableau
+   * (au même titre que `statusPath`/`messagePath`), indépendamment du wildcard de statut.
+   * Exemples : `"incidents"`, `"result.incidents"`, `"data.events"`.
+   */
+  incidentsPath?: string;
+  /**
+   * Champ du titre de l'incident, relatif à chaque élément de `incidentsPath`.
+   * Si absent : détection auto parmi `title`, `name`, `headline`, `summary`.
+   * Exemples : `"name"`, `"title"`.
+   */
+  incidentTitlePath?: string;
+  /**
+   * Champ du niveau/impact de l'incident, relatif à chaque élément de `incidentsPath`.
+   * La valeur est convertie via `levelMap` (puis auto-détection en secours).
+   * Si absent : détection auto parmi `level`, `impact`, `severity`, `status`.
+   * Exemples : `"impact"`, `"status"`.
+   */
+  incidentLevelPath?: string;
+  /**
+   * Champ du message/description de l'incident, relatif à chaque élément de `incidentsPath`.
+   * Supporte les sous-chemins (ex: `"incident_updates.0.body"`).
+   * Si absent : détection auto parmi `body`, `description`, `message`, `summary`.
+   */
+  incidentMessagePath?: string;
 }
 
 

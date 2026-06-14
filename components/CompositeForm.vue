@@ -36,6 +36,10 @@ const defaultMappingInit = (): CustomMapping => ({
   statusPath: "",
   messagePath: "",
   levelMap: {},
+  incidentsPath: "",
+  incidentTitlePath: "",
+  incidentLevelPath: "",
+  incidentMessagePath: "",
 });
 
 const form = reactive({
@@ -72,6 +76,7 @@ watch(
       form.defaultMappingEnabled = !!props.editing.defaultMapping;
       form.defaultMapping = props.editing.defaultMapping
         ? {
+            ...defaultMappingInit(),
             ...props.editing.defaultMapping,
             levelMap: { ...props.editing.defaultMapping.levelMap },
           }
@@ -199,7 +204,8 @@ function submit() {
     defaultAdapter:
       form.defaultAdapter !== "auto" ? form.defaultAdapter : undefined,
     defaultMapping:
-      form.defaultMappingEnabled && form.defaultMapping.statusPath
+      form.defaultMappingEnabled &&
+      (form.defaultMapping.statusPath || form.defaultMapping.incidentsPath)
         ? { ...form.defaultMapping }
         : undefined,
   });
@@ -417,6 +423,43 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           type="text"
                           placeholder="ex: entries.*.summary"
                           class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Incidents (optionnel) -->
+                    <div class="space-y-2">
+                      <label class="block text-xs text-gray-500"
+                        >Chemin incidents (liste)
+                        <span class="text-gray-400 font-normal">— optionnel</span></label
+                      >
+                      <input
+                        v-model="form.defaultMapping.incidentsPath"
+                        type="text"
+                        placeholder="ex: incidents · result.incidents"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      />
+                      <div
+                        v-if="form.defaultMapping.incidentsPath"
+                        class="grid grid-cols-3 gap-2"
+                      >
+                        <input
+                          v-model="form.defaultMapping.incidentTitlePath"
+                          type="text"
+                          placeholder="titre (name)"
+                          class="w-full rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        />
+                        <input
+                          v-model="form.defaultMapping.incidentLevelPath"
+                          type="text"
+                          placeholder="niveau (impact)"
+                          class="w-full rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                        />
+                        <input
+                          v-model="form.defaultMapping.incidentMessagePath"
+                          type="text"
+                          placeholder="message (body)"
+                          class="w-full rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                         />
                       </div>
                     </div>
