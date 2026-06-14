@@ -4,16 +4,16 @@ interface Peer {
   send: (data: string) => void
 }
 
-/** Dernier snapshot connu par serviceId — envoyé aux nouveaux clients WS à la connexion */
+/** Last known snapshot per serviceId — sent to new WS clients on connection */
 export const statusMap = new Map<string, StatusSnapshot>()
 
-/** Connexions WebSocket actives */
+/** Active WebSocket connections */
 export const peers = new Set<Peer>()
 
-/** Fonctions de rafraîchissement immédiat par serviceId — appelées depuis le handler WS */
+/** Immediate-refresh functions per serviceId — called from the WS handler */
 export const refreshFns = new Map<string, () => Promise<void>>()
 
-/** Référence mutable vers la fonction reload du poller — initialisée par server/plugins/poller.ts */
+/** Mutable reference to the poller's reload function — initialized by server/plugins/poller.ts */
 export const poller = {
   reload: async () => {},
 }

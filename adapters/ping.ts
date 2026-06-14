@@ -49,7 +49,7 @@ export function parsePing(data: unknown): AdapterResult {
     }
   }
 
-  // Pas de réponse (timeout, réseau)
+  // No response (timeout, network)
   return {
     level: 'majeur',
     message: code === 0 ? 'Aucune réponse (timeout ou réseau)' : `HTTP ${code}`,

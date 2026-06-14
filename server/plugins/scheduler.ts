@@ -1,33 +1,33 @@
 /**
- * Plugin Nitro — Scheduler serveur.
+ * Nitro plugin — Server-side scheduler.
  *
- * Tourne côté serveur, indépendamment des navigateurs connectés.
- * Poll les APIs externes directement (pas via /api/proxy),
- * puis broadcast les snapshots à tous les clients WebSocket.
+ * Runs on the server side, independently of connected browsers.
+ * Polls external APIs directly (not via /api/proxy),
+ * then broadcasts snapshots to all WebSocket clients.
  *
- * Recharge la config toutes les 30s pour détecter les nouveaux services.
+ * Reloads the config every 30s to detect new services.
  */
 
 import { runAdapter } from '../../adapters/index'
 import { broadcast } from '../routes/_ws'
 import type { ServiceConfig, SubServiceConfig, CompositeServiceConfig, StatusSnapshot } from '../../types/index'
 
-// Map des timers actifs : serviceId → NodeJS.Timeout
+// Map of active timers: serviceId → NodeJS.Timeout
 const timers = new Map<string, ReturnType<typeof setInterval>>()
 
-// Callbacks de refresh immédiat enregistrés par service
+// Immediate-refresh callbacks registered per service
 const refreshCallbacks = new Map<string, () => void>()
 
-// Dernier snapshot connu par service — envoyé aux nouveaux clients à la connexion
+// Last known snapshot per service — sent to new clients on connection
 export const lastSnapshots = new Map<string, StatusSnapshot>()
 
-/** Appelé depuis le WS handler quand le client demande un refresh */
+/** Called from the WS handler when the client requests a refresh */
 export function triggerRefresh(serviceId: string) {
   const fn = refreshCallbacks.get(serviceId)
   if (fn) fn()
 }
 
-/** Fetch direct depuis le serveur (pas via le proxy HTTP interne) */
+/** Direct fetch from the server (not via the internal HTTP proxy) */
 async function serverFetch(url: string, method: string, headers: Record<string, string>, body?: string, isPing = false): Promise<unknown> {
   const options: RequestInit = {
     method,
@@ -42,7 +42,7 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
     ;(options.headers as Record<string, string>)['Content-Type'] = 'application/json'
   }
 
-  // Pour ping : capturer le code HTTP même en cas d'erreur
+  // For ping: capture the HTTP status code even on error
   if (isPing) {
     try {
       const res = await fetch(url, options)
@@ -61,7 +61,7 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
     : { _raw: await res.text() }
 }
 
-/** Poll un service, run l'adapter, broadcast le snapshot */
+/** Poll a service, run the adapter, broadcast the snapshot */
 async function pollService(svc: ServiceConfig | SubServiceConfig) {
   try {
     const data = await serverFetch(svc.url, svc.method, svc.headers, svc.body, svc.adapter === 'ping')
@@ -102,12 +102,12 @@ async function pollService(svc: ServiceConfig | SubServiceConfig) {
   }
 }
 
-/** Démarre le polling d'un service */
+/** Starts polling a service */
 function scheduleService(svc: ServiceConfig | SubServiceConfig, intervalMs: number) {
   const id = svc.id
   if (timers.has(id)) { clearInterval(timers.get(id)!); timers.delete(id) }
 
-  // Poll immédiat au démarrage
+  // Immediate poll on startup
   pollService(svc)
 
   const timer = setInterval(() => pollService(svc), intervalMs)
@@ -115,7 +115,7 @@ function scheduleService(svc: ServiceConfig | SubServiceConfig, intervalMs: numb
   refreshCallbacks.set(id, () => pollService(svc))
 }
 
-/** Arrête tous les timers d'un composite */
+/** Stops all timers of a composite */
 function clearComposite(compositeId: string) {
   for (const [key] of timers) {
     if (key.startsWith(`${compositeId}::`)) {
@@ -126,7 +126,7 @@ function clearComposite(compositeId: string) {
   }
 }
 
-/** Charge la config et (re)démarre les schedulers nécessaires */
+/** Loads the config and (re)starts the required schedulers */
 async function reloadSchedulers() {
   const storage = useStorage('config')
   const services = (await storage.getItem<ServiceConfig[]>('services')) ?? []
@@ -134,7 +134,7 @@ async function reloadSchedulers() {
 
   const activeIds = new Set<string>()
 
-  // Services simples
+  // Simple services
   for (const svc of services) {
     if (!svc.enabled) continue
     const ms = Math.min(svc.pollInterval ?? 300, 1200) * 1000
@@ -142,7 +142,7 @@ async function reloadSchedulers() {
     if (!timers.has(svc.id)) scheduleService(svc, ms)
   }
 
-  // Composites → chaque enfant
+  // Composites → each child
   for (const composite of composites) {
     if (!composite.enabled) { clearComposite(composite.id); continue }
     const ms = Math.min(composite.pollInterval ?? 300, 1200) * 1000
@@ -160,7 +160,7 @@ async function reloadSchedulers() {
       const effectiveChild = { ...child, adapter: effectiveAdapter, customMapping: effectiveMapping }
 
       if (!timers.has(key)) {
-        // Clé composite pour regroupement
+        // Composite key for grouping
         const timer = setInterval(() => pollService(effectiveChild), ms)
         pollService(effectiveChild)
         timers.set(key, timer)
@@ -169,7 +169,7 @@ async function reloadSchedulers() {
     }
   }
 
-  // Nettoyer les services supprimés
+  // Clean up removed services
   for (const [key] of timers) {
     if (!activeIds.has(key)) {
       clearInterval(timers.get(key)!)
@@ -179,7 +179,7 @@ async function reloadSchedulers() {
   }
 }
 
-/** Exposé pour que config.post.ts puisse déclencher un reload immédiat */
+/** Exposed so config.post.ts can trigger an immediate reload */
 export { reloadSchedulers }
 
 export default defineNitroPlugin(async () => {

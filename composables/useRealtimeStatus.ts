@@ -1,7 +1,7 @@
 /**
- * Connexion WebSocket côté client.
- * Reçoit les snapshots du serveur et les pousse dans useStatusStore.
- * Remplace usePolling + useScheduler (qui tournaient dans le navigateur).
+ * Client-side WebSocket connection.
+ * Receives snapshots from the server and pushes them into useStatusStore.
+ * Replaces usePolling + useScheduler (which used to run in the browser).
  */
 
 import { useStatusStore } from './useStatusStore'
@@ -33,7 +33,7 @@ function connect() {
         pushSnapshot(msg.data as StatusSnapshot)
       }
 
-      // Mise à jour config temps réel : service ajouté/supprimé/désactivé
+      // Real-time config update: service added/removed/disabled
       if (msg.type === 'config' && msg.data) {
         const { services, composites, order } = useServerConfig()
         if (msg.data.services !== undefined)
@@ -44,13 +44,13 @@ function connect() {
           order.value = msg.data.order as string[]
       }
     }
-    catch { /* message invalide */ }
+    catch { /* invalid message */ }
   }
 
   ws.onclose = () => {
     connected.value = false
     ws = null
-    // Reconnexion automatique après 3s
+    // Automatic reconnection after 3s
     reconnectTimer = setTimeout(connect, 3000)
   }
 
@@ -59,7 +59,7 @@ function connect() {
   }
 }
 
-/** Demande un refresh immédiat d'un service au serveur */
+/** Requests an immediate refresh of a service from the server */
 function requestRefresh(serviceId: string) {
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: 'refresh', serviceId }))

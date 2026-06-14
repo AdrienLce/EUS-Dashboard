@@ -8,10 +8,10 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
     server: {
       watch: {
-        // Exclure le dossier data/ du watcher Vite — sinon chaque écriture
-        // de config (theme, services...) déclenche un HMR reload en dev
+        // Exclude the data/ folder from the Vite watcher — otherwise every config
+        // write (theme, services...) triggers an HMR reload in dev
         ignored: ['**/data/**', '**/.git/**', '**/node_modules/**'],
-        // Utilise watchman (installé via brew) — évite EMFILE sur macOS
+        // Uses watchman (installed via brew) — avoids EMFILE on macOS
         usePolling: false,
       },
     },

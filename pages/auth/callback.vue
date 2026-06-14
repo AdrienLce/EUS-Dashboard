@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * Page de callback OIDC.
- * L'IdP redirige ici après l'authentification avec ?code=...&state=...
- * Cette page échange le code contre des tokens via le serveur Nitro.
+ * OIDC callback page.
+ * The IdP redirects here after authentication with ?code=...&state=...
+ * This page exchanges the code for tokens via the Nitro server.
  */
 
 const route = useRoute()
@@ -20,7 +20,7 @@ onMounted(async () => {
     return
   }
 
-  // Récupérer les paramètres stockés avant la redirection
+  // Retrieve the parameters stored before the redirect
   const codeVerifier  = sessionStorage.getItem('pkce_verifier')
   const tokenEndpoint = sessionStorage.getItem('sso_token_endpoint')
   const clientId      = sessionStorage.getItem('sso_client_id')
@@ -38,7 +38,7 @@ onMounted(async () => {
       body: { code, codeVerifier, tokenEndpoint, clientId, redirectUri },
     })
 
-    // Nettoyage session storage
+    // Clean up session storage
     sessionStorage.removeItem('pkce_verifier')
     sessionStorage.removeItem('sso_token_endpoint')
     sessionStorage.removeItem('sso_client_id')

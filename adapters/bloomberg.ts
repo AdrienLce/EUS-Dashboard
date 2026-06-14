@@ -1,14 +1,14 @@
 /**
  * @module adapters/bloomberg
  *
- * Adapter pour la page de statut Bloomberg (https://status.bloomberg.com).
+ * Adapter for the Bloomberg status page (https://status.bloomberg.com).
  *
- * Bloomberg héberge sa page de statut sur la plateforme Atlassian Statuspage,
- * le format JSON est donc identique au format Atlassian standard.
+ * Bloomberg hosts its status page on the Atlassian Statuspage platform,
+ * so the JSON format is identical to the standard Atlassian format.
  *
- * URL type : https://status.bloomberg.com/api/v2/summary.json
+ * Typical URL: https://status.bloomberg.com/api/v2/summary.json
  *
- * Structure JSON attendue :
+ * Expected JSON structure:
  * ```json
  * {
  *   "status": { "indicator": "none", "description": "All Systems Operational" },
@@ -27,7 +27,7 @@
  * }
  * ```
  *
- * Mapping des indicateurs → StatusLevel :
+ * Mapping of indicators → StatusLevel:
  * - `none`        → operational
  * - `minor`       → leger
  * - `major`       → mineur

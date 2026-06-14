@@ -1,13 +1,13 @@
 /**
  * @module adapters/azuredevops
  *
- * Adapter pour l'API Azure DevOps Health.
+ * Adapter for the Azure DevOps Health API.
  *
- * Azure DevOps expose une API de santé qui retourne l'état global et par service/géographie.
+ * Azure DevOps exposes a health API that returns the global state as well as the state per service/geography.
  *
- * URL type : https://status.dev.azure.com/_apis/status/health?geographies=EU&api-version=7.0-preview.1
+ * Typical URL: https://status.dev.azure.com/_apis/status/health?geographies=EU&api-version=7.0-preview.1
  *
- * Structure JSON attendue :
+ * Expected JSON structure:
  * ```json
  * {
  *   "lastUpdated": "2024-01-15T10:00:00Z",
@@ -36,7 +36,7 @@
  * }
  * ```
  *
- * Mapping santé Azure DevOps → StatusLevel :
+ * Azure DevOps health mapping → StatusLevel:
  * - `healthy`     → operational
  * - `advisory`    → leger
  * - `degraded`    → mineur
@@ -46,31 +46,31 @@
 
 import type { AdapterResult, Incident, StatusLevel } from '~/types'
 
-/** État de santé d'une géographie dans la réponse Azure DevOps */
+/** Health state of a geography in the Azure DevOps response */
 interface AzureDevOpsGeography {
-  /** Code identifiant la géographie (ex: "EU", "US") */
+  /** Code identifying the geography (e.g. "EU", "US") */
   id: string
-  /** Nom complet (ex: "West Europe") */
+  /** Full name (e.g. "West Europe") */
   name: string
-  /** Santé de cette zone géographique */
+  /** Health of this geographic area */
   health: string
 }
 
-/** Service Azure DevOps (Boards, Repos, Pipelines, etc.) */
+/** Azure DevOps service (Boards, Repos, Pipelines, etc.) */
 interface AzureDevOpsService {
-  /** Identifiant technique du service */
+  /** Technical service identifier */
   id: string
-  /** Nom affiché (ex: "Boards", "Repos", "Pipelines") */
+  /** Displayed name (e.g. "Boards", "Repos", "Pipelines") */
   displayName?: string
-  /** État par zone géographique */
+  /** State per geographic area */
   geographies: AzureDevOpsGeography[]
-  /** Incidents explicitement déclarés (peut être absent) */
+  /** Explicitly declared incidents (may be absent) */
   issues?: {
     id: string
     title: string
-    /** État de l'issue : "active" | "resolved" */
+    /** Issue state: "active" | "resolved" */
     state?: string
-    /** Sévérité : "degraded" | "unhealthy" | "advisory" */
+    /** Severity: "degraded" | "unhealthy" | "advisory" */
     severity?: string
     startTime?: string
     lastUpdatedTime?: string
@@ -79,27 +79,27 @@ interface AzureDevOpsService {
   }[]
 }
 
-/** Structure complète de la réponse de l'API Azure DevOps Health */
+/** Full structure of the Azure DevOps Health API response */
 interface AzureDevOpsResponse {
-  /** Horodatage de la dernière mise à jour du statut */
+  /** Timestamp of the last status update */
   lastUpdated?: string
-  /** Statut global consolidé */
+  /** Consolidated global status */
   status: {
-    /** Santé globale : "healthy" | "advisory" | "degraded" | "unhealthy" | "maintenance" */
+    /** Global health: "healthy" | "advisory" | "degraded" | "unhealthy" | "maintenance" */
     health: string
-    /** Message descriptif global */
+    /** Global descriptive message */
     message: string
   }
-  /** Liste des services avec leur état détaillé */
+  /** List of services with their detailed state */
   services: AzureDevOpsService[]
 }
 
 /**
- * Convertit une valeur de santé Azure DevOps en StatusLevel.
- * Utilisé à la fois pour le statut global, les géographies et les sévérités d'issues.
+ * Converts an Azure DevOps health value into a StatusLevel.
+ * Used for the global status, the geographies, and the issue severities alike.
  *
- * @param health - Valeur du champ health/severity
- * @returns StatusLevel correspondant
+ * @param health - Value of the health/severity field
+ * @returns The corresponding StatusLevel
  */
 function mapHealth(health: string): StatusLevel {
   switch ((health ?? '').toLowerCase()) {
@@ -113,15 +113,15 @@ function mapHealth(health: string): StatusLevel {
 }
 
 /**
- * Parse la réponse de l'API Azure DevOps Health en AdapterResult.
+ * Parses the Azure DevOps Health API response into an AdapterResult.
  *
- * Deux sources d'incidents sont explorées pour chaque service :
- * 1. Issues explicites (champ `issues`) : incidents déclarés officiellement
- * 2. Géographies dégradées sans issue explicite : zones en échec mais non déclarées en incident
- *    (cette situation peut arriver lors de problèmes régionaux non encore formalisés)
+ * Two sources of incidents are explored for each service:
+ * 1. Explicit issues (the `issues` field): officially declared incidents
+ * 2. Degraded geographies without an explicit issue: areas in failure but not declared as an incident
+ *    (this situation can occur during regional problems that have not yet been formalized)
  *
- * @param data - Réponse JSON parsée depuis l'API Azure DevOps Health
- * @returns AdapterResult avec le niveau global et la liste des incidents
+ * @param data - JSON response parsed from the Azure DevOps Health API
+ * @returns AdapterResult with the global level and the list of incidents
  */
 export function parseAzureDevOps(data: unknown): AdapterResult {
   const resp = data as AzureDevOpsResponse
@@ -135,7 +135,7 @@ export function parseAzureDevOps(data: unknown): AdapterResult {
   for (const svc of resp.services ?? []) {
     const name = svc.displayName ?? svc.id
 
-    // Source 1 : incidents explicitement déclarés dans le champ issues
+    // Source 1: incidents explicitly declared in the issues field
     for (const issue of svc.issues ?? []) {
       incidents.push({
         id: issue.id,
@@ -147,8 +147,8 @@ export function parseAzureDevOps(data: unknown): AdapterResult {
       })
     }
 
-    // Source 2 : géographies non-saines SANS issue explicite associée
-    // Représente des problèmes régionaux détectés mais pas encore formalisés en incident
+    // Source 2: unhealthy geographies WITHOUT an associated explicit issue
+    // Represents regional problems that have been detected but not yet formalized as an incident
     for (const geo of svc.geographies ?? []) {
       if (geo.health !== 'healthy' && (svc.issues ?? []).length === 0) {
         incidents.push({

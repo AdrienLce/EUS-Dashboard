@@ -1,14 +1,14 @@
 /**
  * @module composables/useServices
  *
- * CRUD des services simples avec persistance automatique.
+ * CRUD for simple services with automatic persistence.
  *
- * Couche d'abstraction au-dessus de useServerConfig qui fournit des opérations
- * de haut niveau (add, update, remove, toggle) avec sauvegarde automatique
- * après chaque mutation.
+ * An abstraction layer on top of useServerConfig that provides high-level
+ * operations (add, update, remove, toggle) with automatic saving
+ * after each mutation.
  *
- * Les IDs sont générés automatiquement via `crypto.randomUUID()` à la création.
- * La date de création est fixée à la création et ne change plus ensuite.
+ * IDs are generated automatically via `crypto.randomUUID()` at creation time.
+ * The creation date is set at creation and never changes afterward.
  */
 
 import { computed } from 'vue'
@@ -16,12 +16,12 @@ import type { ServiceConfig } from '~/types'
 import { useServerConfig } from './useServerConfig'
 
 /**
- * Composable de gestion CRUD des services simples.
+ * CRUD management composable for simple services.
  *
  * @example
  * const { services, addService, updateService, removeService, toggleService } = useServices()
  *
- * // Ajouter un nouveau service
+ * // Add a new service
  * const svc = addService({
  *   name: 'Mon API',
  *   url: 'https://api.example.com/health',
@@ -37,11 +37,11 @@ export function useServices() {
   const { services, save } = useServerConfig()
 
   /**
-   * Crée un nouveau service avec un UUID généré et une date de création.
-   * L'ajout est immédiatement persisté via useServerConfig.
+   * Creates a new service with a generated UUID and a creation date.
+   * The addition is immediately persisted via useServerConfig.
    *
-   * @param config - Configuration du service sans id ni createdAt (générés automatiquement)
-   * @returns Le ServiceConfig complet avec id et createdAt
+   * @param config - Service configuration without id or createdAt (generated automatically)
+   * @returns The complete ServiceConfig with id and createdAt
    */
   function addService(config: Omit<ServiceConfig, 'id' | 'createdAt'>): ServiceConfig {
     const svc: ServiceConfig = {
@@ -55,11 +55,11 @@ export function useServices() {
   }
 
   /**
-   * Met à jour les propriétés d'un service existant (sans modifier id ni createdAt).
-   * Silencieux si l'ID n'existe pas.
+   * Updates the properties of an existing service (without modifying id or createdAt).
+   * Silent if the ID does not exist.
    *
-   * @param id      - ID du service à modifier
-   * @param updates - Propriétés à modifier (patch partiel)
+   * @param id      - ID of the service to modify
+   * @param updates - Properties to modify (partial patch)
    */
   function updateService(id: string, updates: Partial<Omit<ServiceConfig, 'id' | 'createdAt'>>) {
     const idx = services.value.findIndex(s => s.id === id)
@@ -69,11 +69,11 @@ export function useServices() {
   }
 
   /**
-   * Supprime un service par son ID.
-   * Note : les snapshots et l'historique dans useStatusStore ne sont pas supprimés
-   * automatiquement (ils deviennent orphelins et disparaissent au prochain rechargement).
+   * Removes a service by its ID.
+   * Note: snapshots and history in useStatusStore are not removed
+   * automatically (they become orphaned and disappear on the next reload).
    *
-   * @param id - ID du service à supprimer
+   * @param id - ID of the service to remove
    */
   function removeService(id: string) {
     services.value = services.value.filter(s => s.id !== id)
@@ -81,9 +81,9 @@ export function useServices() {
   }
 
   /**
-   * Inverse l'état enabled/disabled d'un service.
+   * Toggles the enabled/disabled state of a service.
    *
-   * @param id - ID du service à basculer
+   * @param id - ID of the service to toggle
    */
   function toggleService(id: string) {
     const svc = services.value.find(s => s.id === id)
@@ -91,9 +91,9 @@ export function useServices() {
   }
 
   return {
-    /** Liste réactive de tous les services (actifs et inactifs) */
+    /** Reactive list of all services (enabled and disabled) */
     services: computed(() => services.value),
-    /** Liste réactive des services actifs uniquement */
+    /** Reactive list of enabled services only */
     enabledServices: computed(() => services.value.filter(s => s.enabled)),
     addService,
     updateService,

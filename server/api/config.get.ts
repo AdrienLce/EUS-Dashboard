@@ -1,27 +1,27 @@
 /**
  * @module server/api/config.get
  *
- * Endpoint GET /api/config — Lecture de la configuration persistée.
+ * GET /api/config endpoint — Reads the persisted configuration.
  *
- * Retourne la configuration complète depuis le Nitro fs storage :
- * - `services`   : liste des services simples (ServiceConfig[])
- * - `composites` : liste des services composites (CompositeServiceConfig[])
- * - `order`      : ordre d'affichage des services (string[] d'IDs)
- * - `levels`     : configuration des niveaux de statut (LevelConfig[])
+ * Returns the full configuration from the Nitro fs storage:
+ * - `services`   : list of simple services (ServiceConfig[])
+ * - `composites` : list of composite services (CompositeServiceConfig[])
+ * - `order`      : display order of services (string[] of IDs)
+ * - `levels`     : status level configuration (LevelConfig[])
  *
- * ## Storage Nitro
+ * ## Nitro storage
  *
- * Le storage est configuré dans nuxt.config.ts avec le driver `fs` qui persiste
- * les données dans le répertoire `.data/` de l'application Nitro (hors du build).
- * La clé de namespace est `config:` (configuré dans nitro.storage).
+ * The storage is configured in nuxt.config.ts with the `fs` driver, which persists
+ * data in the Nitro application's `.data/` directory (outside the build).
+ * The namespace key is `config:` (configured in nitro.storage).
  *
- * Chaque clé (`services`, `composites`, `order`, `levels`) est un fichier JSON
- * distinct dans le répertoire de storage.
+ * Each key (`services`, `composites`, `order`, `levels`) is a separate JSON file
+ * in the storage directory.
  *
- * ## Retourne des tableaux vides par défaut
+ * ## Returns empty arrays by default
  *
- * Si une clé n'existe pas encore dans le storage (première utilisation), `getItem`
- * retourne `null` — l'opérateur `?? []` garantit un tableau vide dans tous les cas.
+ * If a key does not yet exist in storage (first use), `getItem`
+ * returns `null` — the `?? []` operator guarantees an empty array in all cases.
  */
 
 import { defineEventHandler } from 'h3'

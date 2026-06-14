@@ -4,7 +4,7 @@ import { LEVEL_LABELS, LEVEL_COLORS } from '~/types'
 
 const props = defineProps<{
   service: ServiceConfig
-  /** Snapshot courant (temps réel) — affiché en « État actuel » au-dessus de l'historique */
+  /** Current snapshot (real-time) — displayed as "Current state" above the history */
   current?: StatusSnapshot | null
   snapshots: StatusSnapshot[]
   open: boolean
@@ -14,18 +14,18 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-/** Incidents en cours sur le snapshot courant */
+/** Ongoing incidents on the current snapshot */
 const currentIncidents = computed(() => props.current?.incidents ?? [])
-/** Entrées structurées (RSS/custom) sur le snapshot courant */
+/** Structured entries (RSS/custom) on the current snapshot */
 const currentEntries = computed(() => props.current?.entries ?? [])
-/** Vrai si l'état courant comporte des incidents ou des entrées à mettre en avant */
+/** True if the current state has incidents or entries worth highlighting */
 const hasCurrentDetail = computed(
   () => currentIncidents.value.length > 0 || currentEntries.value.length > 0,
 )
 /**
- * Historique à afficher dans la timeline.
- * Quand l'état courant est mis en avant, on évite de ré-afficher le snapshot courant
- * (même timestamp) une seconde fois juste en dessous.
+ * History to display in the timeline.
+ * When the current state is highlighted, we avoid re-displaying the current snapshot
+ * (same timestamp) a second time just below it.
  */
 const historySnaps = computed(() => {
   if (!props.current || !hasCurrentDetail.value) return props.snapshots
@@ -112,7 +112,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
             <!-- Content -->
             <div class="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-              <!-- ── État actuel : incidents / entrées en cours ───────────── -->
+              <!-- ── Current state: ongoing incidents / entries ───────────── -->
               <section v-if="hasCurrentDetail" class="space-y-3">
                 <div class="flex items-center gap-3">
                   <StatusBadge :level="current!.level" />
@@ -120,7 +120,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   <span class="text-sm text-gray-400 ml-auto">{{ formatDate(current!.timestamp) }}</span>
                 </div>
 
-                <!-- Incidents → AVEC pill -->
+                <!-- Incidents → WITH pill -->
                 <div v-if="currentIncidents.length" class="space-y-2">
                   <div
                     v-for="incident in currentIncidents"
@@ -142,7 +142,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   </div>
                 </div>
 
-                <!-- Entries → SANS pill -->
+                <!-- Entries → WITHOUT pill -->
                 <div v-else-if="currentEntries.length" class="space-y-1.5">
                   <div v-for="(entry, i) in currentEntries" :key="i" class="rounded-lg border border-gray-100 bg-gray-50 p-2.5 space-y-1">
                     <p class="text-sm font-medium text-gray-800">{{ entry.title }}</p>
@@ -155,7 +155,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 </div>
               </section>
 
-              <!-- ── Historique ───────────────────────────────────────────── -->
+              <!-- ── History ───────────────────────────────────────────── -->
               <div v-if="historySnaps.length === 0 && !hasCurrentDetail" class="text-center py-12 text-gray-400">
                 <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -172,7 +172,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     <span class="text-sm text-gray-400 ml-auto">{{ formatDate(snap.timestamp) }}</span>
                   </div>
 
-                  <!-- Incidents → AVEC pill -->
+                  <!-- Incidents → WITH pill -->
                   <div v-if="snap.incidents?.length" class="space-y-2">
                     <div
                       v-for="incident in snap.incidents.slice(0, snapLimit(snap.timestamp))"
@@ -197,7 +197,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     </button>
                   </div>
 
-                  <!-- Entries/messages → SANS pill -->
+                  <!-- Entries/messages → WITHOUT pill -->
                   <div v-else-if="snap.entries?.length || snap.message" class="space-y-1.5">
                     <template v-if="snap.entries?.length">
                       <div v-for="(entry, i) in snap.entries.slice(0, snapLimit(snap.timestamp))" :key="i" class="rounded-lg border border-gray-100 bg-gray-50 p-2.5 space-y-1">

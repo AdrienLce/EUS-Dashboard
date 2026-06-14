@@ -1,6 +1,6 @@
 /**
- * Échange le code d'autorisation OIDC contre des tokens (PKCE flow).
- * Appelé par la page /auth/callback après la redirection de l'IdP.
+ * Exchanges the OIDC authorization code for tokens (PKCE flow).
+ * Called by the /auth/callback page after the redirect from the IdP.
  */
 import { defineEventHandler, readBody, createError, setCookie } from 'h3'
 
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Paramètres manquants' })
   }
 
-  // Échange code → tokens via PKCE (sans client_secret)
+  // Exchange code → tokens via PKCE (without client_secret)
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
   const tokens = await res.json() as { access_token: string; id_token?: string; expires_in?: number }
 
-  // Poser un cookie de session httpOnly (1h par défaut)
+  // Set an httpOnly session cookie (1h by default)
   setCookie(event, 'sso_session', tokens.access_token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

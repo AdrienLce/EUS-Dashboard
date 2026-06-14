@@ -1,13 +1,13 @@
 /**
  * @module adapters/aws
  *
- * Adapter pour le AWS Health Dashboard JSON feed.
+ * Adapter for the AWS Health Dashboard JSON feed.
  *
- * AWS expose un flux JSON listant les événements en cours sur ses services.
+ * AWS exposes a JSON feed listing the ongoing events affecting its services.
  *
- * URL : https://health.aws.amazon.com/health/status
+ * URL: https://health.aws.amazon.com/health/status
  *
- * Structure JSON attendue :
+ * Expected JSON structure:
  * ```json
  * {
  *   "title": "Amazon Web Services Service Health Dashboard",
@@ -24,42 +24,42 @@
  * }
  * ```
  *
- * Logique de parsing :
- * - Si `current_events` est vide → `operational`
- * - Sinon → chaque événement est un Incident, le niveau global est le pire niveau parmi eux
+ * Parsing logic:
+ * - If `current_events` is empty → `operational`
+ * - Otherwise → each event is an Incident, and the global level is the worst level among them
  */
 
 import type { AdapterResult, Incident, StatusLevel } from '~/types'
 
-/** Structure d'un événement dans le flux AWS Health */
+/** Structure of an event in the AWS Health feed */
 interface AwsEntry {
-  /** Nom du service AWS (ex: "Amazon EC2", "AWS Lambda") */
+  /** Name of the AWS service (e.g. "Amazon EC2", "AWS Lambda") */
   service_name: string
-  /** Description courte de l'événement */
+  /** Short description of the event */
   summary: string
-  /** Statut textuel de l'événement (phrase libre en anglais) */
+  /** Textual event status (free-form English sentence) */
   status: string
-  /** Date de l'événement ISO 8601 */
+  /** ISO 8601 event date */
   date: string
-  /** URL vers la page de détail sur le Health Dashboard */
+  /** URL to the detail page on the Health Dashboard */
   url: string
 }
 
-/** Structure complète du flux JSON AWS Health */
+/** Full structure of the AWS Health JSON feed */
 interface AwsFeed {
   title?: string
-  /** Événements archivés (passés) — non utilisés par cet adapter */
+  /** Archived (past) events — not used by this adapter */
   archive_entries?: AwsEntry[]
-  /** Événements actuellement actifs */
+  /** Currently active events */
   current_events?: AwsEntry[]
 }
 
 /**
- * Convertit le statut textuel AWS (phrase libre) en StatusLevel.
- * AWS utilise des phrases complètes plutôt que des codes courts.
+ * Converts the AWS textual status (free-form sentence) into a StatusLevel.
+ * AWS uses full sentences rather than short codes.
  *
- * @param status - Texte du champ "status" (ex: "Service is operating normally")
- * @returns StatusLevel déduit par correspondance de sous-chaîne
+ * @param status - Text of the "status" field (e.g. "Service is operating normally")
+ * @returns StatusLevel inferred by substring matching
  */
 function mapAwsStatus(status: string): StatusLevel {
   const s = status.toLowerCase()
@@ -68,19 +68,19 @@ function mapAwsStatus(status: string): StatusLevel {
   if (s.includes('service degradation') || s.includes('degraded')) return 'mineur'
   if (s.includes('service disruption') || s.includes('disruption')) return 'majeur'
   if (s.includes('maintenance')) return 'maintenance'
-  // Défaut conservateur : événement présent mais statut inconnu → légère perturbation
+  // Conservative default: an event is present but its status is unknown → minor disruption
   return 'leger'
 }
 
 /**
- * Parse le flux JSON AWS Health Dashboard en AdapterResult.
+ * Parses the AWS Health Dashboard JSON feed into an AdapterResult.
  *
- * @param data - Réponse JSON parsée depuis health.aws.amazon.com/health/status
- * @returns AdapterResult avec le niveau global et la liste des événements actifs
+ * @param data - JSON response parsed from health.aws.amazon.com/health/status
+ * @returns AdapterResult with the global level and the list of active events
  */
 export function parseAws(data: unknown): AdapterResult {
-  // L'URL health.aws.amazon.com/health/status retourne du HTML (SPA) — le proxy encapsule
-  // dans { _raw } au lieu de parser du JSON. On détecte ce cas pour éviter un faux "operational".
+  // The health.aws.amazon.com/health/status URL returns HTML (SPA) — the proxy wraps it
+  // in { _raw } instead of parsing JSON. We detect this case to avoid a false "operational".
   if (typeof data === 'object' && data !== null && '_raw' in data) {
     return {
       level: 'inconnu',
@@ -91,10 +91,10 @@ export function parseAws(data: unknown): AdapterResult {
 
   const feed = data as AwsFeed
 
-  // Supporte les deux noms de champ : "current_events" (nouvelle API) et "current" (ancien data.json)
+  // Supports both field names: "current_events" (new API) and "current" (old data.json)
   const current = feed.current_events ?? (feed as Record<string, unknown>).current as AwsEntry[] ?? []
 
-  // Pas d'événements en cours → tout est opérationnel
+  // No ongoing events → everything is operational
   if (current.length === 0) {
     return {
       level: 'operational',
@@ -103,8 +103,8 @@ export function parseAws(data: unknown): AdapterResult {
     }
   }
 
-  // Transformer chaque événement en Incident normalisé
-  // Le titre inclut le nom du service pour identifier rapidement le composant affecté
+  // Transform each event into a normalized Incident
+  // The title includes the service name to quickly identify the affected component
   const incidents: Incident[] = current.map((entry, i) => ({
     id: `aws-${i}-${entry.date}`,
     title: `[${entry.service_name}] ${entry.summary}`,
@@ -115,7 +115,7 @@ export function parseAws(data: unknown): AdapterResult {
     url: entry.url,
   }))
 
-  // Calculer le niveau global = le pire niveau parmi tous les incidents
+  // Compute the global level = the worst level among all incidents
   const worstLevel = incidents.reduce<StatusLevel>((worst, inc) => {
     const order: StatusLevel[] = ['operational', 'maintenance', 'leger', 'mineur', 'majeur']
     return order.indexOf(inc.level) > order.indexOf(worst) ? inc.level : worst

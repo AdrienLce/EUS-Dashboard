@@ -1,7 +1,7 @@
 /**
- * Proxy du document de découverte OIDC.
- * Nécessaire pour éviter les erreurs CORS lors de la récupération
- * du .well-known/openid-configuration depuis le navigateur.
+ * Proxy for the OIDC discovery document.
+ * Needed to avoid CORS errors when fetching
+ * the .well-known/openid-configuration from the browser.
  */
 import { defineEventHandler, getQuery, createError } from 'h3'
 

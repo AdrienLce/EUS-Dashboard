@@ -1,7 +1,7 @@
 <!--
-  Navigation rapide entre les sous-services d'un composite.
-  Apparaît dans ServiceForm quand on édite un enfant de composite
-  — permet de passer d'un sous-service à l'autre sans fermer la modale.
+  Quick navigation between the sub-services of a composite.
+  Appears in ServiceForm when editing a composite child
+  — lets you switch from one sub-service to another without closing the modal.
 -->
 <script setup lang="ts">
 interface SiblingEntry { id: string; name: string; adapter: string }

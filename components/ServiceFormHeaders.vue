@@ -1,4 +1,4 @@
-<!-- Panneau En-têtes HTTP supplémentaires — sous-composant de ServiceForm -->
+<!-- Additional HTTP headers panel — sub-component of ServiceForm -->
 <script setup lang="ts">
 const headers = defineModel<{ key: string; value: string }[]>('headers', { required: true })
 

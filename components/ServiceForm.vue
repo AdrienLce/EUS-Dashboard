@@ -81,7 +81,7 @@ const form = reactive(defaultForm());
 const auth = reactive(defaultAuth());
 const mapping = reactive(defaultMapping());
 
-// ── Adapter path metadata — dérivé de ADAPTER_META (source unique dans adapters/index.ts)
+// ── Adapter path metadata — derived from ADAPTER_META (single source in adapters/index.ts)
 const ADAPTER_PATHS = Object.fromEntries(
   ADAPTER_META.filter((a) => a.statusPath !== undefined).map((a) => [
     a.value,
@@ -91,7 +91,7 @@ const ADAPTER_PATHS = Object.fromEntries(
 
 const adapterInfo = computed(() => ADAPTER_PATHS[form.adapter] ?? null);
 
-// Héritage du composite parent
+// Inheritance from the parent composite
 const isInheritingAdapter = computed(
   () => !!props.inheritedAdapter && (!form.adapter || form.adapter === "auto"),
 );
@@ -109,7 +109,7 @@ const resolvedAdapterValues = computed(() => {
   if (!testResult.value || !adapterInfo.value) return null;
   const info = adapterInfo.value;
   if (!info.statusPath) return null;
-  // Pour RSS : utiliser la structure parsée, pas le XML brut
+  // For RSS: use the parsed structure, not the raw XML
   const source = isRawXml.value ? rssStructured.value : testResult.value;
   const statusVal = getValueAtPath(source, info.statusPath);
   const messageVal = info.messagePath
@@ -131,7 +131,7 @@ const testError = ref<string | null>(null);
 const testLoading = ref(false);
 const testHttpStatus = ref<number | null>(null);
 
-// Détection flux RSS brut
+// Detection of raw RSS feed
 const isRawXml = computed(() => {
   if (!testResult.value || typeof testResult.value !== "object") return false;
   const raw = (testResult.value as { _raw?: unknown })._raw;
@@ -139,19 +139,19 @@ const isRawXml = computed(() => {
   return raw.includes("<?xml") || raw.includes("<feed") || raw.includes("<rss");
 });
 
-// Structure navigable du flux RSS (pour le JSON tree)
+// Navigable structure of the RSS feed (for the JSON tree)
 const rssStructured = computed(() => {
   if (!isRawXml.value || !testResult.value) return null;
   const raw = (testResult.value as { _raw: string })._raw;
   return rssToStructured(raw);
 });
 
-// Ce qu'on affiche dans l'arbre JSON : structure parsée pour RSS, JSON brut sinon
+// What we display in the JSON tree: parsed structure for RSS, raw JSON otherwise
 const treeData = computed(() =>
   isRawXml.value ? rssStructured.value : testResult.value,
 );
 
-// Popup "mapper cette clé"
+// "Map this key" popup
 const mapPopup = ref<{ path: string; value: unknown } | null>(null);
 const mapTarget = ref<"status" | "message">("status");
 
@@ -260,7 +260,7 @@ function loadForm() {
   }
 }
 
-// Charge au mount si déjà ouvert + quand open passe à true + quand editing change (navigation siblings)
+// Loads on mount if already open + when open becomes true + when editing changes (siblings navigation)
 watch(
   () => props.open,
   (open) => {
@@ -339,12 +339,12 @@ const wildcardPath = computed(() => {
   // entries.0.title → entries.*.title
   const withWild = path.replace(/\.(\d+)\./, ".*.");
   if (withWild !== path) return withWild;
-  // entries.0 → entries.* (item complet, fin de chemin)
+  // entries.0 → entries.* (whole item, end of path)
   const withWildEnd = path.replace(/\.(\d+)$/, ".*");
   return withWildEnd !== path ? withWildEnd : null;
 });
 
-// Item complet : entries.0.title → entries.* (sans le champ)
+// Whole item: entries.0.title → entries.* (without the field)
 const wildcardItemPath = computed(() => {
   if (!mapPopup.value) return null;
   const path = mapPopup.value.path;
@@ -384,16 +384,16 @@ function applyMappingItem(target: "status" | "message") {
   mapPopup.value = null;
 }
 
-// ── Mapping incidents ─────────────────────────────────────────
-// Chemin du tableau d'incidents déduit du clic : "incidents.0.name" → "incidents"
-// (.+? non gourmand → on prend le PREMIER niveau de tableau rencontré)
+// ── Incidents mapping ─────────────────────────────────────────
+// Path of the incidents array inferred from the click: "incidents.0.name" → "incidents"
+// (.+? non-greedy → we take the FIRST array level encountered)
 const incidentArrayPath = computed(() => {
   if (!mapPopup.value) return null;
   const m = mapPopup.value.path.match(/^(.+?)\.\d+(?:\..+)?$/);
   return m ? m[1] : null;
 });
 
-// Champ relatif à un item d'incident, déduit du clic : "incidents.0.name" → "name"
+// Field relative to an incident item, inferred from the click: "incidents.0.name" → "name"
 const incidentFieldFromClick = computed(() => {
   if (!mapPopup.value) return null;
   const m = mapPopup.value.path.match(/^.+?\.\d+\.(.+)$/);
@@ -410,7 +410,7 @@ function applyIncidentsList() {
 function applyIncidentField(target: "title" | "level" | "message") {
   const field = incidentFieldFromClick.value;
   if (!field) return;
-  // S'assurer que la liste d'incidents est définie
+  // Make sure the incidents list is set
   if (!mapping.incidentsPath && incidentArrayPath.value) {
     mapping.incidentsPath = incidentArrayPath.value;
   }
@@ -573,9 +573,9 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               </button>
             </div>
 
-            <!-- Body: two columns (+ siblings nav si composite) -->
+            <!-- Body: two columns (+ siblings nav if composite) -->
             <div class="flex flex-col lg:flex-row flex-1 min-h-0">
-              <!-- Navigation entre sous-services du même composite -->
+              <!-- Navigation between sub-services of the same composite -->
               <ServiceFormCompositeNav
                 v-if="siblings && siblings.length > 0"
                 :siblings="siblings"
@@ -609,7 +609,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </div>
                 </div>
 
-                <!-- Nom -->
+                <!-- Name -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
                     >Name <span class="text-red-500">*</span></label
@@ -622,7 +622,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   />
                 </div>
 
-                <!-- URL + méthode -->
+                <!-- URL + method -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
                     >URL <span class="text-red-500">*</span></label
@@ -684,7 +684,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </select>
                 </div>
 
-                <!-- Mapping info — adapters connus (read-only) -->
+                <!-- Mapping info — known adapters (read-only) -->
                 <div
                   v-if="adapterInfo && form.adapter !== 'custom'"
                   class="rounded-xl border border-blue-100 bg-blue-50/40 p-4 space-y-2"
@@ -744,7 +744,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </template>
                 </div>
 
-                <!-- Notice héritage mapping du composite parent -->
+                <!-- Notice: mapping inherited from the parent composite -->
                 <div
                   v-if="isInheritingMapping && inComposite"
                   class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 space-y-2"
@@ -806,7 +806,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </div>
                 </div>
 
-                <!-- Custom mapping (visible si adapter=custom) -->
+                <!-- Custom mapping (visible if adapter=custom) -->
                 <div
                   v-if="form.adapter === 'custom'"
                   class="rounded-xl border border-blue-100 bg-blue-50/50 p-4 space-y-3"
@@ -978,7 +978,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </button>
                 </div>
 
-                <!-- Bouton "Mapping global" — visible seulement dans un composite -->
+                <!-- "Global mapping" button — only visible inside a composite -->
                 <button
                   v-if="inComposite && mapping.statusPath"
                   class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
@@ -1139,7 +1139,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </div>
                 </div>
 
-                <!-- Headers supplémentaires -->
+                <!-- Additional headers -->
                 <div
                   class="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3"
                 >
@@ -1225,7 +1225,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   />
                 </div>
 
-                <!-- Intervalle + Groupe -->
+                <!-- Interval + Group -->
                 <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -1321,7 +1321,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     >RSS / Atom — parsed</span
                   >
 
-                  <!-- Onglets Réponse / Aperçu -->
+                  <!-- Response / Preview tabs -->
                   <div
                     v-if="testResult"
                     class="ml-auto flex items-center gap-1 bg-gray-100 rounded-lg p-0.5"
@@ -1351,7 +1351,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </div>
                 </div>
 
-                <!-- Popup mapping -->
+                <!-- Mapping popup -->
                 <div
                   v-if="mapPopup"
                   class="relative mx-5 mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 shrink-0 pr-8"
@@ -1383,12 +1383,12 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       Message
                     </button>
                   </div>
-                  <!-- Boutons wildcard (si dans un tableau) -->
+                  <!-- Wildcard buttons (if inside an array) -->
                   <div
                     v-if="wildcardPath || wildcardItemPath"
                     class="space-y-2 pt-2 border-t border-blue-100"
                   >
-                    <!-- Champ spécifique : entries.*.title -->
+                    <!-- Specific field: entries.*.title -->
                     <div v-if="wildcardPath">
                       <p class="text-xs text-blue-500 mb-1.5">
                         All
@@ -1412,7 +1412,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         </button>
                       </div>
                     </div>
-                    <!-- Item complet : entries.* -->
+                    <!-- Whole item: entries.* -->
                     <div v-if="wildcardItemPath">
                       <p class="text-xs text-blue-500 mb-1.5">
                         Whole item
@@ -1429,7 +1429,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </button>
                     </div>
                   </div>
-                  <!-- Boutons incidents (si dans un tableau) -->
+                  <!-- Incident buttons (if inside an array) -->
                   <div
                     v-if="incidentArrayPath"
                     class="space-y-2 pt-2 border-t border-blue-100"
@@ -1497,9 +1497,9 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   }}</span>
                 </div>
 
-                <!-- Contenu onglet -->
+                <!-- Tab content -->
                 <div class="flex-1 overflow-y-auto px-5 py-4">
-                  <!-- Onglet Réponse -->
+                  <!-- Response tab -->
                   <template v-if="rightTab === 'response'">
                     <div
                       v-if="testError"
@@ -1558,7 +1558,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                   </template>
 
-                  <!-- Onglet Aperçu -->
+                  <!-- Preview tab -->
                   <template v-else>
                     <div
                       v-if="!testResult"
@@ -1569,7 +1569,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </p>
                     </div>
                     <div v-else class="space-y-4">
-                      <!-- Card prévisualisée -->
+                      <!-- Previewed card -->
                       <div class="max-w-xs">
                         <ServiceCard
                           :name="form.name || 'Nom du service'"
@@ -1586,7 +1586,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           "
                         />
                       </div>
-                      <!-- Détail parsé -->
+                      <!-- Parsed detail -->
                       <div
                         v-if="parsedPreview"
                         class="rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs space-y-2"

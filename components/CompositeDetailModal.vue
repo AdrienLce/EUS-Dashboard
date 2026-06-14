@@ -48,7 +48,7 @@ const summary = computed(() => {
     ...(selectedSnapshot.value.entries ?? []),
   ];
   if (!items.length && selectedSnapshot.value.message) {
-    // Fallback : traiter les lignes du message comme items
+    // Fallback: treat the message lines as items
     const lines = selectedSnapshot.value.message
       .split("\n")
       .filter((l) => l.trim());
@@ -94,7 +94,7 @@ const selectedChild = computed<SubServiceConfig | null>(() =>
 
 const GLOBAL_ID = '__global__'
 
-// Global par défaut à l'ouverture, reset à la fermeture
+// Global by default on open, reset on close
 watch(
   () => props.open,
   (open) => {
@@ -105,7 +105,7 @@ watch(
 
 const isGlobal = computed(() => selectedId.value === GLOBAL_ID)
 
-// Summary global — tous les incidents/entries de tous les enfants
+// Global summary — all incidents/entries from all children
 const globalLevel = computed(() => {
   const levels = sortedChildren.value
     .map(ch => currentStatus.value[ch.id]?.level)
@@ -232,11 +232,11 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               </button>
             </div>
 
-            <!-- Body: 2 colonnes -->
+            <!-- Body: 2 columns -->
             <div class="flex flex-1 min-h-0">
-              <!-- ── Colonne gauche : navigation ─────────────── -->
+              <!-- ── Left column: navigation ─────────────── -->
               <div class="w-56 shrink-0 border-r border-gray-100 overflow-y-auto py-2">
-                <!-- Onglet Global -->
+                <!-- Global tab -->
                 <button
                   class="w-full text-left flex items-center gap-2.5 px-4 py-2.5 transition-colors"
                   :class="isGlobal ? 'bg-gray-50 font-medium text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
@@ -262,10 +262,10 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 </button>
               </div>
 
-              <!-- ── Colonne droite : détail ─────────────────── -->
+              <!-- ── Right column: detail ─────────────────── -->
               <div class="flex-1 overflow-y-auto">
 
-                <!-- Vue globale -->
+                <!-- Global view -->
                 <template v-if="isGlobal">
                   <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
                     <StatusBadge :level="globalLevel" />
@@ -284,7 +284,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                   </div>
 
-                  <!-- Mini-cartes des sous-services -->
+                  <!-- Sub-service mini-cards -->
                   <div class="px-6 py-4 grid grid-cols-1 gap-2">
                     <button
                       v-for="child in sortedChildren"
@@ -305,7 +305,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 </template>
 
                 <template v-else-if="selectedChild">
-                  <!-- Header service sélectionné -->
+                  <!-- Selected service header -->
                   <div
                     class="px-6 py-4 border-b border-gray-50 flex items-center justify-between gap-3"
                   >
@@ -374,7 +374,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                   </div>
 
-                  <!-- Détails : incidents (avec pill) + entries/messages (sans pill) -->
+                  <!-- Details: incidents (with pill) + entries/messages (without pill) -->
                   <div
                     v-if="
                       selectedSnapshot &&
@@ -384,7 +384,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     "
                     class="px-6 py-4 border-b border-gray-50 space-y-2"
                   >
-                    <!-- Incidents → AVEC pill statut -->
+                    <!-- Incidents → WITH status pill -->
                     <template v-if="selectedSnapshot.incidents?.length">
                       <div
                         v-for="inc in detailExpanded
@@ -455,7 +455,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </button>
                     </template>
 
-                    <!-- Entries structurées → SANS pill -->
+                    <!-- Structured entries → WITHOUT pill -->
                     <template v-else-if="selectedSnapshot.entries?.length">
                       <div
                         v-for="(entry, i) in detailExpanded
@@ -518,7 +518,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </button>
                     </template>
 
-                    <!-- Message multiline fallback → SANS pill -->
+                    <!-- Multiline message fallback → WITHOUT pill -->
                     <template v-else-if="selectedSnapshot.message">
                       <div
                         v-for="(line, i) in detailExpanded
@@ -552,7 +552,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </template>
                   </div>
 
-                  <!-- Historique -->
+                  <!-- History -->
                   <div class="px-6 py-4 space-y-4">
                     <p
                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"

@@ -1,56 +1,56 @@
 /**
  * @module adapters/rss
  *
- * Adapter pour les flux RSS 2.0 et Atom 1.0.
+ * Adapter for RSS 2.0 and Atom 1.0 feeds.
  *
- * Le proxy Nitro retourne le contenu XML brut encapsulé dans `{ _raw: "<xml>..." }`
- * car il ne peut pas parser le Content-Type "application/xml" comme du JSON.
+ * The Nitro proxy returns the raw XML content wrapped in `{ _raw: "<xml>..." }`
+ * because it cannot parse the "application/xml" Content-Type as JSON.
  *
- * Ce module expose deux fonctions :
- * - `rssToStructured` : convertit le XML brut en objet JSON navigable (RssStructured).
- *   Utilisé à la fois par parseRss ET par l'adapter custom (pour permettre le mapping
- *   sur des flux RSS via des chemins comme `entries.*.title`).
- * - `parseRss` : adapter complet qui transforme un flux RSS en AdapterResult.
+ * This module exposes two functions:
+ * - `rssToStructured`: converts the raw XML into a navigable JSON object (RssStructured).
+ *   Used both by parseRss AND by the custom adapter (to allow mapping
+ *   over RSS feeds via paths such as `entries.*.title`).
+ * - `parseRss`: a complete adapter that transforms an RSS feed into an AdapterResult.
  *
- * Compatibilité :
- * - RSS 2.0  : balises `<item>`, `<title>`, `<description>`, `<pubDate>`, `<link>`
- * - Atom 1.0 : balises `<entry>`, `<title>`, `<summary>`, `<updated>`, `<link href="...">`
- * - CDATA    : le contenu CDATA est extrait avant le stripping HTML
+ * Compatibility:
+ * - RSS 2.0  : `<item>`, `<title>`, `<description>`, `<pubDate>`, `<link>` tags
+ * - Atom 1.0 : `<entry>`, `<title>`, `<summary>`, `<updated>`, `<link href="...">` tags
+ * - CDATA    : the CDATA content is extracted before HTML stripping
  *
- * Détection du niveau :
- * Le niveau est déduit heuristiquement depuis le titre et le résumé de chaque entrée.
- * Il n'y a pas de champ "impact" standardisé dans RSS/Atom.
+ * Level detection:
+ * The level is inferred heuristically from each entry's title and summary.
+ * There is no standardized "impact" field in RSS/Atom.
  */
 
 import type { AdapterResult, Incident, StatusLevel } from '~/types'
 
 /**
- * Extrait le contenu texte d'une balise XML (première occurrence).
- * Gère CDATA et strips les balises HTML résiduelles.
+ * Extracts the text content of an XML tag (first occurrence).
+ * Handles CDATA and strips residual HTML tags.
  *
- * @param xml - Fragment XML à analyser
- * @param tag - Nom de la balise (ex: "title", "summary")
- * @returns Contenu textuel nettoyé, ou '' si la balise est absente
+ * @param xml - XML fragment to analyze
+ * @param tag - Tag name (e.g. "title", "summary")
+ * @returns Cleaned text content, or '' if the tag is absent
  */
 function extractTag(xml: string, tag: string): string {
   const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'))
   if (!m) return ''
   let content = m[1]
-  // Extraire le contenu CDATA avant de stripper les tags
+  // Extract the CDATA content before stripping the tags
   content = content.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-  // Supprimer les éventuels tags HTML restants
+  // Remove any remaining HTML tags
   content = content.replace(/<[^>]+>/g, '')
   return content.trim()
 }
 
 /**
- * Extrait la valeur d'un attribut d'une balise XML.
- * Utilisé pour `<link href="...">` dans Atom (contrairement à RSS où link est un élément texte).
+ * Extracts the value of an attribute from an XML tag.
+ * Used for `<link href="...">` in Atom (unlike RSS where link is a text element).
  *
- * @param xml  - Fragment XML à analyser
- * @param tag  - Nom de la balise
- * @param attr - Nom de l'attribut
- * @returns Valeur de l'attribut, ou '' si absent
+ * @param xml  - XML fragment to analyze
+ * @param tag  - Tag name
+ * @param attr - Attribute name
+ * @returns The attribute value, or '' if absent
  */
 function extractAttr(xml: string, tag: string, attr: string): string {
   const m = xml.match(new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, 'i'))
@@ -58,12 +58,12 @@ function extractAttr(xml: string, tag: string, attr: string): string {
 }
 
 /**
- * Extrait tous les fragments XML correspondant à une balise (toutes les occurrences).
- * Utilisé pour itérer sur les `<entry>` (Atom) et `<item>` (RSS).
+ * Extracts all XML fragments matching a tag (all occurrences).
+ * Used to iterate over `<entry>` (Atom) and `<item>` (RSS).
  *
- * @param xml - XML complet du flux
- * @param tag - Nom de la balise à extraire
- * @returns Tableau de fragments XML (un par occurrence)
+ * @param xml - Full XML of the feed
+ * @param tag - Name of the tag to extract
+ * @returns Array of XML fragments (one per occurrence)
  */
 function extractAll(xml: string, tag: string): string[] {
   const re = new RegExp(`<${tag}[\\s>][\\s\\S]*?<\\/${tag}>`, 'gi')
@@ -71,11 +71,11 @@ function extractAll(xml: string, tag: string): string[] {
 }
 
 /**
- * Détecte heuristiquement un StatusLevel depuis le texte d'une entrée RSS/Atom.
- * Analyse le titre ET le résumé combinés pour une meilleure précision.
+ * Heuristically detects a StatusLevel from the text of an RSS/Atom entry.
+ * Analyzes the title AND summary combined for better accuracy.
  *
- * @param text - Texte combiné (titre + ' ' + résumé)
- * @returns StatusLevel déduit, ou 'leger' par défaut (conservateur pour un flux)
+ * @param text - Combined text (title + ' ' + summary)
+ * @returns The inferred StatusLevel, or 'leger' by default (conservative for a feed)
  */
 function guessLevel(text: string): StatusLevel {
   const t = text.toLowerCase()
@@ -84,61 +84,61 @@ function guessLevel(text: string): StatusLevel {
   if (t.includes('degraded') || t.includes('partial')) return 'mineur'
   if (t.includes('investigating') || t.includes('advisory') || t.includes('warning')) return 'leger'
   if (t.includes('maintenance')) return 'maintenance'
-  // Défaut : légère perturbation (on est dans un flux d'incidents, pas de statut normal)
+  // Default: minor disruption (we are in an incident feed, not a normal-status feed)
   return 'leger'
 }
 
 /**
- * Représentation d'une entrée normalisée depuis RSS/Atom.
- * Champs communs aux deux formats après normalisation.
+ * Representation of a normalized entry from RSS/Atom.
+ * Fields common to both formats after normalization.
  */
 export interface RssEntry {
-  /** Titre de l'entrée (balise title) */
+  /** Entry title (title tag) */
   title: string
-  /** Résumé/description (summary, description ou content) */
+  /** Summary/description (summary, description or content) */
   summary: string
-  /** Date de mise à jour ou de publication (updated ou pubDate) */
+  /** Update or publication date (updated or pubDate) */
   updated: string
-  /** URL de l'entrée (href de link Atom ou texte de link RSS) */
+  /** Entry URL (href of an Atom link or text of an RSS link) */
   link: string
 }
 
 /**
- * Structure JSON navigable générée depuis un flux RSS/Atom brut.
- * Permet d'utiliser les chemins de l'adapter custom (ex: `entries.*.title`).
+ * Navigable JSON structure generated from a raw RSS/Atom feed.
+ * Allows using the custom adapter's paths (e.g. `entries.*.title`).
  */
 export interface RssStructured {
-  /** Titre du flux (première balise title du canal) */
+  /** Feed title (first title tag of the channel) */
   feed_title: string
-  /** Date de dernière mise à jour du flux (updated ou lastBuildDate) */
+  /** Feed last-updated date (updated or lastBuildDate) */
   feed_updated: string
-  /** Nombre total d'entrées dans le flux */
+  /** Total number of entries in the feed */
   entry_count: number
-  /** Entrées normalisées (Atom entry + RSS item fusionnés) */
+  /** Normalized entries (Atom entry + RSS item merged) */
   entries: RssEntry[]
 }
 
 /**
- * Convertit un flux RSS/Atom XML brut en objet JSON structuré et navigable.
+ * Converts a raw RSS/Atom XML feed into a structured, navigable JSON object.
  *
- * Cette fonction est utilisée à deux endroits :
- * 1. Par `parseRss` pour générer les incidents automatiquement
- * 2. Par `resolveData` dans custom.ts pour permettre le mapping personnalisé
- *    (l'arbre JSON généré est celui visible dans l'explorateur de l'UI)
+ * This function is used in two places:
+ * 1. By `parseRss` to generate incidents automatically
+ * 2. By `resolveData` in custom.ts to enable custom mapping
+ *    (the generated JSON tree is the one visible in the UI explorer)
  *
- * Compatibilité :
- * - Atom 1.0 : extrait les balises `<entry>`
- * - RSS 2.0  : extrait les balises `<item>`
- * - Les deux coexistent si présents (unlikely mais supporté)
+ * Compatibility:
+ * - Atom 1.0 : extracts the `<entry>` tags
+ * - RSS 2.0  : extracts the `<item>` tags
+ * - Both coexist if present (unlikely but supported)
  *
- * @param raw - Contenu XML brut du flux (depuis `{ _raw: "..." }`)
- * @returns Objet RssStructured avec les entrées normalisées
+ * @param raw - Raw XML content of the feed (from `{ _raw: "..." }`)
+ * @returns An RssStructured object with the normalized entries
  *
  * @example
- * // Après appel, le résultat est navigable par l'adapter custom :
- * // entries.*.title    → titres de toutes les entrées
- * // entries.*.summary  → résumés de toutes les entrées
- * // entries.0.link     → lien de la première entrée
+ * // After calling, the result is navigable by the custom adapter:
+ * // entries.*.title    → titles of all entries
+ * // entries.*.summary  → summaries of all entries
+ * // entries.0.link     → link of the first entry
  * const structured = rssToStructured(xmlString)
  * // → { feed_title: "...", entry_count: 5, entries: [...] }
  */
@@ -146,7 +146,7 @@ export function rssToStructured(raw: string): RssStructured {
   const feedTitle = extractTag(raw, 'title')
   const feedUpdated = extractTag(raw, 'updated') || extractTag(raw, 'lastBuildDate') || ''
 
-  // Combiner entries Atom et items RSS (cas rare mais supporté)
+  // Combine Atom entries and RSS items (rare case but supported)
   const rawEntries = [
     ...extractAll(raw, 'entry'),  // Atom 1.0
     ...extractAll(raw, 'item'),   // RSS 2.0
@@ -154,11 +154,11 @@ export function rssToStructured(raw: string): RssStructured {
 
   const entries: RssEntry[] = rawEntries.map((entry) => ({
     title: extractTag(entry, 'title'),
-    // Tenter summary (Atom), description (RSS), puis content comme dernier recours
+    // Try summary (Atom), description (RSS), then content as a last resort
     summary: extractTag(entry, 'summary') || extractTag(entry, 'description') || extractTag(entry, 'content') || '',
-    // Tenter updated (Atom) puis pubDate (RSS)
+    // Try updated (Atom) then pubDate (RSS)
     updated: extractTag(entry, 'updated') || extractTag(entry, 'pubDate') || '',
-    // Tenter href d'attribut (Atom) puis texte de balise (RSS)
+    // Try the href attribute (Atom) then the tag text (RSS)
     link: extractAttr(entry, 'link', 'href') || extractTag(entry, 'link') || '',
   }))
 
@@ -171,16 +171,16 @@ export function rssToStructured(raw: string): RssStructured {
 }
 
 /**
- * Parse un flux RSS/Atom brut en AdapterResult.
+ * Parses a raw RSS/Atom feed into an AdapterResult.
  *
- * La présence d'entrées est interprétée comme un signe d'incident (les flux RSS
- * de statut ne publient généralement des entrées que lors de problèmes).
+ * The presence of entries is interpreted as a sign of an incident (status RSS
+ * feeds generally publish entries only when there are problems).
  *
- * Filtrage : les entrées sans titre ni contenu (ex: éléments "header" génériques
- * insérés par certains services) sont ignorées.
+ * Filtering: entries with neither title nor content (e.g. generic "header" elements
+ * inserted by some services) are ignored.
  *
- * @param data - Réponse du proxy contenant `{ _raw: "<xml>..." }`
- * @returns AdapterResult avec le niveau le plus grave parmi les entrées
+ * @param data - Proxy response containing `{ _raw: "<xml>..." }`
+ * @returns AdapterResult with the most severe level among the entries
  */
 export function parseRss(data: unknown): AdapterResult {
   const raw = (data as { _raw?: string })?._raw ?? ''
@@ -193,12 +193,12 @@ export function parseRss(data: unknown): AdapterResult {
   }
 
   const incidents: Incident[] = structured.entries
-    // Filtrer les items "header" sans contenu réel (ex: ICE header générique)
+    // Filter out "header" items with no real content (e.g. generic ICE header)
     .filter((entry) => entry.title.length > 0 && (entry.summary.length > 0 || entry.link.length > 0))
     .map((entry, i) => ({
       id: `rss-${i}`,
       title: entry.title,
-      // Analyser le titre ET le résumé ensemble pour une meilleure détection
+      // Analyze the title AND summary together for better detection
       level: guessLevel(entry.title + ' ' + entry.summary),
       startedAt: entry.updated,
       updatedAt: entry.updated,
@@ -206,11 +206,11 @@ export function parseRss(data: unknown): AdapterResult {
       url: entry.link || undefined,
     }))
 
-  // Le niveau global est le pire niveau parmi toutes les entrées du flux
+  // The global level is the worst level among all entries in the feed
   const worstLevel = incidents.reduce<StatusLevel>((worst, inc) => {
     const order: StatusLevel[] = ['operational', 'maintenance', 'leger', 'mineur', 'majeur']
     return order.indexOf(inc.level) > order.indexOf(worst) ? inc.level : worst
-  }, 'leger') // Défaut 'leger' : un flux non vide est au minimum une légère perturbation
+  }, 'leger') // Default 'leger': a non-empty feed is at minimum a minor disruption
 
   return {
     level: worstLevel,

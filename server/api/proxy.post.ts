@@ -1,18 +1,18 @@
 /**
  * @module server/api/proxy.post
  *
- * Proxy HTTP côté serveur avec cache en mémoire.
+ * Server-side HTTP proxy with in-memory cache.
  *
  * ## Cache
  *
- * Chaque réponse GET est mise en cache en mémoire pendant `cacheTtl` secondes
- * (défaut : 120s). Les requêtes vers la même URL pendant cette fenêtre retournent
- * la réponse cachée sans rappeler le service externe.
+ * Each GET response is cached in memory for `cacheTtl` seconds
+ * (default: 120s). Requests to the same URL within this window return
+ * the cached response without calling the external service again.
  *
- * Cela évite les erreurs 429 (Too Many Requests) sur les services qui rate-limitent
- * les appels répétés depuis la même IP serveur.
+ * This avoids 429 (Too Many Requests) errors on services that rate-limit
+ * repeated calls from the same server IP.
  *
- * Le client peut forcer un rafraîchissement en passant `{ forceRefresh: true }`.
+ * The client can force a refresh by passing `{ forceRefresh: true }`.
  */
 
 import { defineEventHandler, readBody, createError } from 'h3'
@@ -22,15 +22,15 @@ interface ProxyRequest {
   method: 'GET' | 'POST'
   headers?: Record<string, string>
   body?: string
-  /** TTL du cache en secondes (défaut: 120). 0 = pas de cache. */
+  /** Cache TTL in seconds (default: 120). 0 = no cache. */
   cacheTtl?: number
-  /** Ignore le cache et force un nouvel appel */
+  /** Ignores the cache and forces a new call */
   forceRefresh?: boolean
-  /** Mode ping : retourne { _statusCode, _ok } sans parser le body */
+  /** Ping mode: returns { _statusCode, _ok } without parsing the body */
   isPing?: boolean
 }
 
-// Cache mémoire côté serveur : Map<url, { data, expiresAt }>
+// Server-side in-memory cache: Map<url, { data, expiresAt }>
 const cache = new Map<string, { data: unknown; expiresAt: number }>()
 
 function getCached(url: string): unknown | null {
@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
 
   if (!req?.url) throw createError({ statusCode: 400, message: 'URL manquante' })
 
-  // Validation SSRF
+  // SSRF validation
   try {
     const url = new URL(req.url)
     const h = url.hostname
@@ -65,9 +65,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const isGet = (req.method ?? 'GET') === 'GET'
-  const ttl = req.cacheTtl ?? 120  // 2 min par défaut
+  const ttl = req.cacheTtl ?? 120  // 2 min by default
 
-  // Retourner le cache si disponible (GET uniquement)
+  // Return the cache if available (GET only)
   if (isGet && !req.forceRefresh) {
     const cached = getCached(req.url)
     if (cached !== null) return cached
@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
 
   const response = await fetch(req.url, fetchOptions)
 
-  // Mode ping : retourner le code HTTP sans parser le body
+  // Ping mode: return the HTTP status code without parsing the body
   if (req.isPing) {
     return { _statusCode: response.status, _ok: response.ok }
   }
@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
     ? await response.json()
     : { _raw: await response.text() }
 
-  // Mettre en cache (GET uniquement)
+  // Store in cache (GET only)
   if (isGet) setCached(req.url, data, ttl)
 
   return data

@@ -1,14 +1,14 @@
 /**
  * @module adapters/github
  *
- * Adapter pour l'API GitHub Status.
+ * Adapter for the GitHub Status API.
  *
- * GitHub utilise une variante du format Atlassian Statuspage enrichie d'un champ
- * `components` listant les composants de la plateforme (Git Operations, API, Actions, etc.).
+ * GitHub uses a variant of the Atlassian Statuspage format enriched with a
+ * `components` field listing the platform's components (Git Operations, API, Actions, etc.).
  *
- * URL : https://www.githubstatus.com/api/v2/summary.json
+ * URL: https://www.githubstatus.com/api/v2/summary.json
  *
- * Structure JSON attendue :
+ * Expected JSON structure:
  * ```json
  * {
  *   "status": { "indicator": "none", "description": "All Systems Operational" },
@@ -25,38 +25,38 @@
  * }
  * ```
  *
- * Note : cet adapter n'utilise pas actuellement le champ `components` pour générer
- * des incidents individuels — il se base sur la liste `incidents` comme Atlassian.
- * L'indicateur global `status.indicator` suffit pour la majorité des cas d'usage.
+ * Note: this adapter does not currently use the `components` field to generate
+ * individual incidents — it relies on the `incidents` list like Atlassian.
+ * The global `status.indicator` is sufficient for the majority of use cases.
  */
 
 import type { AdapterResult, Incident, StatusLevel } from '~/types'
 
-/** Composant GitHub avec son statut individuel */
+/** GitHub component with its individual status */
 interface GithubComponent {
   id: string
   name: string
-  /** Statut du composant : "operational" | "degraded_performance" | "partial_outage" | "major_outage" */
+  /** Component status: "operational" | "degraded_performance" | "partial_outage" | "major_outage" */
   status: string
   description?: string
 }
 
-/** Incident GitHub actif */
+/** Active GitHub incident */
 interface GithubIncident {
   id: string
   name: string
-  /** Statut du workflow : "investigating" | "identified" | "monitoring" | "resolved" */
+  /** Workflow status: "investigating" | "identified" | "monitoring" | "resolved" */
   status: string
-  /** Impact : "none" | "minor" | "major" | "critical" */
+  /** Impact: "none" | "minor" | "major" | "critical" */
   impact: string
   shortlink: string
   updated_at: string
   created_at: string
-  /** Mises à jour de l'incident (ordre antéchronologique — [0] est la plus récente) */
+  /** Incident updates (reverse-chronological order — [0] is the most recent) */
   incident_updates: { body: string; updated_at: string }[]
 }
 
-/** Structure complète de la réponse summary.json GitHub */
+/** Full structure of the GitHub summary.json response */
 interface GithubSummary {
   status: { indicator: string; description: string }
   components: GithubComponent[]
@@ -64,10 +64,10 @@ interface GithubSummary {
 }
 
 /**
- * Convertit l'indicateur global GitHub en StatusLevel.
- * Mapping identique à Atlassian (même format de base).
+ * Converts the global GitHub indicator into a StatusLevel.
+ * Identical mapping to Atlassian (same base format).
  *
- * @param indicator - Valeur de status.indicator ("none" | "minor" | "major" | "critical" | "maintenance")
+ * @param indicator - Value of status.indicator ("none" | "minor" | "major" | "critical" | "maintenance")
  */
 function mapGithubIndicator(indicator: string): StatusLevel {
   switch (indicator) {
@@ -81,9 +81,9 @@ function mapGithubIndicator(indicator: string): StatusLevel {
 }
 
 /**
- * Convertit l'impact d'un incident GitHub en StatusLevel.
+ * Converts the impact of a GitHub incident into a StatusLevel.
  *
- * @param impact - Valeur de incident.impact
+ * @param impact - Value of incident.impact
  */
 function mapGithubIncidentImpact(impact: string): StatusLevel {
   switch (impact) {
@@ -97,16 +97,16 @@ function mapGithubIncidentImpact(impact: string): StatusLevel {
 }
 
 /**
- * Parse la réponse de l'API GitHub Status en AdapterResult.
+ * Parses the GitHub Status API response into an AdapterResult.
  *
- * @param data - Réponse JSON parsée depuis githubstatus.com/api/v2/summary.json
- * @returns AdapterResult avec le niveau global et la liste des incidents actifs
+ * @param data - JSON response parsed from githubstatus.com/api/v2/summary.json
+ * @returns AdapterResult with the global level and the list of active incidents
  */
 export function parseGithub(data: unknown): AdapterResult {
   const summary = data as GithubSummary
 
-  // Extraire et normaliser les incidents actifs
-  // La première entrée de incident_updates est la mise à jour la plus récente
+  // Extract and normalize the active incidents
+  // The first entry of incident_updates is the most recent update
   const incidents: Incident[] = (summary.incidents ?? []).map((inc) => ({
     id: inc.id,
     title: inc.name,

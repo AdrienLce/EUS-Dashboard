@@ -1,14 +1,14 @@
 /**
  * @module adapters/atlassian
  *
- * Adapter pour l'API Atlassian Statuspage.
+ * Adapter for the Atlassian Statuspage API.
  *
- * Format utilisé par de nombreux services SaaS : Notion, Atlassian (Jira, Confluence),
- * et tout service hébergé sur statuspage.io.
+ * Format used by many SaaS services: Notion, Atlassian (Jira, Confluence),
+ * and any service hosted on statuspage.io.
  *
- * URL type : https://{service}.statuspage.io/api/v2/summary.json
+ * Typical URL: https://{service}.statuspage.io/api/v2/summary.json
  *
- * Structure JSON attendue :
+ * Expected JSON structure:
  * ```json
  * {
  *   "status": { "indicator": "none", "description": "All Systems Operational" },
@@ -27,7 +27,7 @@
  * }
  * ```
  *
- * Mapping des indicateurs Atlassian → StatusLevel :
+ * Mapping of Atlassian indicators → StatusLevel:
  * - `none`        → operational
  * - `minor`       → leger
  * - `major`       → mineur
@@ -38,46 +38,46 @@
 import type { AdapterResult, Incident, StatusLevel } from '~/types'
 import { worstLevel } from '~/types'
 
-/** Structure du champ status.indicator dans la réponse Atlassian */
+/** Structure of the status.indicator field in the Atlassian response */
 interface AtlassianStatus {
-  /** Niveau d'impact global : "none" | "minor" | "major" | "critical" | "maintenance" */
+  /** Global impact level: "none" | "minor" | "major" | "critical" | "maintenance" */
   indicator: string
-  /** Description textuelle du statut global (ex: "All Systems Operational") */
+  /** Textual description of the global status (e.g. "All Systems Operational") */
   description: string
 }
 
-/** Structure d'un incident dans la réponse Atlassian */
+/** Structure of an incident in the Atlassian response */
 interface AtlassianIncident {
-  /** Identifiant unique de l'incident (fourni par Statuspage) */
+  /** Unique incident identifier (provided by Statuspage) */
   id: string
-  /** Titre de l'incident */
+  /** Incident title */
   name: string
-  /** Statut du workflow : "investigating" | "identified" | "monitoring" | "resolved" */
+  /** Workflow status: "investigating" | "identified" | "monitoring" | "resolved" */
   status: string
-  /** Impact sur les utilisateurs : "none" | "minor" | "major" | "critical" | "maintenance" */
+  /** User-facing impact: "none" | "minor" | "major" | "critical" | "maintenance" */
   impact: string
-  /** URL courte vers la page de détail */
+  /** Short URL to the detail page */
   shortlink?: string
-  /** Horodatage de dernière mise à jour ISO 8601 */
+  /** ISO 8601 last-updated timestamp */
   updated_at: string
-  /** Horodatage de création ISO 8601 */
+  /** ISO 8601 creation timestamp */
   created_at: string
-  /** Historique des mises à jour de l'incident (ordre antéchronologique) */
+  /** History of incident updates (reverse-chronological order) */
   incident_updates?: { body: string; updated_at: string }[]
 }
 
-/** Structure complète de la réponse summary.json */
+/** Full structure of the summary.json response */
 interface AtlassianSummary {
   status: AtlassianStatus
   incidents: AtlassianIncident[]
 }
 
 /**
- * Convertit un indicateur global Atlassian en StatusLevel.
- * L'indicateur global reflète le pire niveau actif sur l'ensemble des composants.
+ * Converts a global Atlassian indicator into a StatusLevel.
+ * The global indicator reflects the worst active level across all components.
  *
- * @param indicator - Valeur du champ status.indicator
- * @returns StatusLevel correspondant
+ * @param indicator - Value of the status.indicator field
+ * @returns The corresponding StatusLevel
  */
 function mapIndicator(indicator: string): StatusLevel {
   switch (indicator) {
@@ -91,11 +91,11 @@ function mapIndicator(indicator: string): StatusLevel {
 }
 
 /**
- * Convertit un impact d'incident Atlassian en StatusLevel.
- * L'impact est par incident, contrairement à l'indicateur qui est global.
+ * Converts an Atlassian incident impact into a StatusLevel.
+ * The impact is per-incident, unlike the indicator which is global.
  *
- * @param impact - Valeur du champ incident.impact
- * @returns StatusLevel correspondant (défaut: "leger" pour les impacts inconnus)
+ * @param impact - Value of the incident.impact field
+ * @returns The corresponding StatusLevel (default: "leger" for unknown impacts)
  */
 function mapImpact(impact: string): StatusLevel {
   switch (impact) {
@@ -109,16 +109,16 @@ function mapImpact(impact: string): StatusLevel {
 }
 
 /**
- * Parse la réponse de l'API Atlassian Statuspage en AdapterResult.
+ * Parses the Atlassian Statuspage API response into an AdapterResult.
  *
- * @param data - Réponse JSON parsée depuis summary.json
- * @returns AdapterResult avec le niveau global et la liste des incidents actifs
+ * @param data - JSON response parsed from summary.json
+ * @returns AdapterResult with the global level and the list of active incidents
  */
 export function parseAtlassian(data: unknown): AdapterResult {
   const summary = data as AtlassianSummary
 
-  // Convertir chaque incident en format normalisé
-  // Le message de l'incident est la dernière mise à jour (incident_updates[0])
+  // Convert each incident into the normalized format
+  // The incident message is the latest update (incident_updates[0])
   const incidents: Incident[] = (summary.incidents ?? []).map((inc) => ({
     id: inc.id,
     title: inc.name,

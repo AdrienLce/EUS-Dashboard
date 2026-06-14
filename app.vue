@@ -6,11 +6,11 @@ const { theme } = useTheme()
 const { connect, disconnect } = useRealtimeStatus()
 
 onMounted(() => {
-  // Appliquer le thème sauvegardé
+  // Apply the saved theme
   const saved = localStorage.getItem('status-theme') ?? 'light'
   document.documentElement.setAttribute('data-theme', saved)
 
-  // Connexion WebSocket — le serveur pushera les snapshots
+  // WebSocket connection — the server will push the snapshots
   connect()
 })
 

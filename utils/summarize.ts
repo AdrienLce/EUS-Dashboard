@@ -1,37 +1,37 @@
 /**
  * @module utils/summarize
  *
- * Génération d'un résumé textuel lisible depuis une liste d'incidents ou d'entrées.
+ * Generation of a readable text summary from a list of incidents or entries.
  *
- * Ce module est utilisé dans l'UI pour afficher une synthèse condensée du contenu
- * d'un service composite ou d'un flux RSS (ex: "3 incidents · 2 maintenances planifiées").
+ * This module is used in the UI to display a condensed overview of the contents
+ * of a composite service or an RSS feed (e.g. "3 incidents · 2 maintenances planifiées").
  *
- * Il produit deux informations :
- * - `text`      : phrase décrivant la répartition par catégorie
- * - `dateRange` : plage de dates couverte par les entrées
+ * It produces two pieces of information:
+ * - `text`      : sentence describing the breakdown by category
+ * - `dateRange` : date range covered by the entries
  */
 
 import type { Incident, MessageEntry } from '~/types'
 
-/** Résultat de la génération de résumé */
+/** Result of the summary generation */
 interface SummaryResult {
-  /** Phrase de synthèse (ex: "2 incidents · 1 maintenance planifiée") */
+  /** Summary sentence (e.g. "2 incidents · 1 maintenance planifiée") */
   text: string
-  /** Plage de dates (ex: "Du 01/01/2024 au 15/01/2024") ou null si non déterminable */
+  /** Date range (e.g. "Du 01/01/2024 au 15/01/2024") or null if not determinable */
   dateRange: string | null
-  /** Nombre total d'entrées (incidents ou MessageEntry) */
+  /** Total number of entries (incidents or MessageEntry) */
   total: number
 }
 
 /**
- * Catégorise un titre d'incident en une catégorie sémantique pour la phrase de résumé.
- * La catégorisation se fait par correspondance de sous-chaîne sur le titre en minuscules.
+ * Categorizes an incident title into a semantic category for the summary sentence.
+ * Categorization is done by substring matching on the lowercased title.
  *
- * L'ordre de priorité des tests est important : "vendor mandated emergency" doit
- * être testé avant "vendor mandated" pour éviter la catégorie moins spécifique.
+ * The priority order of the tests matters: "vendor mandated emergency" must
+ * be tested before "vendor mandated" to avoid the less specific category.
  *
- * @param title - Titre de l'incident ou de la MessageEntry
- * @returns Catégorie sémantique pour l'agrégation
+ * @param title - Title of the incident or the MessageEntry
+ * @returns Semantic category for aggregation
  */
 function categorize(title: string): string {
   const t = title.toLowerCase()
@@ -46,10 +46,10 @@ function categorize(title: string): string {
 }
 
 /**
- * Parse une chaîne de date en objet Date JavaScript.
- * Retourne null si la chaîne est vide ou non parseable.
+ * Parses a date string into a JavaScript Date object.
+ * Returns null if the string is empty or not parseable.
  *
- * @param s - Chaîne de date (ISO 8601, RFC 2822, ou autre format reconnu par Date)
+ * @param s - Date string (ISO 8601, RFC 2822, or any other format recognized by Date)
  */
 function parseDate(s: string): Date | null {
   if (!s) return null
@@ -57,30 +57,30 @@ function parseDate(s: string): Date | null {
 }
 
 /**
- * Formate une date en format court français (dd/mm/yyyy).
+ * Formats a date in the short French format (dd/mm/yyyy).
  *
- * @param d - Objet Date à formater
- * @returns Chaîne au format "15/01/2024"
+ * @param d - Date object to format
+ * @returns String in the "15/01/2024" format
  */
 function formatShort(d: Date): string {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 /**
- * Génère un résumé textuel depuis une liste d'incidents ou d'entrées RSS.
+ * Generates a text summary from a list of incidents or RSS entries.
  *
- * Algorithme :
- * 1. Extraire les titres (en ignorant les entrées sans titre)
- * 2. Catégoriser chaque titre et compter par catégorie
- * 3. Construire la phrase de synthèse dans un ordre sémantique prédéfini
- * 4. Calculer la plage de dates couverte (min-max des dates trouvées)
+ * Algorithm:
+ * 1. Extract the titles (ignoring entries without a title)
+ * 2. Categorize each title and count by category
+ * 3. Build the summary sentence in a predefined semantic order
+ * 4. Compute the covered date range (min-max of the dates found)
  *
- * L'ordre des catégories dans la phrase suit une logique de sévérité décroissante :
- * incidents > advisories > maintenances urgentes > maintenances fournisseur >
- * maintenances planifiées > maintenances génériques > résolus > autres
+ * The order of categories in the sentence follows a decreasing severity logic:
+ * incidents > advisories > emergency maintenances > vendor maintenances >
+ * planned maintenances > generic maintenances > resolved > others
  *
- * @param items - Tableau mixte d'Incidents et/ou de MessageEntry
- * @returns SummaryResult, ou null si la liste est vide ou sans titres
+ * @param items - Mixed array of Incidents and/or MessageEntry
+ * @returns SummaryResult, or null if the list is empty or has no titles
  *
  * @example
  * buildSummary([
@@ -93,28 +93,28 @@ function formatShort(d: Date): string {
 export function buildSummary(items: (Incident | MessageEntry)[]): SummaryResult | null {
   if (!items || items.length === 0) return null
 
-  // Extraire les titres en ignorant les entrées vides
+  // Extract the titles, ignoring empty entries
   const titles = items.map((i) => ('title' in i ? i.title : '')).filter(Boolean)
   if (!titles.length) return null
 
-  // Compter par catégorie sémantique
+  // Count by semantic category
   const counts = new Map<string, number>()
   for (const title of titles) {
     const cat = categorize(title)
     counts.set(cat, (counts.get(cat) ?? 0) + 1)
   }
 
-  // Construire la phrase dans l'ordre de sévérité
+  // Build the sentence in severity order
   const parts: string[] = []
   const order = ['incident', 'advisory', 'maintenance urgence', 'maintenance fournisseur', 'maintenance planifiée', 'maintenance', 'résolu', 'autre']
   for (const cat of order) {
     const n = counts.get(cat)
     if (!n) continue
-    // Pluriel simple : ajouter 's' sauf si la catégorie se termine par 'e' (déjà féminin/invariable)
+    // Simple pluralization: add 's' unless the category ends with 'e' (already feminine/invariable)
     parts.push(`${n} ${cat}${n > 1 && !cat.endsWith('e') ? 's' : ''}`)
   }
 
-  // Calculer la plage de dates depuis les champs updatedAt (Incident) ou date (MessageEntry)
+  // Compute the date range from the updatedAt (Incident) or date (MessageEntry) fields
   const dates = items
     .map((i) => {
       const raw = ('updatedAt' in i ? i.updatedAt : null) ?? ('date' in i ? i.date : null) ?? ''
@@ -127,7 +127,7 @@ export function buildSummary(items: (Incident | MessageEntry)[]): SummaryResult 
   if (dates.length >= 2) {
     const oldest = dates[0]
     const newest = dates[dates.length - 1]
-    // Afficher une plage si les dates sont différentes, sinon une date unique
+    // Show a range if the dates differ, otherwise a single date
     if (formatShort(oldest) !== formatShort(newest)) {
       dateRange = `Du ${formatShort(oldest)} au ${formatShort(newest)}`
     }

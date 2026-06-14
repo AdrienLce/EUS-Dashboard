@@ -1,78 +1,78 @@
 /**
  * @module composables/useScheduler
  *
- * Scheduler centralisé à timer unique pour le polling des services.
+ * Centralized single-timer scheduler for polling services.
  *
- * ## Architecture : un seul setInterval global
+ * ## Architecture: a single global setInterval
  *
- * Au lieu de créer un `setInterval` distinct pour chaque service surveillé
- * (ce qui créerait N timers en parallèle avec N services), ce module maintient
- * un seul `setInterval` "maître" qui tourne toutes les 5 secondes (TICK_MS).
+ * Instead of creating a separate `setInterval` for each monitored service
+ * (which would create N parallel timers with N services), this module maintains
+ * a single "master" `setInterval` that runs every 5 seconds (TICK_MS).
  *
- * À chaque tick, il parcourt une Map de tâches planifiées et exécute celles
- * dont le `nextDue` est dépassé. Cela permet de :
- * - Minimiser le nombre de timers système actifs (toujours 1 max)
- * - Ajouter/supprimer des tâches dynamiquement sans créer/détruire des timers
- * - Arrêter proprement le timer global quand plus aucune tâche n'est active
+ * On each tick, it iterates over a Map of scheduled tasks and runs those
+ * whose `nextDue` has passed. This makes it possible to:
+ * - Minimize the number of active system timers (always 1 at most)
+ * - Add/remove tasks dynamically without creating/destroying timers
+ * - Cleanly stop the global timer when no tasks remain active
  *
- * ## Résolution temporelle
+ * ## Time resolution
  *
- * La résolution est de 5 secondes (TICK_MS). Un service configuré à 30s sera
- * exécuté à ±5s près. C'est acceptable pour du monitoring de statut.
+ * The resolution is 5 seconds (TICK_MS). A service configured at 30s will
+ * run with ±5s accuracy. This is acceptable for status monitoring.
  *
- * ## Exécution immédiate
+ * ## Immediate execution
  *
- * La fonction `schedule` exécute la tâche immédiatement (premier appel synchrone)
- * puis programme le prochain tick selon l'intervalle. Cela évite d'attendre
- * un intervalle complet avant la première donnée affichée.
+ * The `schedule` function runs the task immediately (first synchronous call)
+ * then schedules the next tick according to the interval. This avoids waiting
+ * a full interval before the first data is displayed.
  *
- * ## État partagé (module-level)
+ * ## Shared state (module-level)
  *
- * Les variables `tasks` et `masterTimer` sont déclarées au niveau module
- * (en dehors du composable), ce qui signifie qu'elles sont partagées entre
- * toutes les instances de useScheduler. C'est intentionnel : le scheduler
- * est un singleton global dans l'application.
+ * The `tasks` and `masterTimer` variables are declared at the module level
+ * (outside the composable), which means they are shared across all instances
+ * of useScheduler. This is intentional: the scheduler is a global singleton
+ * within the application.
  */
 
 /**
- * Une tâche planifiée dans le scheduler.
+ * A scheduled task in the scheduler.
  */
 interface ScheduledTask {
-  /** Intervalle en millisecondes entre deux exécutions */
+  /** Interval in milliseconds between two executions */
   intervalMs: number
-  /** Timestamp (Date.now()) de la prochaine exécution prévue */
+  /** Timestamp (Date.now()) of the next scheduled execution */
   nextDue: number
-  /** Fonction à exécuter (doit gérer ses propres erreurs) */
+  /** Function to execute (must handle its own errors) */
   fn: () => void
 }
 
-/** Map id → tâche. Partagée entre toutes les instances du composable (singleton). */
+/** Map id → task. Shared across all instances of the composable (singleton). */
 const tasks = new Map<string, ScheduledTask>()
 
-/** Référence au setInterval global, null si aucune tâche n'est active */
+/** Reference to the global setInterval, null if no task is active */
 let masterTimer: ReturnType<typeof setInterval> | null = null
 
-/** Résolution du timer global en millisecondes (5 secondes) */
+/** Resolution of the global timer in milliseconds (5 seconds) */
 const TICK_MS = 5_000
 
 /**
- * Fonction exécutée à chaque tick du timer global.
- * Parcourt toutes les tâches et exécute celles dont l'échéance est dépassée.
+ * Function executed on each tick of the global timer.
+ * Iterates over all tasks and runs those whose deadline has passed.
  */
 function tick() {
   const now = Date.now()
   for (const [, task] of tasks) {
     if (now >= task.nextDue) {
-      // Mettre à jour nextDue AVANT l'exécution pour éviter les dérives
+      // Update nextDue BEFORE execution to avoid drift
       task.nextDue = now + task.intervalMs
-      try { task.fn() } catch { /* Chaque tâche gère ses propres erreurs via usePolling */ }
+      try { task.fn() } catch { /* Each task handles its own errors via usePolling */ }
     }
   }
 }
 
 /**
- * Démarre le timer global si ce n'est pas déjà fait.
- * Idempotent — peut être appelé plusieurs fois sans effet.
+ * Starts the global timer if it isn't already running.
+ * Idempotent — can be called multiple times with no effect.
  */
 function startMaster() {
   if (masterTimer !== null) return
@@ -80,8 +80,8 @@ function startMaster() {
 }
 
 /**
- * Arrête le timer global.
- * Appelé automatiquement quand la Map de tâches est vide.
+ * Stops the global timer.
+ * Called automatically when the task Map is empty.
  */
 function stopMaster() {
   if (masterTimer === null) return
@@ -90,46 +90,46 @@ function stopMaster() {
 }
 
 /**
- * Composable exposant le scheduler centralisé.
+ * Composable exposing the centralized scheduler.
  *
  * @example
  * const { schedule, unschedule, unschedulePrefix, reschedule } = useScheduler()
  *
- * // Planifier une tâche toutes les 30 secondes
+ * // Schedule a task every 30 seconds
  * schedule('service-abc', 30_000, () => fetchStatus('abc'))
  *
- * // Supprimer une tâche
+ * // Remove a task
  * unschedule('service-abc')
  *
- * // Supprimer toutes les tâches d'un composite (préfixe)
+ * // Remove all tasks of a composite (prefix)
  * unschedulePrefix('composite-xyz::')
  *
- * // Modifier l'intervalle d'une tâche existante
+ * // Change the interval of an existing task
  * reschedule('service-abc', 60_000, () => fetchStatus('abc'))
  */
 export function useScheduler() {
   /**
-   * Enregistre une nouvelle tâche planifiée et l'exécute immédiatement.
+   * Registers a new scheduled task and runs it immediately.
    *
-   * Si une tâche avec le même `id` existe déjà, elle est remplacée.
-   * Le timer global est démarré automatiquement si nécessaire.
+   * If a task with the same `id` already exists, it is replaced.
+   * The global timer is started automatically if needed.
    *
-   * @param id         - Identifiant unique de la tâche (ex: serviceId, "compositeId::childId")
-   * @param intervalMs - Intervalle entre deux exécutions en millisecondes
-   * @param fn         - Fonction à exécuter (typiquement fetchOne depuis usePolling)
+   * @param id         - Unique identifier of the task (e.g. serviceId, "compositeId::childId")
+   * @param intervalMs - Interval between two executions in milliseconds
+   * @param fn         - Function to execute (typically fetchOne from usePolling)
    */
   function schedule(id: string, intervalMs: number, fn: () => void) {
-    // Exécution immédiate pour afficher les données sans attendre le premier intervalle
+    // Immediate execution to display data without waiting for the first interval
     try { fn() } catch { /* silent */ }
     tasks.set(id, { intervalMs, nextDue: Date.now() + intervalMs, fn })
     startMaster()
   }
 
   /**
-   * Supprime une tâche planifiée par son identifiant exact.
-   * Arrête le timer global si plus aucune tâche n'est active.
+   * Removes a scheduled task by its exact identifier.
+   * Stops the global timer if no task remains active.
    *
-   * @param id - Identifiant de la tâche à supprimer
+   * @param id - Identifier of the task to remove
    */
   function unschedule(id: string) {
     tasks.delete(id)
@@ -137,19 +137,19 @@ export function useScheduler() {
   }
 
   /**
-   * Supprime toutes les tâches dont l'identifiant commence par un préfixe donné.
-   * Utilisé pour supprimer en bloc toutes les tâches d'un service composite
-   * (les enfants sont enregistrés avec la clé `"compositeId::childId"`).
+   * Removes all tasks whose identifier starts with a given prefix.
+   * Used to bulk-remove all tasks of a composite service
+   * (children are registered with the key `"compositeId::childId"`).
    *
-   * Passer '' comme préfixe supprime TOUTES les tâches (utilisé par stopAll).
+   * Passing '' as the prefix removes ALL tasks (used by stopAll).
    *
-   * @param prefix - Préfixe à rechercher (ex: "compositeId::")
+   * @param prefix - Prefix to search for (e.g. "compositeId::")
    *
    * @example
-   * // Supprimer tous les enfants d'un composite
+   * // Remove all children of a composite
    * unschedulePrefix('my-composite-id::')
    *
-   * // Supprimer toutes les tâches
+   * // Remove all tasks
    * unschedulePrefix('')
    */
   function unschedulePrefix(prefix: string) {
@@ -160,13 +160,13 @@ export function useScheduler() {
   }
 
   /**
-   * Remplace une tâche existante par une nouvelle configuration.
-   * Équivalent à unschedule + schedule, mais sans exécution immédiate
-   * de l'ancienne tâche (la nouvelle est exécutée immédiatement via schedule).
+   * Replaces an existing task with a new configuration.
+   * Equivalent to unschedule + schedule, but without immediate execution
+   * of the old task (the new one is run immediately via schedule).
    *
-   * @param id         - Identifiant de la tâche à remplacer
-   * @param intervalMs - Nouvel intervalle en millisecondes
-   * @param fn         - Nouvelle fonction à exécuter
+   * @param id         - Identifier of the task to replace
+   * @param intervalMs - New interval in milliseconds
+   * @param fn         - New function to execute
    */
   function reschedule(id: string, intervalMs: number, fn: () => void) {
     unschedule(id)

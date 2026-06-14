@@ -1,16 +1,16 @@
 /**
  * @module adapters/index
  *
- * Point d'entrée du système d'adapters.
+ * Entry point of the adapter system.
  *
- * Un "adapter" est une fonction pure qui reçoit la réponse brute d'une API externe
- * (déjà parsée depuis JSON ou encapsulée dans { _raw: string } pour XML/HTML)
- * et retourne un AdapterResult normalisé.
+ * An "adapter" is a pure function that receives the raw response of an external API
+ * (already parsed from JSON or wrapped in { _raw: string } for XML/HTML)
+ * and returns a normalized AdapterResult.
  *
- * Ce module expose :
- * - `runAdapter`       : dispatch vers le bon adapter selon la clé
- * - `PRESET_SERVICES`  : services pré-configurés disponibles dans l'UI d'ajout rapide
- * - `AdapterKey`       : union type des clés d'adapters valides
+ * This module exposes:
+ * - `runAdapter`       : dispatches to the right adapter based on the key
+ * - `PRESET_SERVICES`  : pre-configured services available in the quick-add UI
+ * - `AdapterKey`       : union type of the valid adapter keys
  */
 
 import type { AdapterResult, CustomMapping } from "~/types";
@@ -24,16 +24,16 @@ import { parseBloomberg } from "./bloomberg";
 import { parsePing } from "./ping";
 
 /**
- * Union des clés d'adapters reconnus par le système.
+ * Union of the adapter keys recognized by the system.
  *
- * - `github`     : GitHub Status API (format Atlassian enrichi avec composants)
- * - `atlassian`  : Atlassian Statuspage API standard
+ * - `github`     : GitHub Status API (Atlassian format enriched with components)
+ * - `atlassian`  : standard Atlassian Statuspage API
  * - `aws`        : AWS Health Dashboard JSON feed
  * - `azuredevops`: Azure DevOps Health API
- * - `rss`        : Flux RSS/Atom (retourné en { _raw: xml })
- * - `custom`     : Mapping personnalisé via CustomMapping
- * - `ping`       : Ping HTTP — 2xx = opérationnel, autre = erreur
- * - `auto`       : Auto-détection du format (tente Atlassian en fallback)
+ * - `rss`        : RSS/Atom feed (returned as { _raw: xml })
+ * - `custom`     : custom mapping via CustomMapping
+ * - `ping`       : HTTP ping — 2xx = operational, otherwise = error
+ * - `auto`       : format auto-detection (falls back to Atlassian)
  */
 export type AdapterKey =
   | "github"
@@ -47,8 +47,8 @@ export type AdapterKey =
   | "auto";
 
 /**
- * Registre interne des adapters statiques (sans mapping personnalisé).
- * Note : "notion" est un alias d'Atlassian car Notion utilise le même format.
+ * Internal registry of the static adapters (without custom mapping).
+ * Note: "notion" is an alias of Atlassian because Notion uses the same format.
  */
 const ADAPTERS: Record<string, (data: unknown) => AdapterResult> = {
   github: parseGithub,
@@ -62,32 +62,32 @@ const ADAPTERS: Record<string, (data: unknown) => AdapterResult> = {
 };
 
 /**
- * Sélectionne et exécute le bon adapter pour transformer une réponse brute en AdapterResult.
+ * Selects and runs the right adapter to transform a raw response into an AdapterResult.
  *
- * Logique de dispatch :
- * 1. Si `adapterKey === "custom"` ET `customMapping` fourni → parseCustom
- * 2. Si la clé est dans le registre ADAPTERS → adapter correspondant
- * 3. Sinon (clé "auto" ou inconnue) → tentative d'auto-détection du format Atlassian
- * 4. Si aucun format reconnu → retour avec level "operational" et message d'avertissement
+ * Dispatch logic:
+ * 1. If `adapterKey === "custom"` AND `customMapping` is provided → parseCustom
+ * 2. If the key is in the ADAPTERS registry → the corresponding adapter
+ * 3. Otherwise (key "auto" or unknown) → attempt auto-detection of the Atlassian format
+ * 4. If no format is recognized → return with level "operational" and a warning message
  *
- * @param adapterKey   - Clé de l'adapter à utiliser (voir AdapterKey)
- * @param data         - Données brutes retournées par le proxy (JSON parsé ou { _raw: string })
- * @param customMapping - Mapping personnalisé, requis uniquement si adapterKey === "custom"
- * @returns AdapterResult normalisé
+ * @param adapterKey   - Key of the adapter to use (see AdapterKey)
+ * @param data         - Raw data returned by the proxy (parsed JSON or { _raw: string })
+ * @param customMapping - Custom mapping, required only if adapterKey === "custom"
+ * @returns Normalized AdapterResult
  *
  * @example
- * // Avec adapter prédéfini
+ * // With a predefined adapter
  * runAdapter('github', githubApiResponse)
  *
  * @example
- * // Avec adapter custom
+ * // With a custom adapter
  * runAdapter('custom', apiResponse, {
  *   statusPath: 'data.health',
  *   levelMap: { 'healthy': 'operational', 'degraded': 'mineur' }
  * })
  *
  * @example
- * // En mode auto — tente de détecter le format
+ * // In auto mode — attempts to detect the format
  * runAdapter('auto', unknownApiResponse)
  */
 export function runAdapter(
@@ -95,16 +95,16 @@ export function runAdapter(
   data: unknown,
   customMapping?: CustomMapping,
 ): AdapterResult {
-  // Cas 1 : adapter custom avec mapping explicite
+  // Case 1: custom adapter with an explicit mapping
   if (adapterKey === "custom" && customMapping) {
     return parseCustom(data, customMapping);
   }
 
-  // Cas 2 : adapter statique connu
+  // Case 2: known static adapter
   const fn = ADAPTERS[adapterKey];
   if (fn) return fn(data);
 
-  // Cas 3 : auto-détection — si l'objet a un champ status.indicator, c'est du format Atlassian
+  // Case 3: auto-detection — if the object has a status.indicator field, it is the Atlassian format
   if (typeof data === "object" && data !== null && "status" in data) {
     const d = data as Record<string, unknown>;
     if (
@@ -116,7 +116,7 @@ export function runAdapter(
     }
   }
 
-  // Cas 4 : format non reconnu — on ne lève pas d'erreur pour rester non-bloquant
+  // Case 4: unrecognized format — we do not throw an error so as to stay non-blocking
   return {
     level: "operational",
     message: "Format non reconnu",
@@ -125,9 +125,9 @@ export function runAdapter(
 }
 
 /**
- * Métadonnées UI de chaque adapter : libellé affiché dans le dropdown + chemins JSON
- * utilisés pour l'aperçu de mapping dans ServiceForm.
- * Ajouter un adapter ici suffit pour le rendre visible dans l'interface.
+ * UI metadata for each adapter: label shown in the dropdown + JSON paths
+ * used for the mapping preview in ServiceForm.
+ * Adding an adapter here is enough to make it visible in the interface.
  */
 export interface AdapterMeta {
   value: string
@@ -151,9 +151,9 @@ export const ADAPTER_META: AdapterMeta[] = [
 ]
 
 /**
- * Services pré-configurés disponibles dans le formulaire d'ajout rapide de l'UI.
- * Ces objets sont utilisés pour pré-remplir le formulaire avec les bonnes URL et adapters.
- * L'utilisateur peut les personnaliser avant de les sauvegarder.
+ * Pre-configured services available in the UI's quick-add form.
+ * These objects are used to pre-fill the form with the correct URLs and adapters.
+ * The user can customize them before saving.
  */
 export const PRESET_SERVICES = [
   {

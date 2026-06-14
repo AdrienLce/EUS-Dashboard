@@ -1,7 +1,7 @@
 /**
- * Middleware de protection de /services.
- * Redirige vers une page de login si le mode d'accès est activé
- * et que l'utilisateur n'est pas authentifié.
+ * Middleware protecting /services.
+ * Redirects to a login page if access mode is enabled
+ * and the user is not authenticated.
  */
 import { useAccessControl } from '~/composables/useAccessControl'
 

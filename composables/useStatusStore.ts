@@ -1,49 +1,49 @@
 /**
  * @module composables/useStatusStore
  *
- * Store en mémoire des snapshots de statut avec historique persisté dans localStorage.
+ * In-memory store of status snapshots with history persisted in localStorage.
  *
- * ## Structure des données
+ * ## Data structure
  *
- * - `currentStatus` : dernier snapshot connu par serviceId (mise à jour à chaque poll)
- * - `history`       : tableau des 50 derniers snapshots par serviceId (ordre antéchronologique)
+ * - `currentStatus`: latest known snapshot per serviceId (updated on each poll)
+ * - `history`      : array of the last 50 snapshots per serviceId (reverse-chronological order)
  *
- * ## Optimisation de l'historique
+ * ## History optimization
  *
- * Un nouveau snapshot n'est ajouté à l'historique que si le niveau OU le message
- * a changé par rapport au dernier enregistrement. Cela évite de stocker des
- * dizaines d'entrées identiques "tout va bien" et rend l'historique significatif.
+ * A new snapshot is only added to the history if the level OR the message
+ * has changed compared to the last record. This avoids storing
+ * dozens of identical "all is well" entries and keeps the history meaningful.
  *
- * ## Persistance
+ * ## Persistence
  *
- * L'historique est sauvegardé dans localStorage à chaque changement.
- * Il est chargé au premier accès depuis un composant client.
- * Le statut courant (currentStatus) n'est PAS persisté — il est reconstruit
- * à chaque démarrage par le premier cycle de polling.
+ * The history is saved to localStorage on every change.
+ * It is loaded on first access from a client component.
+ * The current status (currentStatus) is NOT persisted — it is rebuilt
+ * on each startup by the first polling cycle.
  *
- * ## État module-level (singleton)
+ * ## Module-level state (singleton)
  *
- * `currentStatus` et `history` sont partagés entre toutes les instances.
+ * `currentStatus` and `history` are shared across all instances.
  */
 
 import { ref } from 'vue'
 import type { StatusSnapshot } from '~/types'
 
-/** Clé localStorage pour l'historique des snapshots */
+/** localStorage key for the snapshot history */
 const STORAGE_KEY = 'status-dashboard-history'
 
-/** Nombre maximum de snapshots conservés par service dans l'historique */
+/** Maximum number of snapshots kept per service in the history */
 const MAX_HISTORY_PER_SERVICE = 50
 
-/** Record serviceId → dernier snapshot connu (mis à jour à chaque poll) */
+/** Record serviceId → latest known snapshot (updated on each poll) */
 const currentStatus = ref<Record<string, StatusSnapshot>>({})
 
-/** Record serviceId → historique des snapshots (ordre antéchronologique, max 50) */
+/** Record serviceId → snapshot history (reverse-chronological order, max 50) */
 const history = ref<Record<string, StatusSnapshot[]>>({})
 
 /**
- * Charge l'historique depuis localStorage.
- * Silencieux en cas d'erreur de parsing (l'historique est réinitialisé à vide).
+ * Loads the history from localStorage.
+ * Silent on parsing error (the history is reset to empty).
  */
 function loadHistory() {
   if (!import.meta.client) return
@@ -57,8 +57,8 @@ function loadHistory() {
 }
 
 /**
- * Sauvegarde l'historique complet dans localStorage.
- * Appelée automatiquement à chaque changement dans l'historique.
+ * Saves the entire history to localStorage.
+ * Called automatically on every change to the history.
  */
 function saveHistory() {
   if (!import.meta.client) return
@@ -66,15 +66,15 @@ function saveHistory() {
 }
 
 /**
- * Calcule une signature stable de l'ensemble des incidents d'un snapshot.
+ * Computes a stable signature of all the incidents in a snapshot.
  *
- * On se base sur l'identifiant et le niveau de chaque incident (triés), et non
- * sur leur contenu textuel : ainsi l'apparition, la disparition ou le changement
- * de sévérité d'un incident produit une nouvelle entrée d'historique, mais les
- * mises à jour de texte répétées (incident_updates) ne spamment pas l'historique.
+ * It is based on the identifier and level of each incident (sorted), not
+ * on their text content: this way the appearance, disappearance, or change
+ * in severity of an incident produces a new history entry, but repeated
+ * text updates (incident_updates) do not spam the history.
  *
- * @param snapshot - Snapshot à signer
- * @returns Signature des incidents (chaîne vide si aucun incident)
+ * @param snapshot - Snapshot to sign
+ * @returns Signature of the incidents (empty string if no incident)
  */
 function incidentSignature(snapshot: StatusSnapshot): string {
   return (snapshot.incidents ?? [])
@@ -84,17 +84,17 @@ function incidentSignature(snapshot: StatusSnapshot): string {
 }
 
 /**
- * Enregistre un nouveau snapshot dans le store.
+ * Records a new snapshot in the store.
  *
- * - Met toujours à jour `currentStatus[serviceId]` (statut en temps réel)
- * - N'ajoute à `history` QUE si le niveau, le message OU l'ensemble des incidents a changé
- * - Limite l'historique à MAX_HISTORY_PER_SERVICE entrées (les plus récentes)
- * - Persiste l'historique dans localStorage si un changement est enregistré
+ * - Always updates `currentStatus[serviceId]` (real-time status)
+ * - Adds to `history` ONLY if the level, the message, OR the set of incidents has changed
+ * - Caps the history at MAX_HISTORY_PER_SERVICE entries (the most recent)
+ * - Persists the history to localStorage if a change is recorded
  *
- * @param snapshot - Snapshot produit par usePolling après adaptation
+ * @param snapshot - Snapshot produced by usePolling after adaptation
  */
 function pushSnapshot(snapshot: StatusSnapshot) {
-  // Toujours mettre à jour le statut courant (pour l'affichage temps réel)
+  // Always update the current status (for real-time display)
   currentStatus.value[snapshot.serviceId] = snapshot
 
   if (!history.value[snapshot.serviceId]) {
@@ -103,9 +103,9 @@ function pushSnapshot(snapshot: StatusSnapshot) {
 
   const arr = history.value[snapshot.serviceId]
 
-  // N'ajouter à l'historique que si le niveau, le message ou les incidents ont changé.
-  // La prise en compte des incidents est nécessaire car un incident peut apparaître
-  // (ex: Statuspage) sans modifier l'indicateur global ni la description.
+  // Only add to the history if the level, the message, or the incidents have changed.
+  // Taking incidents into account is necessary because an incident can appear
+  // (e.g. Statuspage) without changing the global indicator or the description.
   const last = arr[0]
   const changed =
     !last ||
@@ -114,9 +114,9 @@ function pushSnapshot(snapshot: StatusSnapshot) {
     incidentSignature(last) !== incidentSignature(snapshot)
 
   if (changed) {
-    // Insérer en tête (ordre antéchronologique)
+    // Insert at the head (reverse-chronological order)
     arr.unshift(snapshot)
-    // Tronquer si la limite est atteinte
+    // Truncate if the limit is reached
     if (arr.length > MAX_HISTORY_PER_SERVICE) {
       arr.splice(MAX_HISTORY_PER_SERVICE)
     }
@@ -125,19 +125,19 @@ function pushSnapshot(snapshot: StatusSnapshot) {
 }
 
 /**
- * Retourne l'historique des snapshots pour un service.
+ * Returns the snapshot history for a service.
  *
- * @param serviceId - ID du service
- * @returns Tableau de snapshots (ordre antéchronologique), vide si aucun historique
+ * @param serviceId - ID of the service
+ * @returns Array of snapshots (reverse-chronological order), empty if no history
  */
 function getHistory(serviceId: string): StatusSnapshot[] {
   return history.value[serviceId] ?? []
 }
 
 /**
- * Supprime l'historique d'un service et persiste la suppression.
+ * Removes the history of a service and persists the deletion.
  *
- * @param serviceId - ID du service dont effacer l'historique
+ * @param serviceId - ID of the service whose history to clear
  */
 function clearHistory(serviceId: string) {
   delete history.value[serviceId]
@@ -145,25 +145,25 @@ function clearHistory(serviceId: string) {
 }
 
 /**
- * Composable exposant le store de statut en lecture/écriture.
+ * Composable exposing the status store for reading/writing.
  *
  * @example
  * const { currentStatus, pushSnapshot, getHistory } = useStatusStore()
  *
- * // Lire le statut actuel d'un service
+ * // Read the current status of a service
  * const snap = currentStatus.value['my-service-id']
  *
- * // Lire l'historique
+ * // Read the history
  * const hist = getHistory('my-service-id')
  */
 export function useStatusStore() {
-  // Charger l'historique au premier accès côté client
+  // Load the history on first client-side access
   if (import.meta.client && Object.keys(history.value).length === 0) {
     loadHistory()
   }
 
   return {
-    /** Record réactif serviceId → dernier StatusSnapshot */
+    /** Reactive record serviceId → latest StatusSnapshot */
     currentStatus,
     getHistory,
     pushSnapshot,

@@ -53,10 +53,10 @@ const form = reactive({
   defaultMapping: defaultMappingInit(),
 });
 
-// ServiceForm réutilisé pour add/edit child
+// ServiceForm reused for add/edit child
 const childFormOpen = ref(false);
 const editingChildId = ref<string | null>(null);
-// ServiceConfig bidouillé pour ServiceForm (sans group/pollInterval nécessaires)
+// ServiceConfig adapted for ServiceForm (without the required group/pollInterval)
 const editingChildAsService = ref<ServiceConfig | null>(null);
 
 watch(
@@ -102,7 +102,7 @@ function openAddChild() {
 
 function openEditChild(child: SubServiceConfig) {
   editingChildId.value = child.id;
-  // Construire un ServiceConfig temporaire pour pré-remplir ServiceForm
+  // Build a temporary ServiceConfig to pre-fill ServiceForm
   editingChildAsService.value = {
     id: child.id,
     name: child.name,
@@ -163,7 +163,7 @@ function toggleChildEnabled(id: string) {
   if (c) c.enabled = !c.enabled;
 }
 
-// ── DnD sous-services ────────────────────────────────────────
+// ── Sub-services DnD ────────────────────────────────────────
 const childDragIndex = ref<number | null>(null);
 const childDragOver = ref<number | null>(null);
 
@@ -285,13 +285,13 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               </button>
             </div>
 
-            <!-- Body — 2 colonnes -->
+            <!-- Body — 2 columns -->
             <div class="flex-1 overflow-hidden flex min-h-0">
-              <!-- Colonne gauche : config -->
+              <!-- Left column: config -->
               <div
                 class="w-1/2 border-r border-gray-100 overflow-y-auto px-6 py-5 space-y-5"
               >
-                <!-- Nom -->
+                <!-- Name -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
                     >Name <span class="text-red-500">*</span></label
@@ -304,7 +304,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   />
                 </div>
 
-                <!-- Section + Intervalle -->
+                <!-- Section + Interval -->
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1"
@@ -332,7 +332,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   </div>
                 </div>
 
-                <!-- Mapping global -->
+                <!-- Global mapping -->
                 <div
                   class="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3"
                 >
@@ -427,7 +427,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </div>
                     </div>
 
-                    <!-- Incidents (optionnel) -->
+                    <!-- Incidents (optional) -->
                     <div class="space-y-2">
                       <label class="block text-xs text-gray-500"
                         >Incidents path (list)
@@ -544,7 +544,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 </div>
               </div>
 
-              <!-- Colonne droite : sous-services -->
+              <!-- Right column: sub-services -->
               <div class="w-1/2 overflow-y-auto px-6 py-5 flex flex-col gap-4">
                 <div class="flex items-center justify-between">
                   <h3 class="text-sm font-medium text-gray-700">
@@ -705,7 +705,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
       </div>
     </Transition>
 
-    <!-- Grande ServiceForm réutilisée pour les sous-services -->
+    <!-- Large ServiceForm reused for sub-services -->
     <ServiceForm
       :open="childFormOpen"
       :editing="editingChildAsService"

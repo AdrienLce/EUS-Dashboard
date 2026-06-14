@@ -1,4 +1,4 @@
-/** Vérifie si le cookie de session SSO est présent (lecture côté serveur). */
+/** Checks whether the SSO session cookie is present (server-side read). */
 import { defineEventHandler, getCookie } from 'h3'
 
 export default defineEventHandler((event) => {

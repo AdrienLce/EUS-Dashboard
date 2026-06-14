@@ -1,26 +1,26 @@
 /**
- * WebSocket handler — diffuse les snapshots à tous les clients connectés.
- * URL : ws://host/_ws
+ * WebSocket handler — broadcasts snapshots to all connected clients.
+ * URL: ws://host/_ws
  *
- * Messages envoyés par le serveur :
+ * Messages sent by the server:
  *   { type: 'snapshot', data: StatusSnapshot }
  *   { type: 'error', serviceId, message }
  *   { type: 'connected', message }
  *
- * Messages reçus du client :
- *   { type: 'refresh', serviceId }  → force un re-poll immédiat
+ * Messages received from the client:
+ *   { type: 'refresh', serviceId }  → forces an immediate re-poll
  */
 
 import { defineWebSocketHandler } from 'h3'
 
-// Ensemble des peers connectés (une entrée par onglet/navigateur)
+// Set of connected peers (one entry per tab/browser)
 export const peers = new Set<{ send: (data: string) => void }>()
 
-/** Envoie un message à tous les clients connectés */
+/** Sends a message to all connected clients */
 export function broadcast(payload: unknown) {
   const msg = typeof payload === 'string' ? payload : JSON.stringify(payload)
   for (const peer of peers) {
-    try { peer.send(msg) } catch { /* peer déconnecté */ }
+    try { peer.send(msg) } catch { /* peer disconnected */ }
   }
 }
 
@@ -29,7 +29,7 @@ export default defineWebSocketHandler({
     peers.add(peer)
     peer.send(JSON.stringify({ type: 'connected', message: `${peers.size} client(s) connecté(s)` }))
 
-    // Config actuelle + snapshots connus → état immédiat pour le nouveau client
+    // Current config + known snapshots → immediate state for the new client
     Promise.all([
       import('../plugins/scheduler').then(({ lastSnapshots }) => {
         for (const snapshot of lastSnapshots.values()) {
@@ -56,12 +56,12 @@ export default defineWebSocketHandler({
     try {
       const msg = JSON.parse(message.text())
       if (msg.type === 'refresh' && msg.serviceId) {
-        // Le client demande un refresh immédiat → émis vers le scheduler
+        // The client requests an immediate refresh → forwarded to the scheduler
         import('../plugins/scheduler').then(({ triggerRefresh }) => {
           triggerRefresh(msg.serviceId)
         }).catch(() => {})
       }
     }
-    catch { /* message invalide */ }
+    catch { /* invalid message */ }
   },
 })

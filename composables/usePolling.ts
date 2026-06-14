@@ -40,7 +40,7 @@ function connect() {
         loading.value[msg.data.serviceId] = false
       }
     }
-    catch { /* message malformé, ignoré */ }
+    catch { /* malformed message, ignored */ }
   }
 
   ws.onerror = () => {
@@ -77,7 +77,7 @@ export function usePolling() {
     sendRefresh(child.id)
   }
 
-  // Conservés pour compatibilité API — le polling est maintenant géré côté serveur
+  // Kept for API compatibility — polling is now handled server-side
   function startPolling(_service?: ServiceConfig) {}
   function stopPolling(_serviceId?: string) {}
   function startCompositePolling(_composite?: CompositeServiceConfig) {}

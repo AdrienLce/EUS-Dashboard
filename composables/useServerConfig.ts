@@ -1,66 +1,66 @@
 /**
  * @module composables/useServerConfig
  *
- * Gestion de la configuration persistante avec stratégie serveur-first.
+ * Management of persistent configuration with a server-first strategy.
  *
- * ## Stratégie de persistance
+ * ## Persistence strategy
  *
- * La configuration (services, composites, ordre d'affichage) est sauvegardée
- * à deux endroits en parallèle :
+ * The configuration (services, composites, display order) is saved
+ * to two locations in parallel:
  *
- * 1. **Serveur (Nitro fs storage)** : stockage principal, persiste entre les navigateurs
- *    et les rechargements. Accessible via `GET/POST /api/config`.
- * 2. **localStorage** : cache offline, permet l'accès à la config même si le serveur
- *    est temporairement inaccessible.
+ * 1. **Server (Nitro fs storage)**: primary storage, persists across browsers
+ *    and reloads. Accessible via `GET/POST /api/config`.
+ * 2. **localStorage**: offline cache, allows access to the config even if the server
+ *    is temporarily unreachable.
  *
- * ## Ordre de priorité au chargement
+ * ## Priority order on load
  *
  * ```
- * load() appelée au mount
- *   ├── Essaie GET /api/config
- *   │   ├── Serveur a des données → utilise les données serveur
- *   │   ├── Serveur vide + localStorage a des données → MIGRATION AUTO
- *   │   │   └── copie localStorage → serveur via POST /api/config
- *   │   └── Serveur et localStorage vides → état initial vide
- *   └── Erreur réseau → fallback localStorage (mode offline)
+ * load() called on mount
+ *   ├── Tries GET /api/config
+ *   │   ├── Server has data → uses server data
+ *   │   ├── Server empty + localStorage has data → AUTO MIGRATION
+ *   │   │   └── copies localStorage → server via POST /api/config
+ *   │   └── Server and localStorage empty → empty initial state
+ *   └── Network error → localStorage fallback (offline mode)
  * ```
  *
- * ## Migration automatique
+ * ## Automatic migration
  *
- * Si l'application est déployée sur un nouveau serveur (storage vide) mais que
- * l'utilisateur avait déjà des services configurés dans son localStorage (ancienne
- * installation sans serveur, ou mode développement), la migration est automatique
- * et transparente : les données sont copiées vers le serveur sans intervention.
+ * If the application is deployed on a new server (empty storage) but the
+ * user already had services configured in their localStorage (an old
+ * installation without a server, or development mode), migration is automatic
+ * and transparent: the data is copied to the server without any intervention.
  *
- * ## État module-level (singleton)
+ * ## Module-level state (singleton)
  *
- * Les refs `services`, `composites`, `order`, `loaded` sont déclarées au niveau
- * module. Tous les composants qui appellent `useServerConfig()` partagent
- * le même état réactif — c'est un store léger sans Pinia.
+ * The `services`, `composites`, `order`, `loaded` refs are declared at the module
+ * level. All components that call `useServerConfig()` share
+ * the same reactive state — it is a lightweight store without Pinia.
  */
 
 import type { ServiceConfig, CompositeServiceConfig } from '~/types'
 
-// Clés localStorage
+// localStorage keys
 const LS_SERVICES = 'status-dashboard-services'
 const LS_COMPOSITES = 'status-dashboard-composites'
 const LS_ORDER = 'status-dashboard-order'
 
-// État partagé entre toutes les instances du composable (singleton)
+// State shared across all instances of the composable (singleton)
 const services = ref<ServiceConfig[]>([])
 const composites = ref<CompositeServiceConfig[]>([])
 const order = ref<string[]>([])
 const theme = ref<string>('light')
 const pageStyle = ref<string>('box')
 const accessControl = ref<unknown>(null)
-/** true une fois que load() a terminé (succès ou échec) */
+/** true once load() has finished (success or failure) */
 const loaded = ref(false)
-/** Promise en cours — évite les appels concurrents à load() */
+/** In-flight promise — prevents concurrent calls to load() */
 let loadPromise: Promise<void> | null = null
 
 /**
- * Lit l'ensemble de la configuration depuis localStorage.
- * Retourne des tableaux vides en cas d'erreur de parsing JSON.
+ * Reads the entire configuration from localStorage.
+ * Returns empty arrays on JSON parsing error.
  */
 function readLocalStorage() {
   try {
@@ -74,10 +74,10 @@ function readLocalStorage() {
 }
 
 /**
- * Charge la configuration depuis le serveur avec fallback localStorage.
- * Appelée automatiquement au premier accès côté client.
+ * Loads the configuration from the server with a localStorage fallback.
+ * Called automatically on first client-side access.
  *
- * Ne fait rien si exécutée côté serveur (SSR) car localStorage n'existe pas.
+ * Does nothing if run server-side (SSR) since localStorage does not exist.
  */
 async function load() {
   if (!import.meta.client) return
@@ -88,7 +88,7 @@ async function load() {
     const lsHasData = ls.services.length > 0 || ls.composites.length > 0
 
     if (serverEmpty && lsHasData) {
-      // Migration automatique : localStorage → serveur (premier déploiement avec storage)
+      // Automatic migration: localStorage → server (first deployment with storage)
       services.value = ls.services
       composites.value = ls.composites
       order.value = ls.order
@@ -108,7 +108,7 @@ async function load() {
     }
   }
   catch {
-    // Serveur inaccessible (dev hors ligne, réseau) → fallback localStorage
+    // Server unreachable (offline dev, network) → localStorage fallback
     const ls = readLocalStorage()
     services.value = ls.services
     composites.value = ls.composites
@@ -118,13 +118,13 @@ async function load() {
 }
 
 /**
- * Sauvegarde une partie de la configuration (services OU composites OU order).
- * Écrit simultanément dans localStorage (synchrone) et sur le serveur (async best-effort).
+ * Saves part of the configuration (services OR composites OR order).
+ * Writes simultaneously to localStorage (synchronous) and to the server (async, best-effort).
  *
- * La sauvegarde est partielle pour éviter les conflits si deux onglets modifient
- * des parties différentes de la configuration.
+ * The save is partial to avoid conflicts if two tabs modify
+ * different parts of the configuration.
  *
- * @param key - Quelle partie de la configuration sauvegarder
+ * @param key - Which part of the configuration to save
  */
 async function save(key: 'services' | 'composites' | 'order' | 'levels' | 'theme' | 'pageStyle' | 'accessControl') {
   if (!import.meta.client) return
@@ -137,26 +137,26 @@ async function save(key: 'services' | 'composites' | 'order' | 'levels' | 'theme
   if (key === 'pageStyle')      { payload.pageStyle      = pageStyle.value;      localStorage.setItem('status-page-style',  pageStyle.value) }
   if (key === 'accessControl')  { payload.accessControl  = accessControl.value }
 
-  // Persistance serveur (async, best-effort — on ne bloque pas sur erreur)
+  // Server persistence (async, best-effort — we don't block on error)
   try { await $fetch('/api/config', { method: 'POST', body: payload }) }
-  catch { /* Serveur indisponible — les données sont au moins dans localStorage */ }
+  catch { /* Server unavailable — the data is at least in localStorage */ }
 }
 
 /**
- * Composable exposant la configuration partagée des services et composites.
+ * Composable exposing the shared configuration of services and composites.
  *
- * @returns Refs réactives et fonctions de persistance
+ * @returns Reactive refs and persistence functions
  *
  * @example
  * const { services, composites, order, loaded, save } = useServerConfig()
  *
- * // Attendre que la config soit chargée
+ * // Wait for the config to be loaded
  * watch(loaded, (isLoaded) => {
  *   if (isLoaded) console.log('Services:', services.value)
  * })
  */
 export function useServerConfig() {
-  // Déduplique : une seule promise en vol, load() ne s'exécute qu'une fois
+  // Deduplicates: a single in-flight promise, load() runs only once
   if (import.meta.client && !loaded.value && !loadPromise) {
     loadPromise = load().finally(() => { loadPromise = null })
   }

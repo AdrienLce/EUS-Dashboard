@@ -1,15 +1,15 @@
 /**
  * @module composables/useComposites
  *
- * CRUD des services composites et de leurs enfants (sous-services).
+ * CRUD for composite services and their children (sub-services).
  *
- * Un service composite regroupe plusieurs URL sous un même service logique,
- * toutes pollées au même intervalle. Il expose deux niveaux de gestion :
- * - Le composite lui-même (name, group, pollInterval, defaultAdapter, defaultMapping)
- * - Ses enfants (SubServiceConfig) qui peuvent hériter ou surcharger la config du parent
+ * A composite service groups several URLs under a single logical service,
+ * all polled at the same interval. It exposes two levels of management:
+ * - The composite itself (name, group, pollInterval, defaultAdapter, defaultMapping)
+ * - Its children (SubServiceConfig), which can inherit or override the parent's config
  *
- * Les IDs sont générés via `crypto.randomUUID()` à la création (composite ET enfants).
- * Le discriminant `type: "composite"` est injecté automatiquement.
+ * IDs are generated via `crypto.randomUUID()` on creation (composite AND children).
+ * The `type: "composite"` discriminant is injected automatically.
  */
 
 import { computed } from 'vue'
@@ -17,12 +17,12 @@ import type { CompositeServiceConfig, SubServiceConfig } from '~/types'
 import { useServerConfig } from './useServerConfig'
 
 /**
- * Composable de gestion CRUD des services composites.
+ * Composable for CRUD management of composite services.
  *
  * @example
  * const { addComposite, addChild, updateChild } = useComposites()
  *
- * // Créer un composite avec un adapter par défaut
+ * // Create a composite with a default adapter
  * const composite = addComposite({
  *   name: 'Mon infrastructure',
  *   pollInterval: 60,
@@ -32,13 +32,13 @@ import { useServerConfig } from './useServerConfig'
  *   children: [],
  * })
  *
- * // Ajouter un enfant (hérite du defaultAdapter et defaultMapping)
+ * // Add a child (inherits defaultAdapter and defaultMapping)
  * addChild(composite.id, {
  *   name: 'Service A',
  *   url: 'https://a.example.com/health',
  *   method: 'GET',
  *   headers: {},
- *   adapter: '',  // vide = hérite du composite
+ *   adapter: '',  // empty = inherits from the composite
  *   enabled: true,
  * })
  */
@@ -46,10 +46,10 @@ export function useComposites() {
   const { composites, save } = useServerConfig()
 
   /**
-   * Crée un nouveau service composite avec UUID, type et date de création générés.
+   * Creates a new composite service with generated UUID, type, and creation date.
    *
-   * @param config - Configuration sans id, type ni createdAt
-   * @returns Le CompositeServiceConfig complet
+   * @param config - Configuration without id, type, or createdAt
+   * @returns The complete CompositeServiceConfig
    */
   function addComposite(config: Omit<CompositeServiceConfig, 'id' | 'createdAt' | 'type'>): CompositeServiceConfig {
     const c: CompositeServiceConfig = {
@@ -64,11 +64,11 @@ export function useComposites() {
   }
 
   /**
-   * Met à jour les propriétés d'un composite existant.
-   * Peut modifier defaultAdapter, defaultMapping, name, pollInterval, etc.
+   * Updates the properties of an existing composite.
+   * Can modify defaultAdapter, defaultMapping, name, pollInterval, etc.
    *
-   * @param id      - ID du composite à modifier
-   * @param updates - Patch partiel (sans id, type, createdAt)
+   * @param id      - ID of the composite to update
+   * @param updates - Partial patch (without id, type, createdAt)
    */
   function updateComposite(id: string, updates: Partial<Omit<CompositeServiceConfig, 'id' | 'createdAt' | 'type'>>) {
     const idx = composites.value.findIndex(c => c.id === id)
@@ -78,9 +78,9 @@ export function useComposites() {
   }
 
   /**
-   * Supprime un composite et tous ses enfants.
+   * Removes a composite and all of its children.
    *
-   * @param id - ID du composite à supprimer
+   * @param id - ID of the composite to remove
    */
   function removeComposite(id: string) {
     composites.value = composites.value.filter(c => c.id !== id)
@@ -88,10 +88,10 @@ export function useComposites() {
   }
 
   /**
-   * Inverse l'état enabled/disabled d'un composite.
-   * N'affecte pas l'état enabled des enfants individuellement.
+   * Toggles the enabled/disabled state of a composite.
+   * Does not affect the enabled state of children individually.
    *
-   * @param id - ID du composite à basculer
+   * @param id - ID of the composite to toggle
    */
   function toggleComposite(id: string) {
     const c = composites.value.find(c => c.id === id)
@@ -99,13 +99,13 @@ export function useComposites() {
   }
 
   /**
-   * Ajoute un sous-service à un composite existant.
-   * Un UUID est généré pour l'enfant.
+   * Adds a sub-service to an existing composite.
+   * A UUID is generated for the child.
    *
-   * @param compositeId - ID du composite parent
-   * @param child       - Configuration de l'enfant sans id
-   * @returns Le SubServiceConfig complet avec id
-   * @throws Error si le composite n'existe pas
+   * @param compositeId - ID of the parent composite
+   * @param child       - Configuration of the child without id
+   * @returns The complete SubServiceConfig with id
+   * @throws Error if the composite does not exist
    */
   function addChild(compositeId: string, child: Omit<SubServiceConfig, 'id'>): SubServiceConfig {
     const idx = composites.value.findIndex(c => c.id === compositeId)
@@ -117,13 +117,13 @@ export function useComposites() {
   }
 
   /**
-   * Met à jour les propriétés d'un enfant spécifique d'un composite.
-   * Peut modifier l'adapter, le mapping, l'URL, etc.
-   * Silencieux si composite ou enfant non trouvé.
+   * Updates the properties of a specific child of a composite.
+   * Can modify the adapter, the mapping, the URL, etc.
+   * Silent if the composite or child is not found.
    *
-   * @param compositeId - ID du composite parent
-   * @param childId     - ID de l'enfant à modifier
-   * @param updates     - Patch partiel (sans id)
+   * @param compositeId - ID of the parent composite
+   * @param childId     - ID of the child to update
+   * @param updates     - Partial patch (without id)
    */
   function updateChild(compositeId: string, childId: string, updates: Partial<Omit<SubServiceConfig, 'id'>>) {
     const c = composites.value.find(c => c.id === compositeId)
@@ -135,10 +135,10 @@ export function useComposites() {
   }
 
   /**
-   * Supprime un enfant d'un composite.
+   * Removes a child from a composite.
    *
-   * @param compositeId - ID du composite parent
-   * @param childId     - ID de l'enfant à supprimer
+   * @param compositeId - ID of the parent composite
+   * @param childId     - ID of the child to remove
    */
   function removeChild(compositeId: string, childId: string) {
     const c = composites.value.find(c => c.id === compositeId)
@@ -148,10 +148,10 @@ export function useComposites() {
   }
 
   /**
-   * Inverse l'état enabled/disabled d'un enfant spécifique.
+   * Toggles the enabled/disabled state of a specific child.
    *
-   * @param compositeId - ID du composite parent
-   * @param childId     - ID de l'enfant à basculer
+   * @param compositeId - ID of the parent composite
+   * @param childId     - ID of the child to toggle
    */
   function toggleChild(compositeId: string, childId: string) {
     const c = composites.value.find(c => c.id === compositeId)
@@ -160,9 +160,9 @@ export function useComposites() {
   }
 
   return {
-    /** Liste réactive de tous les composites */
+    /** Reactive list of all composites */
     composites: computed(() => composites.value),
-    /** Liste réactive des composites actifs */
+    /** Reactive list of active composites */
     enabledComposites: computed(() => composites.value.filter(c => c.enabled)),
     addComposite,
     updateComposite,

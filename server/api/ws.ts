@@ -14,7 +14,7 @@ export default defineWebSocketHandler({
         if (fn) await fn()
       }
     }
-    catch { /* message malformé, ignoré */ }
+    catch { /* malformed message, ignored */ }
   },
 
   close(peer) {

@@ -1,7 +1,7 @@
 /**
  * @module composables/useAccessControl
- * Gestion de la protection de la page /services.
- * Modes : none | password (SHA-256) | sso (OIDC PKCE)
+ * Manages access protection for the /services page.
+ * Modes: none | password (SHA-256) | sso (OIDC PKCE)
  */
 
 export type AccessMode = 'none' | 'password' | 'sso'
@@ -34,11 +34,11 @@ function loadSession() {
 function saveConfig() {
   if (!import.meta.client) return
   localStorage.setItem(LS_CONFIG_KEY, JSON.stringify(accessConfig.value))
-  // Sync via useServerConfig pour cohérence avec le stockage global
+  // Sync via useServerConfig for consistency with the global storage
   $fetch('/api/config', { method: 'POST', body: { accessControl: accessConfig.value } }).catch(() => {})
 }
 
-/** Charge la config depuis le serveur (appelé par useServerConfig après load) */
+/** Loads the config from the server (called by useServerConfig after load) */
 function loadFromServer(cfg: unknown) {
   if (!cfg) return
   try { Object.assign(accessConfig.value, cfg) } catch { /* silent */ }
@@ -60,25 +60,25 @@ async function checkPassword(input: string): Promise<boolean> {
 
 // ── SSO / OIDC PKCE ──────────────────────────────────────────
 
-/** Génère une chaîne aléatoire de longueur n pour le code_verifier PKCE */
+/** Generates a random string of length n for the PKCE code_verifier */
 function randomString(n: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
   const arr = crypto.getRandomValues(new Uint8Array(n))
   return Array.from(arr).map(b => chars[b % chars.length]).join('')
 }
 
-/** Encode en Base64URL (sans padding) */
+/** Encodes to Base64URL (without padding) */
 function base64url(buf: ArrayBuffer): string {
   return btoa(String.fromCharCode(...new Uint8Array(buf)))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 }
 
 /**
- * Lance le flux OIDC PKCE :
- * 1. Récupère le discovery document via le proxy serveur
- * 2. Génère code_verifier + code_challenge
- * 3. Stocke les paramètres dans sessionStorage
- * 4. Redirige vers l'authorization endpoint
+ * Starts the OIDC PKCE flow:
+ * 1. Fetches the discovery document via the server proxy
+ * 2. Generates code_verifier + code_challenge
+ * 3. Stores the parameters in sessionStorage
+ * 4. Redirects to the authorization endpoint
  */
 async function initiateSSO(returnTo = '/services') {
   if (!import.meta.client) return
@@ -99,13 +99,13 @@ async function initiateSSO(returnTo = '/services') {
   const redirectUri = accessConfig.value.ssoRedirectUri
     || `${window.location.origin}/auth/callback`
 
-  // 3. Stockage avant redirection
+  // 3. Store before redirecting
   sessionStorage.setItem('pkce_verifier', verifier)
   sessionStorage.setItem('sso_token_endpoint', discovery.token_endpoint)
   sessionStorage.setItem('sso_client_id', ssoClientId)
   sessionStorage.setItem('sso_return_to', returnTo)
 
-  // 4. Redirection
+  // 4. Redirect
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: ssoClientId,
@@ -133,7 +133,7 @@ function revokeAccess() {
 function isProtected() { return accessConfig.value.mode !== 'none' }
 function hasAccess()   { return !isProtected() || granted.value }
 
-// ── Test de la config SSO ────────────────────────────────────
+// ── SSO config test ──────────────────────────────────────────
 
 const ssoTestResult = ref<{
   ok: boolean

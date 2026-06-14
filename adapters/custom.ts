@@ -1,18 +1,18 @@
 /**
  * @module adapters/custom
  *
- * Adapter générique piloté par configuration (CustomMapping).
+ * Generic configuration-driven adapter (CustomMapping).
  *
- * Permet de surveiller n'importe quelle API JSON (ou RSS/Atom) sans écrire de code,
- * en spécifiant uniquement :
- * - `statusPath`  : chemin vers la valeur de statut dans la réponse JSON
- * - `messagePath` : chemin vers le texte descriptif (optionnel)
- * - `levelMap`    : table de correspondance valeur → StatusLevel
+ * Allows monitoring any JSON API (or RSS/Atom) without writing code,
+ * by specifying only:
+ * - `statusPath`  : path to the status value in the JSON response
+ * - `messagePath` : path to the descriptive text (optional)
+ * - `levelMap`    : mapping table value → StatusLevel
  *
- * Ce module expose également des fonctions utilitaires réutilisables :
- * - `getValueAtPath` : navigation dans un objet JSON par chemin pointé
- * - `matchLevelMap`  : correspondance valeur ↔ pattern du levelMap
- * - `autoDetectLevel`: détection heuristique du niveau depuis un texte libre
+ * This module also exposes reusable utility functions:
+ * - `getValueAtPath` : navigation within a JSON object by dotted path
+ * - `matchLevelMap`  : matching value ↔ levelMap pattern
+ * - `autoDetectLevel`: heuristic level detection from free-form text
  */
 
 import type { AdapterResult, CustomMapping, Incident, StatusLevel } from '~/types'
@@ -20,18 +20,18 @@ import { worstLevel } from '~/types'
 import { rssToStructured } from './rss'
 
 /**
- * Navigue dans un objet JSON en suivant un chemin en notation pointée.
- * Supporte les tableaux (index numériques) et le wildcard `*`.
+ * Navigates within a JSON object following a dotted-notation path.
+ * Supports arrays (numeric indices) and the `*` wildcard.
  *
- * Règles de résolution :
- * - Chaque segment est séparé par un point `.`
- * - Un segment numérique sur un tableau = accès par index (ex: `items.0.name`)
- * - Le segment `*` sur un tableau = map sur tous les éléments (retourne un tableau)
- * - Si un segment intermédiaire est null/undefined, retourne undefined sans erreur
+ * Resolution rules:
+ * - Each segment is separated by a dot `.`
+ * - A numeric segment on an array = access by index (e.g. `items.0.name`)
+ * - The `*` segment on an array = map over all elements (returns an array)
+ * - If an intermediate segment is null/undefined, returns undefined without error
  *
- * @param obj  - Objet racine à naviguer
- * @param path - Chemin en notation pointée (ex: `"status"`, `"data.health"`, `"items.*.status"`)
- * @returns La valeur à ce chemin, ou undefined si le chemin n'existe pas
+ * @param obj  - Root object to navigate
+ * @param path - Dotted-notation path (e.g. `"status"`, `"data.health"`, `"items.*.status"`)
+ * @returns The value at that path, or undefined if the path does not exist
  *
  * @example
  * getValueAtPath({ a: { b: 42 } }, 'a.b')           // → 42
@@ -47,7 +47,7 @@ export function getValueAtPath(obj: unknown, path: string): unknown {
     if (parts.length === 0) return current
     const [head, ...rest] = parts
 
-    // Wildcard : itère tous les éléments du tableau et résout le reste du chemin pour chacun
+    // Wildcard: iterate over all array elements and resolve the rest of the path for each
     if (head === '*') {
       if (!Array.isArray(current)) return undefined
       return current.map((item) => resolve(item, rest))
@@ -55,7 +55,7 @@ export function getValueAtPath(obj: unknown, path: string): unknown {
 
     if (current == null) return undefined
 
-    // Tableau + segment numérique → accès par index
+    // Array + numeric segment → access by index
     if (Array.isArray(current)) {
       const idx = Number(head)
       return Number.isNaN(idx) ? undefined : resolve(current[idx], rest)
@@ -69,14 +69,14 @@ export function getValueAtPath(obj: unknown, path: string): unknown {
 }
 
 /**
- * Détecte heuristiquement un StatusLevel à partir d'une chaîne de texte libre.
- * Utilisé comme fallback quand aucun pattern du levelMap ne correspond.
+ * Heuristically detects a StatusLevel from a free-form text string.
+ * Used as a fallback when no levelMap pattern matches.
  *
- * La détection se base sur des mots-clés communs dans les APIs de statut anglophones
- * et francophones. La comparaison est insensible à la casse.
+ * Detection is based on keywords common to English- and French-language
+ * status APIs. The comparison is case-insensitive.
  *
- * @param value - Texte à analyser (ex: "partial_outage", "Service is operating normally")
- * @returns StatusLevel déduit, ou "inconnu" si aucun mot-clé reconnu
+ * @param value - Text to analyze (e.g. "partial_outage", "Service is operating normally")
+ * @returns The inferred StatusLevel, or "inconnu" if no keyword is recognized
  *
  * @example
  * autoDetectLevel('healthy')           // → 'operational'
@@ -97,12 +97,12 @@ export function autoDetectLevel(value: string): StatusLevel {
 }
 
 /**
- * Convertit une valeur quelconque en chaîne "détectable" pour autoDetectLevel.
- * Si la valeur est un objet, concatène ses champs textuels les plus pertinents
+ * Converts any value into a "detectable" string for autoDetectLevel.
+ * If the value is an object, concatenates its most relevant text fields
  * (title, name, status, message, description, summary).
  *
- * @param v - Valeur à convertir
- * @returns Chaîne représentative (vide si null/undefined)
+ * @param v - Value to convert
+ * @returns A representative string (empty if null/undefined)
  */
 function toDetectableString(v: unknown): string {
   if (v == null) return ''
@@ -116,34 +116,34 @@ function toDetectableString(v: unknown): string {
 }
 
 /**
- * Résout un StatusLevel depuis une valeur brute et une table levelMap.
- * Supporte 4 syntaxes de pattern dans les clés du levelMap :
+ * Resolves a StatusLevel from a raw value and a levelMap table.
+ * Supports 4 pattern syntaxes in the levelMap keys:
  *
- * 1. **Exact** : `"none"` → correspond exactement à la valeur (insensible à la casse)
- * 2. **Wildcard** : `"healthy*"` ou `"*-ok"` — le `*` remplace n'importe quelle séquence
- * 3. **Contains** : `"~advisory"` → la valeur contient "advisory"
- * 4. **Regex** : `"/^healthy$/i"` → expression régulière avec flags optionnels après le `/` final
+ * 1. **Exact** : `"none"` → matches the value exactly (case-insensitive)
+ * 2. **Wildcard** : `"healthy*"` or `"*-ok"` — the `*` matches any sequence
+ * 3. **Contains** : `"~advisory"` → the value contains "advisory"
+ * 4. **Regex** : `"/^healthy$/i"` → a regular expression with optional flags after the final `/`
  *
- * Les patterns sont évalués dans l'ordre de déclaration dans levelMap.
- * La première correspondance gagne.
- * Si aucun pattern ne correspond, retourne `null` (le caller utilise autoDetectLevel).
+ * Patterns are evaluated in their declaration order within levelMap.
+ * The first match wins.
+ * If no pattern matches, returns `null` (the caller uses autoDetectLevel).
  *
- * @param value    - Valeur à tester (la chaîne extraite via statusPath)
+ * @param value    - Value to test (the string extracted via statusPath)
  * @param levelMap - Table pattern → StatusLevel
- * @returns StatusLevel si un pattern correspond, null sinon
+ * @returns A StatusLevel if a pattern matches, null otherwise
  *
  * @example
  * matchLevelMap('healthy_partial', { 'healthy*': 'operational', 'down': 'majeur' })
- * // → 'operational'  (wildcard "healthy*" correspond)
+ * // → 'operational'  (wildcard "healthy*" matches)
  *
  * matchLevelMap('service advisory', { '~advisory': 'leger' })
- * // → 'leger'  (contains "~advisory" correspond)
+ * // → 'leger'  (contains "~advisory" matches)
  *
  * matchLevelMap('OUTAGE', { '/outage/i': 'majeur' })
- * // → 'majeur'  (regex insensible à la casse correspond)
+ * // → 'majeur'  (case-insensitive regex matches)
  *
  * matchLevelMap('xyz', { 'none': 'operational' })
- * // → null  (aucun pattern ne correspond)
+ * // → null  (no pattern matches)
  */
 export function matchLevelMap(value: string, levelMap: Record<string, StatusLevel>): StatusLevel | null {
   const v = value.toLowerCase()
@@ -151,16 +151,16 @@ export function matchLevelMap(value: string, levelMap: Record<string, StatusLeve
   for (const [pattern, level] of Object.entries(levelMap)) {
     if (!pattern) continue
 
-    // 1. Correspondance exacte (insensible à la casse)
+    // 1. Exact match (case-insensitive)
     if (pattern === value || pattern.toLowerCase() === v) return level
 
-    // 2. Opérateur contains : ~mot → la valeur doit contenir le mot
+    // 2. Contains operator: ~word → the value must contain the word
     if (pattern.startsWith('~')) {
       if (v.includes(pattern.slice(1).toLowerCase())) return level
       continue
     }
 
-    // 3. Opérateur regex : /pattern/flags
+    // 3. Regex operator: /pattern/flags
     if (pattern.startsWith('/') && pattern.lastIndexOf('/') > 0) {
       try {
         const last = pattern.lastIndexOf('/')
@@ -168,32 +168,32 @@ export function matchLevelMap(value: string, levelMap: Record<string, StatusLeve
         const flags = pattern.slice(last + 1)
         if (new RegExp(body, flags).test(value)) return level
       }
-      catch { /* regex invalide — on ignore silencieusement */ }
+      catch { /* invalid regex — silently ignored */ }
       continue
     }
 
-    // 4. Opérateur wildcard : * dans le pattern
-    // Convertit le pattern wildcard en regex : "healthy*" → /^healthy.*$/
+    // 4. Wildcard operator: * in the pattern
+    // Converts the wildcard pattern into a regex: "healthy*" → /^healthy.*$/
     if (pattern.includes('*')) {
-      // Échapper les caractères spéciaux regex sauf * qui devient .*
+      // Escape special regex characters except * which becomes .*
       const escaped = pattern.toLowerCase().split('*').map(p => p.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*')
       try {
         if (new RegExp(`^${escaped}$`).test(v)) return level
       }
-      catch { /* pattern invalide — on ignore silencieusement */ }
+      catch { /* invalid pattern — silently ignored */ }
     }
   }
   return null
 }
 
 /**
- * Résout un StatusLevel depuis une valeur brute (scalaire ou tableau).
- * Si la valeur est un tableau (résultat d'un wildcard), calcule le pire niveau.
- * Tente d'abord matchLevelMap, puis autoDetectLevel en fallback.
+ * Resolves a StatusLevel from a raw value (scalar or array).
+ * If the value is an array (result of a wildcard), computes the worst level.
+ * Tries matchLevelMap first, then autoDetectLevel as a fallback.
  */
 function resolveLevel(raw: unknown, levelMap: Record<string, StatusLevel>): StatusLevel {
   if (Array.isArray(raw)) {
-    // Wildcard sur statusPath → chaque élément donne un niveau, on prend le pire
+    // Wildcard on statusPath → each element yields a level, and we take the worst
     const levels = raw.map(toDetectableString).filter((s) => s.length > 0)
       .map((s) => matchLevelMap(s, levelMap) ?? autoDetectLevel(s))
     return levels.length ? worstLevel(levels) : 'operational'
@@ -203,8 +203,8 @@ function resolveLevel(raw: unknown, levelMap: Record<string, StatusLevel>): Stat
 }
 
 /**
- * Résout le message textuel depuis une valeur brute (scalaire ou tableau).
- * Si wildcard sur messagePath → tous les textes joints par \n (textes explicatifs, pas des incidents).
+ * Resolves the textual message from a raw value (scalar or array).
+ * If a wildcard is used on messagePath → all texts joined by \n (explanatory texts, not incidents).
  */
 function resolveMessage(raw: unknown): string {
   if (Array.isArray(raw)) {
@@ -214,20 +214,20 @@ function resolveMessage(raw: unknown): string {
 }
 
 /**
- * Détecte si les données reçues sont du XML brut (RSS/Atom) et les convertit
- * en objet JSON structuré navigable pour le mapping.
+ * Detects whether the received data is raw XML (RSS/Atom) and converts it
+ * into a structured, navigable JSON object for mapping.
  *
- * La donnée RSS est encapsulée par le proxy dans { _raw: "<?xml ..." }.
- * Cette fonction la transforme en RssStructured (voir rss.ts) afin que
- * les chemins comme `entries.*.title` fonctionnent normalement.
+ * The RSS data is wrapped by the proxy in { _raw: "<?xml ..." }.
+ * This function transforms it into RssStructured (see rss.ts) so that
+ * paths such as `entries.*.title` work as usual.
  *
- * @param data - Données brutes reçues du proxy
- * @returns Données JSON navigables (inchangées si pas de XML détecté)
+ * @param data - Raw data received from the proxy
+ * @returns Navigable JSON data (unchanged if no XML is detected)
  */
 function resolveData(data: unknown): unknown {
   if (data !== null && typeof data === 'object' && '_raw' in (data as object)) {
     const raw = (data as { _raw: unknown })._raw
-    // Détecter le XML RSS/Atom par son en-tête
+    // Detect RSS/Atom XML by its header
     if (typeof raw === 'string' && (raw.includes('<?xml') || raw.includes('<feed') || raw.includes('<rss'))) {
       return rssToStructured(raw)
     }
@@ -236,16 +236,16 @@ function resolveData(data: unknown): unknown {
 }
 
 /**
- * Extrait le chemin du parent array et le champ ciblé depuis un path contenant `.*`.
- * Utilisé pour séparer la partie "tableau" de la partie "champ" dans un wildcard.
+ * Extracts the parent-array path and the targeted field from a path containing `.*`.
+ * Used to separate the "array" part from the "field" part in a wildcard.
  *
- * @param path - Chemin contenant `.*` (ex: `"entries.*.title"`, `"services.*.status"`)
- * @returns Objet { parentPath, field } ou null si pas de wildcard `.*` dans le chemin
+ * @param path - Path containing `.*` (e.g. `"entries.*.title"`, `"services.*.status"`)
+ * @returns An object { parentPath, field }, or null if there is no `.*` wildcard in the path
  *
  * @example
  * parseWildcardPath('entries.*.title') // → { parentPath: 'entries', field: 'title' }
  * parseWildcardPath('data.items.*.id') // → { parentPath: 'data.items', field: 'id' }
- * parseWildcardPath('status')          // → null (pas de wildcard)
+ * parseWildcardPath('status')          // → null (no wildcard)
  */
 function parseWildcardPath(path: string): { parentPath: string; field: string } | null {
   const starIdx = path.indexOf('.*.')
@@ -257,13 +257,13 @@ function parseWildcardPath(path: string): { parentPath: string; field: string } 
 }
 
 /**
- * Retourne la première valeur non vide parmi une liste de clés natives d'un objet.
- * Utilisé pour la détection automatique des champs d'incident (titre, niveau, message…)
- * quand aucun chemin explicite n'est fourni dans le mapping.
+ * Returns the first non-empty value among a list of an object's native keys.
+ * Used for automatic detection of incident fields (title, level, message…)
+ * when no explicit path is provided in the mapping.
  *
- * @param o    - Objet incident
- * @param keys - Clés candidates, par ordre de priorité
- * @returns La première valeur non null/non vide, ou undefined
+ * @param o    - Incident object
+ * @param keys - Candidate keys, in priority order
+ * @returns The first non-null/non-empty value, or undefined
  */
 function pickNative(o: Record<string, unknown>, keys: string[]): unknown {
   for (const k of keys) {
@@ -274,16 +274,16 @@ function pickNative(o: Record<string, unknown>, keys: string[]): unknown {
 }
 
 /**
- * Génère des Incidents depuis un tableau d'incidents pointé par `incidentsPath`.
+ * Generates Incidents from an array of incidents pointed to by `incidentsPath`.
  *
- * Chaque champ (titre, niveau, message) peut être ciblé explicitement via un chemin
- * relatif à l'élément (`incidentTitlePath`, `incidentLevelPath`, `incidentMessagePath`),
- * sinon il est détecté automatiquement parmi les noms de champ usuels.
- * Le niveau est résolu via `levelMap` (matchLevelMap) puis auto-détection en secours.
+ * Each field (title, level, message) can be targeted explicitly via a path
+ * relative to the element (`incidentTitlePath`, `incidentLevelPath`, `incidentMessagePath`),
+ * otherwise it is detected automatically among the usual field names.
+ * The level is resolved via `levelMap` (matchLevelMap) then auto-detection as a fallback.
  *
- * @param resolved - Données JSON après résolution (RSS converti si nécessaire)
- * @param mapping  - Mapping complet (utilise incidentsPath + champs incident + levelMap)
- * @returns Tableau d'Incidents (vide si le chemin ne pointe pas sur un tableau)
+ * @param resolved - JSON data after resolution (RSS converted if necessary)
+ * @param mapping  - Full mapping (uses incidentsPath + incident fields + levelMap)
+ * @returns Array of Incidents (empty if the path does not point to an array)
  */
 function buildIncidentsFromPath(resolved: unknown, mapping: CustomMapping): Incident[] {
   const arr = getValueAtPath(resolved, mapping.incidentsPath!)
@@ -294,13 +294,13 @@ function buildIncidentsFromPath(resolved: unknown, mapping: CustomMapping): Inci
     .map((item, i) => {
       const o = (typeof item === 'object' && item !== null) ? (item as Record<string, unknown>) : {}
 
-      // Titre : chemin explicite, sinon champs natifs usuels
+      // Title: explicit path, otherwise the usual native fields
       const titleRaw = mapping.incidentTitlePath
         ? getValueAtPath(item, mapping.incidentTitlePath)
         : pickNative(o, ['title', 'name', 'headline', 'summary'])
       const title = toDetectableString(titleRaw)
 
-      // Niveau : chemin explicite, sinon champs natifs ; converti via levelMap puis auto-détection
+      // Level: explicit path, otherwise native fields; converted via levelMap then auto-detection
       const levelRaw = mapping.incidentLevelPath
         ? getValueAtPath(item, mapping.incidentLevelPath)
         : pickNative(o, ['level', 'impact', 'severity', 'status'])
@@ -309,7 +309,7 @@ function buildIncidentsFromPath(resolved: unknown, mapping: CustomMapping): Inci
         ? (matchLevelMap(levelStr, levelMap) ?? autoDetectLevel(levelStr))
         : (title ? autoDetectLevel(title) : 'inconnu')
 
-      // Message : chemin explicite (sous-chemins supportés), sinon champs natifs
+      // Message: explicit path (sub-paths supported), otherwise native fields
       const messageRaw = mapping.incidentMessagePath
         ? getValueAtPath(item, mapping.incidentMessagePath)
         : pickNative(o, ['body', 'description', 'message', 'summary'])
@@ -334,24 +334,24 @@ function buildIncidentsFromPath(resolved: unknown, mapping: CustomMapping): Inci
 }
 
 /**
- * Génère des Incidents depuis un tableau d'items quand statusPath contient un wildcard.
+ * Generates Incidents from an array of items when statusPath contains a wildcard.
  *
- * Logique :
- * - Ne génère des incidents QUE si statusPath a un wildcard (ex: `components.*.status`)
- * - Si messagePath a aussi un wildcard (ex: `components.*.name`), il fournit le texte de l'incident
- * - Si messagePath n'a PAS de wildcard, les textes sont traités comme message global (pas des incidents)
+ * Logic:
+ * - Generates incidents ONLY if statusPath has a wildcard (e.g. `components.*.status`)
+ * - If messagePath also has a wildcard (e.g. `components.*.name`), it provides the incident text
+ * - If messagePath does NOT have a wildcard, the texts are treated as a global message (not incidents)
  *
- * Pour chaque item du tableau parent :
- * - Le titre est extrait via le champ wildcard de statusPath
- * - Le niveau est déterminé via levelMap puis autoDetectLevel
- * - Le message est extrait via le champ wildcard de messagePath (ou summary/description natifs)
- * - L'URL et la date sont extraits depuis les champs natifs de l'objet (link, updated, pubDate)
+ * For each item in the parent array:
+ * - The title is extracted via the wildcard field of statusPath
+ * - The level is determined via levelMap then autoDetectLevel
+ * - The message is extracted via the wildcard field of messagePath (or native summary/description)
+ * - The URL and date are extracted from the object's native fields (link, updated, pubDate)
  *
- * @param resolved    - Données JSON après résolution (potentiellement converties depuis RSS)
- * @param statusPath  - Chemin du statut (avec ou sans wildcard)
- * @param messagePath - Chemin du message (optionnel, avec ou sans wildcard)
- * @param levelMap    - Table de correspondance pour les niveaux
- * @returns Tableau d'Incidents (vide si statusPath sans wildcard)
+ * @param resolved    - JSON data after resolution (potentially converted from RSS)
+ * @param statusPath  - Status path (with or without a wildcard)
+ * @param messagePath - Message path (optional, with or without a wildcard)
+ * @param levelMap    - Mapping table for the levels
+ * @returns Array of Incidents (empty if statusPath has no wildcard)
  */
 function buildIncidents(
   resolved: unknown,
@@ -361,8 +361,8 @@ function buildIncidents(
 ): Incident[] {
   const statusWc = parseWildcardPath(statusPath)
 
-  // Les incidents ne sont générés que si statusPath a un wildcard
-  // messagePath wildcard seul = textes explicatifs (MessageEntry), pas des incidents
+  // Incidents are generated only if statusPath has a wildcard
+  // A messagePath wildcard alone = explanatory texts (MessageEntry), not incidents
   if (!statusWc) return []
   const wc = statusWc
   const msgWc = messagePath ? parseWildcardPath(messagePath) : null
@@ -374,28 +374,28 @@ function buildIncidents(
     .map((item, i) => {
       const o = (typeof item === 'object' && item !== null) ? (item as Record<string, unknown>) : {}
 
-      // Titre : champ statusWc.field si disponible, sinon champ natif 'title', sinon champ msgWc
+      // Title: the statusWc.field field if available, otherwise the native 'title' field, otherwise the msgWc field
       const titleRaw = statusWc
         ? getValueAtPath(item, statusWc.field)
         : (o.title ?? (msgWc ? getValueAtPath(item, msgWc.field) : undefined))
       const title = toDetectableString(titleRaw)
       if (!title) return null
 
-      // Niveau : d'abord match exact dans levelMap, sinon auto-détection
+      // Level: first an exact match in levelMap, otherwise auto-detection
       const level = levelMap[title] ?? autoDetectLevel(title)
 
-      // Message : champ msgWc.field si disponible, sinon champs natifs summary/description
+      // Message: the msgWc.field field if available, otherwise the native summary/description fields
       const messageRaw = msgWc
         ? getValueAtPath(item, msgWc.field)
         : (o.summary ?? o.description ?? o.message)
       const message = toDetectableString(messageRaw) || undefined
 
-      // Date et URL depuis les champs natifs standards
+      // Date and URL from the standard native fields
       const updatedAt = String(o.updated ?? o.pubDate ?? o.date ?? new Date().toISOString())
       const url = typeof o.link === 'string' && o.link ? o.link : undefined
 
       const incident: Incident = { id: `custom-${i}`, title, level, startedAt: updatedAt, updatedAt }
-      // N'ajouter le message que s'il est différent du titre (évite les doublons)
+      // Only add the message if it differs from the title (avoids duplicates)
       if (message && message !== title) incident.message = message
       if (url) incident.url = url
       return incident
@@ -404,28 +404,28 @@ function buildIncidents(
 }
 
 /**
- * Extrait des MessageEntry structurées depuis un chemin wildcard vers des objets.
- * Utilisé pour alimenter l'onglet "Entrées" dans l'UI (liste informative sans niveau).
+ * Extracts structured MessageEntry objects from a wildcard path to objects.
+ * Used to populate the "Entrées" tab in the UI (informational list without a level).
  *
- * Supporte deux formes de wildcard :
- * - `entries.*`        : item complet — extrait title, summary, date, url natifs
- * - `entries.*.summary`: un champ spécifique — field est le résumé, title natif si disponible
+ * Supports two wildcard forms:
+ * - `entries.*`        : the full item — extracts native title, summary, date, url
+ * - `entries.*.summary`: a specific field — field is the summary, native title if available
  *
- * @param resolved - Données JSON après résolution
- * @param msgPath  - Chemin messagePath contenant `.*`
- * @returns Tableau de MessageEntry, ou undefined si le chemin n'est pas un wildcard valide
+ * @param resolved - JSON data after resolution
+ * @param msgPath  - messagePath containing `.*`
+ * @returns Array of MessageEntry, or undefined if the path is not a valid wildcard
  *
  * @example
- * // Pour un RSS structuré avec entries.*.summary comme messagePath
+ * // For a structured RSS with entries.*.summary as messagePath
  * buildMessageEntries(rssData, 'entries.*.summary')
  * // → [{ title: 'Incident #1', summary: 'Service dégradé', date: '...', url: '...' }, ...]
  */
 function buildMessageEntries(resolved: unknown, msgPath: string): import('~/types').MessageEntry[] | undefined {
-  // Vérifier que le path contient bien un wildcard
+  // Verify that the path does contain a wildcard
   const isWild = msgPath.includes('.*')
   if (!isWild) return undefined
 
-  // Normaliser "entries.*" (sans champ après) en ajoutant un point final pour parseWildcardPath
+  // Normalize "entries.*" (with no field after) by appending a trailing dot for parseWildcardPath
   const wc = parseWildcardPath(msgPath + (msgPath.endsWith('.*') ? '.' : ''))
     ?? parseWildcardPath(msgPath)
   if (!wc) return undefined
@@ -438,12 +438,12 @@ function buildMessageEntries(resolved: unknown, msgPath: string): import('~/type
     if (item == null) continue
     const o = typeof item === 'object' ? (item as Record<string, unknown>) : {}
 
-    // Si un champ spécifique est ciblé (entries.*.summary) :
-    //   - fieldValue = valeur du champ ciblé → c'est le résumé
-    //   - title = champ natif 'title' de l'objet, ou le fieldValue si pas de title natif
-    // Sinon (entries.*) :
-    //   - title = champ natif 'title' ou 'name'
-    //   - summary = champ natif summary/description/message
+    // If a specific field is targeted (entries.*.summary):
+    //   - fieldValue = value of the targeted field → this is the summary
+    //   - title = the object's native 'title' field, or the fieldValue if there is no native title
+    // Otherwise (entries.*):
+    //   - title = native 'title' or 'name' field
+    //   - summary = native summary/description/message field
     const fieldValue = wc.field ? toDetectableString(getValueAtPath(item, wc.field)) : ''
     const title = wc.field
       ? (toDetectableString(o.title) || fieldValue)
@@ -452,7 +452,7 @@ function buildMessageEntries(resolved: unknown, msgPath: string): import('~/type
       ? (fieldValue !== title ? fieldValue : toDetectableString(o.summary ?? o.description))
       : toDetectableString(o.summary ?? o.description ?? o.message)
 
-    // Ignorer les items sans contenu textuel exploitable
+    // Skip items with no usable text content
     if (!title && !summary) continue
 
     entries.push({
@@ -466,22 +466,22 @@ function buildMessageEntries(resolved: unknown, msgPath: string): import('~/type
 }
 
 /**
- * Adapter principal — parse une réponse brute selon un CustomMapping.
+ * Main adapter — parses a raw response according to a CustomMapping.
  *
- * Pipeline de traitement :
- * 1. `resolveData`      : convertit le XML RSS en JSON navigable si nécessaire
- * 2. `getValueAtPath`   : extrait la valeur brute via statusPath
- * 3. `resolveLevel`     : détermine le StatusLevel (via levelMap + autoDetect + worstLevel si wildcard)
- * 4. `resolveMessage`   : extrait le message textuel via messagePath (ou statusPath en fallback)
- * 5. `buildIncidents`   : génère des Incidents si statusPath contient un wildcard
- * 6. `buildMessageEntries`: génère des MessageEntry si messagePath contient un wildcard
+ * Processing pipeline:
+ * 1. `resolveData`      : converts RSS XML into navigable JSON if necessary
+ * 2. `getValueAtPath`   : extracts the raw value via statusPath
+ * 3. `resolveLevel`     : determines the StatusLevel (via levelMap + autoDetect + worstLevel if wildcard)
+ * 4. `resolveMessage`   : extracts the textual message via messagePath (or statusPath as a fallback)
+ * 5. `buildIncidents`   : generates Incidents if statusPath contains a wildcard
+ * 6. `buildMessageEntries`: generates MessageEntry objects if messagePath contains a wildcard
  *
- * @param data    - Données brutes du proxy (JSON parsé ou { _raw: string } pour XML)
- * @param mapping - Configuration du mapping (statusPath, messagePath, levelMap)
- * @returns AdapterResult normalisé
+ * @param data    - Raw proxy data (parsed JSON or { _raw: string } for XML)
+ * @param mapping - Mapping configuration (statusPath, messagePath, levelMap)
+ * @returns Normalized AdapterResult
  *
  * @example
- * // API simple avec statut scalaire
+ * // Simple API with a scalar status
  * parseCustom({ status: 'degraded' }, {
  *   statusPath: 'status',
  *   levelMap: { 'degraded': 'mineur', 'healthy': 'operational' }
@@ -489,7 +489,7 @@ function buildMessageEntries(resolved: unknown, msgPath: string): import('~/type
  * // → { level: 'mineur', message: 'degraded', incidents: [] }
  *
  * @example
- * // API avec tableau de composants
+ * // API with an array of components
  * parseCustom({ components: [{ name: 'API', health: 'outage' }] }, {
  *   statusPath: 'components.*.health',
  *   messagePath: 'components.*.name',
@@ -498,34 +498,34 @@ function buildMessageEntries(resolved: unknown, msgPath: string): import('~/type
  * // → { level: 'majeur', message: 'API', incidents: [{ title: 'outage', level: 'majeur', ... }] }
  */
 export function parseCustom(data: unknown, mapping: CustomMapping): AdapterResult {
-  // Étape 1 : convertir RSS/XML en JSON navigable si nécessaire
+  // Step 1: convert RSS/XML into navigable JSON if necessary
   const resolved = resolveData(data)
 
-  // Étape 2 & 3 : extraire la valeur de statut et déterminer le niveau
+  // Steps 2 & 3: extract the status value and determine the level
   const rawStatus = getValueAtPath(resolved, mapping.statusPath)
   let level = resolveLevel(rawStatus, mapping.levelMap)
 
-  // Étape 5 : construire les incidents.
-  // Si un `incidentsPath` explicite est fourni, on l'utilise (mapping dédié, au même
-  // titre que statut/message). Sinon, comportement historique : wildcard sur statusPath.
+  // Step 5: build the incidents.
+  // If an explicit `incidentsPath` is provided, we use it (a dedicated mapping, on the same
+  // footing as status/message). Otherwise, the legacy behavior: a wildcard on statusPath.
   const incidents = mapping.incidentsPath
     ? buildIncidentsFromPath(resolved, mapping)
     : buildIncidents(resolved, mapping.statusPath, mapping.messagePath, mapping.levelMap)
 
-  // Si aucun statusPath n'est défini mais que des incidents existent, le niveau global
-  // reflète le pire incident — un mapping peut ainsi ne décrire QUE des incidents.
+  // If no statusPath is defined but incidents exist, the global level
+  // reflects the worst incident — a mapping can thus describe ONLY incidents.
   if (!mapping.statusPath && incidents.length) {
     level = worstLevel(incidents.map((inc) => inc.level))
   }
 
-  // Étape 4 : extraire le message (messagePath prioritaire, statusPath en fallback)
+  // Step 4: extract the message (messagePath takes priority, statusPath as a fallback)
   const rawMessage = mapping.messagePath
     ? getValueAtPath(resolved, mapping.messagePath)
     : rawStatus
   let message = resolveMessage(rawMessage)
   if (!message) message = incidents.length ? `${incidents.length} incident(s)` : 'Statut inconnu'
 
-  // Étape 6 : construire les entries selon le wildcard de messagePath
+  // Step 6: build the entries according to the messagePath wildcard
   const entries = mapping.messagePath
     ? buildMessageEntries(resolved, mapping.messagePath)
     : undefined

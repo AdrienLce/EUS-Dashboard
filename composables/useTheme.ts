@@ -12,7 +12,7 @@ function applyTheme(t: string) {
   document.documentElement.setAttribute('data-theme', t)
 }
 
-// Watch module-level unique — créé une seule fois, pas à chaque appel du composable
+// Single module-level watch — created once, not on every call to the composable
 let watchInitialized = false
 
 export function useTheme() {
