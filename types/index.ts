@@ -59,7 +59,7 @@ export interface LevelConfig {
 export const DEFAULT_LEVEL_CONFIGS: LevelConfig[] = [
   { id: 'operational',  label: 'Operational',        reference: 'Everything is working normally',          color: '#22c55e' },
   { id: 'information',  label: 'Information',         reference: 'Informational message, no impact',        color: '#8b5cf6' },
-  { id: 'leger',        label: 'Minor disruption',   reference: 'Partial, non-critical degradation',       color: '#eab308' },
+  { id: 'leger',        label: 'Degraded',           reference: 'Partial, non-critical degradation',       color: '#eab308' },
   { id: 'mineur',       label: 'Minor incident',     reference: 'Partial impact on the service',           color: '#f97316' },
   { id: 'majeur',       label: 'Major incident',     reference: 'Outage or strong impact',                 color: '#ef4444' },
   { id: 'critique',     label: 'Critical incident',  reference: 'Total outage or critical interruption',   color: '#7f1d1d' },
@@ -362,7 +362,7 @@ export interface AdapterResult {
 export const LEVEL_LABELS: Record<StatusLevel, string> = {
   operational: "Operational",
   information: "Information",
-  leger: "Minor disruption",
+  leger: "Degraded",
   mineur: "Minor incident",
   majeur: "Major incident",
   critique: "Critical incident",
