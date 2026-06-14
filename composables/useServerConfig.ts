@@ -96,7 +96,7 @@ async function load() {
         method: 'POST',
         body: { services: ls.services, composites: ls.composites, order: ls.order },
       })
-      console.info('[config] Données migrées depuis localStorage vers le serveur.')
+      console.info('[config] Data migrated from localStorage to the server.')
     }
     else {
       services.value = data.services ?? []

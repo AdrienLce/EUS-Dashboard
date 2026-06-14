@@ -131,7 +131,7 @@ export function parseAtlassian(data: unknown): AdapterResult {
 
   return {
     level: mapIndicator(summary.status?.indicator ?? 'none'),
-    message: summary.status?.description ?? 'Statut inconnu',
+    message: summary.status?.description ?? 'Unknown status',
     incidents,
   }
 }

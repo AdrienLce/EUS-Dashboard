@@ -48,7 +48,7 @@ function setCached(url: string, data: unknown, ttlSeconds: number) {
 export default defineEventHandler(async (event) => {
   const req = await readBody<ProxyRequest>(event)
 
-  if (!req?.url) throw createError({ statusCode: 400, message: 'URL manquante' })
+  if (!req?.url) throw createError({ statusCode: 400, message: 'Missing URL' })
 
   // SSRF validation
   try {
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
     const h = url.hostname
     if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0'
       || h.startsWith('192.168.') || h.startsWith('10.')) {
-      throw createError({ statusCode: 403, message: 'Accès réseau privé interdit' })
+      throw createError({ statusCode: 403, message: 'Private network access forbidden' })
     }
   }
   catch (e: unknown) {
@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
   if (!response.ok) {
     throw createError({
       statusCode: response.status,
-      message: `Erreur HTTP ${response.status} depuis ${req.url}`,
+      message: `HTTP error ${response.status} from ${req.url}`,
     })
   }
 

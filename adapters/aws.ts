@@ -84,7 +84,7 @@ export function parseAws(data: unknown): AdapterResult {
   if (typeof data === 'object' && data !== null && '_raw' in data) {
     return {
       level: 'inconnu',
-      message: "Réponse non-JSON reçue — vérifier l'URL du feed AWS",
+      message: 'Non-JSON response received — check the AWS feed URL',
       incidents: [],
     }
   }
@@ -98,7 +98,7 @@ export function parseAws(data: unknown): AdapterResult {
   if (current.length === 0) {
     return {
       level: 'operational',
-      message: 'Tous les services opérationnels',
+      message: 'All services operational',
       incidents: [],
     }
   }
@@ -123,7 +123,7 @@ export function parseAws(data: unknown): AdapterResult {
 
   return {
     level: worstLevel,
-    message: `${current.length} événement(s) en cours`,
+    message: `${current.length} active event${current.length > 1 ? 's' : ''}`,
     incidents,
   }
 }

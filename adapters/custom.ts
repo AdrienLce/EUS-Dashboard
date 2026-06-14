@@ -405,7 +405,7 @@ function buildIncidents(
 
 /**
  * Extracts structured MessageEntry objects from a wildcard path to objects.
- * Used to populate the "Entrées" tab in the UI (informational list without a level).
+ * Used to populate the "Entries" tab in the UI (informational list without a level).
  *
  * Supports two wildcard forms:
  * - `entries.*`        : the full item — extracts native title, summary, date, url
@@ -418,7 +418,7 @@ function buildIncidents(
  * @example
  * // For a structured RSS with entries.*.summary as messagePath
  * buildMessageEntries(rssData, 'entries.*.summary')
- * // → [{ title: 'Incident #1', summary: 'Service dégradé', date: '...', url: '...' }, ...]
+ * // → [{ title: 'Incident #1', summary: 'Service degraded', date: '...', url: '...' }, ...]
  */
 function buildMessageEntries(resolved: unknown, msgPath: string): import('~/types').MessageEntry[] | undefined {
   // Verify that the path does contain a wildcard
@@ -523,7 +523,7 @@ export function parseCustom(data: unknown, mapping: CustomMapping): AdapterResul
     ? getValueAtPath(resolved, mapping.messagePath)
     : rawStatus
   let message = resolveMessage(rawMessage)
-  if (!message) message = incidents.length ? `${incidents.length} incident(s)` : 'Statut inconnu'
+  if (!message) message = incidents.length ? `${incidents.length} incident(s)` : 'Unknown status'
 
   // Step 6: build the entries according to the messagePath wildcard
   const entries = mapping.messagePath

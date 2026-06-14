@@ -27,7 +27,7 @@ export function broadcast(payload: unknown) {
 export default defineWebSocketHandler({
   open(peer) {
     peers.add(peer)
-    peer.send(JSON.stringify({ type: 'connected', message: `${peers.size} client(s) connecté(s)` }))
+    peer.send(JSON.stringify({ type: 'connected', message: `${peers.size} client(s) connected` }))
 
     // Current config + known snapshots → immediate state for the new client
     Promise.all([

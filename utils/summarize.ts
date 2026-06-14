@@ -4,7 +4,7 @@
  * Generation of a readable text summary from a list of incidents or entries.
  *
  * This module is used in the UI to display a condensed overview of the contents
- * of a composite service or an RSS feed (e.g. "3 incidents · 2 maintenances planifiées").
+ * of a composite service or an RSS feed (e.g. "3 incidents · 2 planned maintenances").
  *
  * It produces two pieces of information:
  * - `text`      : sentence describing the breakdown by category
@@ -15,7 +15,7 @@ import type { Incident, MessageEntry } from '~/types'
 
 /** Result of the summary generation */
 interface SummaryResult {
-  /** Summary sentence (e.g. "2 incidents · 1 maintenance planifiée") */
+  /** Summary sentence (e.g. "2 incidents · 1 planned maintenance") */
   text: string
   /** Date range (e.g. "Du 01/01/2024 au 15/01/2024") or null if not determinable */
   dateRange: string | null
@@ -35,14 +35,22 @@ interface SummaryResult {
  */
 function categorize(title: string): string {
   const t = title.toLowerCase()
-  if (t.includes('vendor mandated emergency') || t.includes('emergency maintenance')) return 'maintenance urgence'
-  if (t.includes('vendor mandated')) return 'maintenance fournisseur'
-  if (t.includes('planned maintenance') || t.includes('maintenance planifiée')) return 'maintenance planifiée'
+  if (t.includes('vendor mandated emergency') || t.includes('emergency maintenance')) return 'urgent maintenance'
+  if (t.includes('vendor mandated')) return 'vendor maintenance'
+  if (t.includes('planned maintenance') || t.includes('maintenance planifiée')) return 'planned maintenance'
   if (t.includes('maintenance')) return 'maintenance'
   if (t.includes('advisory') || t.includes('service advisory')) return 'advisory'
   if (t.includes('incident') || t.includes('outage') || t.includes('disruption')) return 'incident'
-  if (t.includes('resolved') || t.includes('résolu')) return 'résolu'
-  return 'autre'
+  if (t.includes('resolved') || t.includes('résolu')) return 'resolved'
+  return 'other'
+}
+
+/** English pluralization for a category name. */
+function pluralizeCategory(cat: string, n: number): string {
+  if (n <= 1) return cat
+  if (cat === 'advisory') return 'advisories'
+  if (cat === 'resolved') return 'resolved'
+  return `${cat}s`
 }
 
 /**
@@ -63,7 +71,7 @@ function parseDate(s: string): Date | null {
  * @returns String in the "15/01/2024" format
  */
 function formatShort(d: Date): string {
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
 /**
@@ -88,7 +96,7 @@ function formatShort(d: Date): string {
  *   { title: 'Incident in EU region', level: 'majeur', ... },
  *   { title: 'Service advisory for API', level: 'leger', ... },
  * ])
- * // → { text: "1 incident · 1 advisory · 1 maintenance urgence", dateRange: "Le 15/01/2024", total: 3 }
+ * // → { text: "1 incident · 1 advisory · 1 urgent maintenance", dateRange: "On 15/01/2024", total: 3 }
  */
 export function buildSummary(items: (Incident | MessageEntry)[]): SummaryResult | null {
   if (!items || items.length === 0) return null
@@ -106,12 +114,11 @@ export function buildSummary(items: (Incident | MessageEntry)[]): SummaryResult 
 
   // Build the sentence in severity order
   const parts: string[] = []
-  const order = ['incident', 'advisory', 'maintenance urgence', 'maintenance fournisseur', 'maintenance planifiée', 'maintenance', 'résolu', 'autre']
+  const order = ['incident', 'advisory', 'urgent maintenance', 'vendor maintenance', 'planned maintenance', 'maintenance', 'resolved', 'other']
   for (const cat of order) {
     const n = counts.get(cat)
     if (!n) continue
-    // Simple pluralization: add 's' unless the category ends with 'e' (already feminine/invariable)
-    parts.push(`${n} ${cat}${n > 1 && !cat.endsWith('e') ? 's' : ''}`)
+    parts.push(`${n} ${pluralizeCategory(cat, n)}`)
   }
 
   // Compute the date range from the updatedAt (Incident) or date (MessageEntry) fields
@@ -129,18 +136,18 @@ export function buildSummary(items: (Incident | MessageEntry)[]): SummaryResult 
     const newest = dates[dates.length - 1]
     // Show a range if the dates differ, otherwise a single date
     if (formatShort(oldest) !== formatShort(newest)) {
-      dateRange = `Du ${formatShort(oldest)} au ${formatShort(newest)}`
+      dateRange = `From ${formatShort(oldest)} to ${formatShort(newest)}`
     }
     else {
-      dateRange = `Le ${formatShort(newest)}`
+      dateRange = `On ${formatShort(newest)}`
     }
   }
   else if (dates.length === 1) {
-    dateRange = `Le ${formatShort(dates[0])}`
+    dateRange = `On ${formatShort(dates[0])}`
   }
 
   return {
-    text: parts.length ? parts.join(' · ') : `${titles.length} entrée${titles.length > 1 ? 's' : ''}`,
+    text: parts.length ? parts.join(' · ') : `${titles.length} ${titles.length > 1 ? 'entries' : 'entry'}`,
     dateRange,
     total: titles.length,
   }

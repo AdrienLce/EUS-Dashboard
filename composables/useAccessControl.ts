@@ -83,7 +83,7 @@ function base64url(buf: ArrayBuffer): string {
 async function initiateSSO(returnTo = '/services') {
   if (!import.meta.client) return
   const { ssoDiscoveryUrl, ssoClientId } = accessConfig.value
-  if (!ssoDiscoveryUrl || !ssoClientId) throw new Error('SSO non configuré')
+  if (!ssoDiscoveryUrl || !ssoClientId) throw new Error('SSO not configured')
 
   // 1. Discovery
   const discovery = await $fetch<{

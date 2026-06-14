@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const { code, codeVerifier, tokenEndpoint, clientId, redirectUri } = body
 
   if (!code || !codeVerifier || !tokenEndpoint || !clientId) {
-    throw createError({ statusCode: 400, message: 'Paramètres manquants' })
+    throw createError({ statusCode: 400, message: 'Missing parameters' })
   }
 
   // Exchange code → tokens via PKCE (without client_secret)

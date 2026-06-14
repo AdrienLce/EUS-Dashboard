@@ -51,7 +51,7 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
   const u = new URL(url)
   const h = u.hostname
   if (SSRF_BLOCKED.has(h) || h.startsWith('192.168.') || h.startsWith('10.')) {
-    throw Object.assign(new Error('Accès réseau privé interdit'), { statusCode: 403 })
+    throw Object.assign(new Error('Private network access forbidden'), { statusCode: 403 })
   }
 
   const opts: RequestInit = {
@@ -93,17 +93,17 @@ async function pollOne(
     if (result.entries) snap.entries = result.entries
   }
   catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Erreur'
+    const msg = err instanceof Error ? err.message : 'Error'
     const code = (err as { statusCode?: number })?.statusCode ?? 0
     const isAuth = code === 401 || code === 403
     const isProxy = code === 429 || code === 502 || code === 503
       || msg.includes('ECONNREFUSED') || msg.includes('ETIMEDOUT')
     const level = (isAuth || isProxy) ? 'inconnu' as const : 'majeur' as const
     const message = isAuth
-      ? 'Accès refusé — authentification requise'
+      ? 'Access denied — authentication required'
       : isProxy
-        ? `Requête bloquée (${code || 'réseau'})`
-        : `Erreur: ${msg}`
+        ? `Request blocked (${code || 'network'})`
+        : `Error: ${msg}`
     snap = { serviceId: id, timestamp: new Date().toISOString(), level, message, incidents: [] }
   }
 

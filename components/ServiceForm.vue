@@ -321,7 +321,7 @@ async function runTest() {
   } catch (err: unknown) {
     const e = err as { statusCode?: number; message?: string };
     testHttpStatus.value = e.statusCode ?? 0;
-    testError.value = e.message ?? "Erreur inconnue";
+    testError.value = e.message ?? "Unknown error";
   } finally {
     testLoading.value = false;
   }
@@ -1572,7 +1572,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       <!-- Previewed card -->
                       <div class="max-w-xs">
                         <ServiceCard
-                          :name="form.name || 'Nom du service'"
+                          :name="form.name || 'Service name'"
                           :snapshot="
                             parsedPreview
                               ? {

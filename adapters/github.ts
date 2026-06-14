@@ -119,7 +119,7 @@ export function parseGithub(data: unknown): AdapterResult {
 
   return {
     level: mapGithubIndicator(summary.status?.indicator ?? 'none'),
-    message: summary.status?.description ?? 'Statut inconnu',
+    message: summary.status?.description ?? 'Unknown status',
     incidents,
   }
 }

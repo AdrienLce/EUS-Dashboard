@@ -80,7 +80,7 @@ async function pollService(svc: ServiceConfig | SubServiceConfig) {
     broadcast({ type: 'snapshot', data: snapshot })
   }
   catch (err: unknown) {
-    const msg = (err as Error).message ?? 'Erreur'
+    const msg = (err as Error).message ?? 'Error'
     const statusCode = (err as { statusCode?: number })?.statusCode ?? 0
     const isProxy = statusCode === 429 || statusCode === 502 || statusCode === 503
       || msg.includes('429') || msg.includes('ECONNREFUSED')
@@ -91,10 +91,10 @@ async function pollService(svc: ServiceConfig | SubServiceConfig) {
       timestamp: new Date().toISOString(),
       level: (isAuth || isProxy) ? 'inconnu' : 'majeur',
       message: isAuth
-        ? 'Accès refusé — authentification requise'
+        ? 'Access denied — authentication required'
         : isProxy
-          ? `Requête bloquée (${statusCode || 'réseau'})`
-          : `Erreur: ${msg}`,
+          ? `Request blocked (${statusCode || 'network'})`
+          : `Error: ${msg}`,
       incidents: [],
     }
     lastSnapshots.set(svc.id, errSnap)
@@ -185,5 +185,5 @@ export { reloadSchedulers }
 export default defineNitroPlugin(async () => {
   await reloadSchedulers()
   setInterval(reloadSchedulers, 30_000)
-  console.info('[scheduler] Démarré — polling côté serveur actif')
+  console.info('[scheduler] Started — server-side polling active')
 })

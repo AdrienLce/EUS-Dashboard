@@ -20,7 +20,7 @@ export function parsePing(data: unknown): AdapterResult {
   if (code === 401 || code === 403) {
     return {
       level: 'inconnu',
-      message: `HTTP ${code} — authentification requise`,
+      message: `HTTP ${code} — authentication required`,
       incidents: [],
     }
   }
@@ -36,8 +36,8 @@ export function parsePing(data: unknown): AdapterResult {
   if (code >= 500) {
     return {
       level: 'majeur',
-      message: `HTTP ${code} — erreur serveur`,
-      incidents: [{ id: '1', name: `Erreur serveur HTTP ${code}`, level: 'majeur', status: 'ongoing', impact: 'critical', createdAt: new Date().toISOString() }],
+      message: `HTTP ${code} — server error`,
+      incidents: [{ id: '1', name: `HTTP server error ${code}`, level: 'majeur', status: 'ongoing', impact: 'critical', createdAt: new Date().toISOString() }],
     }
   }
 
@@ -52,7 +52,7 @@ export function parsePing(data: unknown): AdapterResult {
   // No response (timeout, network)
   return {
     level: 'majeur',
-    message: code === 0 ? 'Aucune réponse (timeout ou réseau)' : `HTTP ${code}`,
+    message: code === 0 ? 'No response (timeout or network)' : `HTTP ${code}`,
     incidents: [],
   }
 }

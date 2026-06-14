@@ -126,3 +126,21 @@
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder { color: #64748b !important; }
+
+/* Light accent tints (-50) → translucent in dark so overridden text stays readable */
+[data-theme="dark"] .bg-indigo-50  { background-color: rgba(99, 102, 241, 0.16) !important; }
+[data-theme="dark"] .bg-blue-50    { background-color: rgba(59, 130, 246, 0.16) !important; }
+[data-theme="dark"] .bg-violet-50  { background-color: rgba(139, 92, 246, 0.16) !important; }
+[data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.16) !important; }
+[data-theme="dark"] .bg-green-50   { background-color: rgba(34, 197, 94, 0.16) !important; }
+[data-theme="dark"] .bg-red-50     { background-color: rgba(239, 68, 68, 0.16) !important; }
+[data-theme="dark"] .bg-orange-50  { background-color: rgba(249, 115, 22, 0.16) !important; }
+[data-theme="dark"] .bg-amber-50,
+[data-theme="dark"] .bg-yellow-50  { background-color: rgba(234, 179, 8, 0.16) !important; }
+
+/* Accent text → lighter in dark for contrast on the translucent tints */
+[data-theme="dark"] .text-indigo-600,  [data-theme="dark"] .text-indigo-700  { color: #a5b4fc !important; }
+[data-theme="dark"] .text-blue-600,    [data-theme="dark"] .text-blue-700,
+[data-theme="dark"] .text-blue-800     { color: #93c5fd !important; }
+[data-theme="dark"] .text-violet-600,  [data-theme="dark"] .text-violet-700  { color: #c4b5fd !important; }
+[data-theme="dark"] .text-emerald-600, [data-theme="dark"] .text-emerald-700 { color: #6ee7b7 !important; }

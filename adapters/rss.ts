@@ -184,12 +184,12 @@ export function rssToStructured(raw: string): RssStructured {
  */
 export function parseRss(data: unknown): AdapterResult {
   const raw = (data as { _raw?: string })?._raw ?? ''
-  if (!raw) return { level: 'operational', message: 'Aucune donnée', incidents: [] }
+  if (!raw) return { level: 'operational', message: 'No data', incidents: [] }
 
   const structured = rssToStructured(raw)
 
   if (structured.entries.length === 0) {
-    return { level: 'operational', message: 'Aucun incident en cours', incidents: [] }
+    return { level: 'operational', message: 'No active incidents', incidents: [] }
   }
 
   const incidents: Incident[] = structured.entries
@@ -214,7 +214,7 @@ export function parseRss(data: unknown): AdapterResult {
 
   return {
     level: worstLevel,
-    message: `${incidents.length} entrée(s) dans le flux`,
+    message: `${incidents.length} ${incidents.length > 1 ? 'entries' : 'entry'} in the feed`,
     incidents,
   }
 }

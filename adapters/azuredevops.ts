@@ -127,7 +127,7 @@ export function parseAzureDevOps(data: unknown): AdapterResult {
   const resp = data as AzureDevOpsResponse
 
   const globalHealth = resp.status?.health ?? 'healthy'
-  const globalMessage = resp.status?.message ?? 'Statut inconnu'
+  const globalMessage = resp.status?.message ?? 'Unknown status'
 
   const incidents: Incident[] = []
   const updatedAt = resp.lastUpdated ?? new Date().toISOString()

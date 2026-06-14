@@ -7,7 +7,7 @@ import { defineEventHandler, getQuery, createError } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const { url } = getQuery(event)
-  if (!url || typeof url !== 'string') throw createError({ statusCode: 400, message: 'url manquante' })
+  if (!url || typeof url !== 'string') throw createError({ statusCode: 400, message: 'missing url' })
 
   try {
     const res = await fetch(url, { headers: { Accept: 'application/json' } })
@@ -15,6 +15,6 @@ export default defineEventHandler(async (event) => {
     return await res.json()
   }
   catch (e: unknown) {
-    throw createError({ statusCode: 502, message: `Impossible de contacter l'IdP : ${(e as Error).message}` })
+    throw createError({ statusCode: 502, message: `Unable to reach the IdP: ${(e as Error).message}` })
   }
 })

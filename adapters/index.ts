@@ -119,7 +119,7 @@ export function runAdapter(
   // Case 4: unrecognized format — we do not throw an error so as to stay non-blocking
   return {
     level: "operational",
-    message: "Format non reconnu",
+    message: "Unrecognized format",
     incidents: [],
   };
 }
@@ -140,14 +140,14 @@ export interface AdapterMeta {
 export const ADAPTER_META: AdapterMeta[] = [
   { value: "github",      label: "GitHub Status",         statusPath: "status.indicator", messagePath: "status.description" },
   { value: "atlassian",   label: "Atlassian / Statuspage", statusPath: "status.indicator", messagePath: "status.description" },
-  { value: "aws",         label: "AWS Health",             statusPath: "", note: "Basé sur current_events[] — pas de chemin unique" },
+  { value: "aws",         label: "AWS Health",             statusPath: "", note: "Based on current_events[] — no single path" },
   { value: "azuredevops", label: "Azure DevOps",           statusPath: "status.health",    messagePath: "status.message" },
   { value: "bloomberg",   label: "Bloomberg",              statusPath: "status.indicator", messagePath: "status.description" },
-  { value: "rss",         label: "RSS / Atom",             statusPath: "entries.0.title",  messagePath: "entries.0.summary", note: "Flux RSS parsé — chemins sur structure convertie (entries.0.title, entry_count…)" },
+  { value: "rss",         label: "RSS / Atom",             statusPath: "entries.0.title",  messagePath: "entries.0.summary", note: "Parsed RSS feed — paths on the converted structure (entries.0.title, entry_count…)" },
   { value: "notion",      label: "Notion",                 statusPath: "status.indicator", messagePath: "status.description" },
-  { value: "ping",        label: "Ping HTTP", note: "2xx = opérationnel · 5xx = majeur · 4xx = mineur · timeout = majeur" },
-  { value: "custom",      label: "Personnalisé (mapping)" },
-  { value: "auto",        label: "Auto-détection" },
+  { value: "ping",        label: "Ping HTTP", note: "2xx = operational · 5xx = major · 4xx = minor · timeout = major" },
+  { value: "custom",      label: "Custom (mapping)" },
+  { value: "auto",        label: "Auto-detect" },
 ]
 
 /**

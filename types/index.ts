@@ -57,14 +57,14 @@ export interface LevelConfig {
  * from the user's custom configuration.
  */
 export const DEFAULT_LEVEL_CONFIGS: LevelConfig[] = [
-  { id: 'operational',  label: 'Opérationnel',       reference: 'Tout fonctionne normalement',         color: '#22c55e' },
-  { id: 'information',  label: 'Information',         reference: 'Message informatif sans impact',      color: '#8b5cf6' },
-  { id: 'leger',        label: 'Légère perturbation', reference: 'Dégradation partielle non critique',  color: '#eab308' },
-  { id: 'mineur',       label: 'Incident mineur',     reference: 'Impact partiel sur le service',       color: '#f97316' },
-  { id: 'majeur',       label: 'Incident majeur',     reference: 'Interruption ou impact fort',         color: '#ef4444' },
-  { id: 'critique',     label: 'Incident critique',   reference: 'Panne totale ou interruption critique', color: '#7f1d1d' },
-  { id: 'maintenance',  label: 'Maintenance',         reference: 'Maintenance planifiée ou en cours',   color: '#3b82f6' },
-  { id: 'inconnu',      label: 'Action requise',      reference: 'Statut indéterminé / auth manquante', color: '#9ca3af' },
+  { id: 'operational',  label: 'Operational',        reference: 'Everything is working normally',          color: '#22c55e' },
+  { id: 'information',  label: 'Information',         reference: 'Informational message, no impact',        color: '#8b5cf6' },
+  { id: 'leger',        label: 'Minor disruption',   reference: 'Partial, non-critical degradation',       color: '#eab308' },
+  { id: 'mineur',       label: 'Minor incident',     reference: 'Partial impact on the service',           color: '#f97316' },
+  { id: 'majeur',       label: 'Major incident',     reference: 'Outage or strong impact',                 color: '#ef4444' },
+  { id: 'critique',     label: 'Critical incident',  reference: 'Total outage or critical interruption',   color: '#7f1d1d' },
+  { id: 'maintenance',  label: 'Maintenance',        reference: 'Planned or ongoing maintenance',          color: '#3b82f6' },
+  { id: 'inconnu',      label: 'Action required',    reference: 'Undetermined status / missing auth',      color: '#9ca3af' },
 ]
 
 /** HTTP method allowed for polling requests */
@@ -360,14 +360,14 @@ export interface AdapterResult {
  * has not yet loaded the custom configuration.
  */
 export const LEVEL_LABELS: Record<StatusLevel, string> = {
-  operational: "Opérationnel",
+  operational: "Operational",
   information: "Information",
-  leger: "Légère perturbation",
-  mineur: "Incident mineur",
-  majeur: "Incident majeur",
-  critique: "Incident critique",
+  leger: "Minor disruption",
+  mineur: "Minor incident",
+  majeur: "Major incident",
+  critique: "Critical incident",
   maintenance: "Maintenance",
-  inconnu: "Action requise",
+  inconnu: "Action required",
 };
 
 /**
