@@ -25,3 +25,8 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Python (venv local, non lié au projet Nuxt)
+.venv/
+__pycache__/
+*.py[cod]

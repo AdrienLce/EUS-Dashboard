@@ -1,0 +1,13 @@
+# Pins this directory as its own pnpm workspace root, so pnpm does not walk up
+# and resolve against the parent (davies_tool) workspace — which would leave
+# this project's node_modules uninstalled ("Already up to date" with no install).
+packages:
+  - '.'
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+# Packages permitted to run install/build scripts: esbuild downloads its native
+# binary, @parcel/watcher compiles the native file watcher Nitro relies on.
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild

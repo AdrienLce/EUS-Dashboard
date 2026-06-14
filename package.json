@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "TMPDIR=/tmp nuxt dev",
+    "dev:old": "TMPDIR=/tmp nuxt dev",
+    "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview"
   },
