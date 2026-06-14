@@ -6,7 +6,7 @@ const router = useRouter()
 const returnTo = (route.query.returnTo as string) || '/services'
 
 const LOGO_URL =
-  'https://uvzfnheuaduyivtddfba.supabase.co/storage/v1/object/public/app-logo/logo-sentinel.png'
+  'https://uvzfnheuaduyivtddfba.supabase.co/storage/v1/object/public/app-logo/logo-sentinel-dashboard.png'
 
 const { accessConfig, checkPassword, initiateSSO, hasAccess } = useAccessControl()
 
