@@ -130,6 +130,7 @@ function applyChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
     body: config.body,
     adapter: config.adapter,
     customMapping: config.customMapping,
+    rss: config.rss,
     enabled: config.enabled,
   };
 

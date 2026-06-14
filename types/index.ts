@@ -143,6 +143,21 @@ export interface CustomMapping {
   incidentMessagePath?: string;
 }
 
+/**
+ * Optional filtering applied by the `rss` adapter before computing the status.
+ * Turns a high-volume incident feed (e.g. AWS all.rss) into a relevant signal:
+ * only entries within the time window, matching at least one keyword, and not
+ * already resolved are considered.
+ */
+export interface RssFilter {
+  /** Only keep entries published within the last N hours (entries with no/unparseable date are kept). */
+  windowHours?: number;
+  /** Only keep entries whose title or summary contains at least one of these (case-insensitive). Empty/absent = keep all. */
+  keywords?: string[];
+  /** Drop entries that are already resolved / "operating normally". */
+  excludeResolved?: boolean;
+}
+
 
 /**
  * Complete configuration of a service to monitor.
@@ -170,6 +185,8 @@ export interface ServiceConfig {
   adapter: string;
   /** Custom mapping — required if adapter === "custom" */
   customMapping?: CustomMapping;
+  /** Optional filtering for the `rss` adapter (window / keywords / exclude resolved) */
+  rss?: RssFilter;
   /** Display group name (optional, to group visually) */
   group?: string;
   /** Polling interval in seconds (1–20 min) */
@@ -210,6 +227,8 @@ export interface SubServiceConfig {
    * If absent, inherits the parent composite's `defaultMapping`.
    */
   customMapping?: CustomMapping;
+  /** Optional filtering for the `rss` adapter (window / keywords / exclude resolved) */
+  rss?: RssFilter;
   /** Enables or disables this sub-service */
   enabled: boolean;
 }

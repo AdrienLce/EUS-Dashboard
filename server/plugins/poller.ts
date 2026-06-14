@@ -86,11 +86,12 @@ async function pollOne(
   body: string | undefined,
   adapter: string,
   customMapping: ServiceConfig['customMapping'],
+  rssFilter: ServiceConfig['rss'],
 ): Promise<void> {
   let snap: StatusSnapshot
   try {
     const data = await serverFetch(url, method, headers, body)
-    const result = runAdapter(adapter, data, customMapping)
+    const result = runAdapter(adapter, data, customMapping, rssFilter)
     snap = {
       serviceId: id,
       timestamp: new Date().toISOString(),
@@ -149,7 +150,7 @@ async function reload(): Promise<void> {
   for (const svc of services) {
     if (!svc.enabled) continue
     const ms = Math.min(svc.pollInterval, 1200) * 1000
-    const fn = () => pollOne(svc.id, svc.url, svc.method, svc.headers, svc.body, svc.adapter, svc.customMapping)
+    const fn = () => pollOne(svc.id, svc.url, svc.method, svc.headers, svc.body, svc.adapter, svc.customMapping, svc.rss)
     addTask(svc.id, ms, fn)
     refreshFns.set(svc.id, fn)
   }
@@ -164,7 +165,7 @@ async function reload(): Promise<void> {
         ? child.adapter
         : (composite.defaultAdapter ?? child.adapter)
       const effectiveMapping = child.customMapping ?? composite.defaultMapping
-      const fn = () => pollOne(child.id, child.url, child.method, child.headers, child.body, effectiveAdapter, effectiveMapping)
+      const fn = () => pollOne(child.id, child.url, child.method, child.headers, child.body, effectiveAdapter, effectiveMapping, child.rss)
       addTask(`${composite.id}::${child.id}`, ms, fn)
       refreshFns.set(child.id, fn)
     }

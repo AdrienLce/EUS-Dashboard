@@ -22,7 +22,7 @@
  * There is no standardized "impact" field in RSS/Atom.
  */
 
-import type { AdapterResult, Incident, StatusLevel } from '~/types'
+import type { AdapterResult, Incident, RssFilter, StatusLevel } from '~/types'
 
 /**
  * Extracts the text content of an XML tag (first occurrence).
@@ -191,31 +191,61 @@ export function rssToStructured(raw: string): RssStructured {
  * @param data - Proxy response containing `{ _raw: "<xml>..." }`
  * @returns AdapterResult with the most severe level among the entries
  */
-export function parseRss(data: unknown): AdapterResult {
+export function parseRss(data: unknown, filter?: RssFilter): AdapterResult {
   const raw = (data as { _raw?: string })?._raw ?? ''
   if (!raw) return { level: 'operational', message: 'No data', incidents: [] }
 
   const structured = rssToStructured(raw)
 
-  if (structured.entries.length === 0) {
-    return { level: 'operational', message: 'No active incidents', incidents: [] }
+  // Keep only entries with real content (ignore generic "header" items)
+  let entries = structured.entries.filter(
+    (e) => e.title.length > 0 && (e.summary.length > 0 || e.link.length > 0),
+  )
+
+  // Optional scoping (window / keywords / exclude resolved) — turns a noisy
+  // incident feed (e.g. AWS all.rss) into a relevant signal.
+  const scoped = !!filter && (
+    !!filter.windowHours || (filter.keywords?.length ?? 0) > 0 || !!filter.excludeResolved
+  )
+  if (filter) {
+    const cutoff = filter.windowHours && filter.windowHours > 0
+      ? Date.now() - filter.windowHours * 3_600_000
+      : null
+    const keywords = (filter.keywords ?? []).map((k) => k.toLowerCase()).filter(Boolean)
+    entries = entries.filter((e) => {
+      const hay = `${e.title} ${e.summary}`.toLowerCase()
+      if (filter.excludeResolved && /\[resolved\]|resolved|operating normally/.test(hay)) return false
+      if (keywords.length && !keywords.some((k) => hay.includes(k))) return false
+      if (cutoff !== null) {
+        const t = Date.parse(e.updated)
+        if (!Number.isNaN(t) && t < cutoff) return false // too old (kept if date unparseable)
+      }
+      return true
+    })
   }
 
-  const incidents: Incident[] = structured.entries
-    // Filter out "header" items with no real content (e.g. generic ICE header)
-    .filter((entry) => entry.title.length > 0 && (entry.summary.length > 0 || entry.link.length > 0))
-    .map((entry, i) => ({
-      id: `rss-${i}`,
-      title: entry.title,
-      // Analyze the title AND summary together for better detection
-      level: guessLevel(entry.title + ' ' + entry.summary),
-      startedAt: entry.updated,
-      updatedAt: entry.updated,
-      message: entry.summary || undefined,
-      url: entry.link || undefined,
-    }))
+  if (entries.length === 0) {
+    return {
+      level: 'operational',
+      message: scoped
+        ? `No active incidents${filter?.windowHours ? ` (last ${filter.windowHours}h)` : ''}`
+        : 'No active incidents',
+      incidents: [],
+    }
+  }
 
-  // The global level is the worst level among all entries in the feed
+  const incidents: Incident[] = entries.map((entry, i) => ({
+    id: `rss-${i}`,
+    title: entry.title,
+    // Analyze the title AND summary together for better detection
+    level: guessLevel(entry.title + ' ' + entry.summary),
+    startedAt: entry.updated,
+    updatedAt: entry.updated,
+    message: entry.summary || undefined,
+    url: entry.link || undefined,
+  }))
+
+  // The global level is the worst level among the (filtered) entries
   const worstLevel = incidents.reduce<StatusLevel>((worst, inc) => {
     const order: StatusLevel[] = ['operational', 'maintenance', 'leger', 'mineur', 'majeur']
     return order.indexOf(inc.level) > order.indexOf(worst) ? inc.level : worst
@@ -223,7 +253,9 @@ export function parseRss(data: unknown): AdapterResult {
 
   return {
     level: worstLevel,
-    message: `${incidents.length} ${incidents.length > 1 ? 'entries' : 'entry'} in the feed`,
+    message: scoped
+      ? `${incidents.length} active incident${incidents.length > 1 ? 's' : ''}`
+      : `${incidents.length} ${incidents.length > 1 ? 'entries' : 'entry'} in the feed`,
     incidents,
   }
 }

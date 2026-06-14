@@ -69,7 +69,7 @@ async function serverFetch(url: string, method: string, headers: Record<string, 
 async function pollService(svc: ServiceConfig | SubServiceConfig) {
   try {
     const data = await serverFetch(svc.url, svc.method, svc.headers, svc.body, svc.adapter === 'ping')
-    const result = runAdapter(svc.adapter, data, svc.customMapping)
+    const result = runAdapter(svc.adapter, data, svc.customMapping, svc.rss)
 
     const snapshot: StatusSnapshot = {
       serviceId: svc.id,

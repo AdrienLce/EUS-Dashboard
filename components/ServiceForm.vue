@@ -55,6 +55,10 @@ const defaultForm = () => ({
   group: "",
   pollInterval: 300,
   enabled: true,
+  // RSS filter (rss adapter only) — 0/empty/false means no filtering
+  rssWindowHours: 0,
+  rssKeywords: "",
+  rssExcludeResolved: false,
 });
 
 const defaultAuth = () => ({
@@ -177,7 +181,11 @@ const parsedPreview = computed(() => {
       incidentTitlePath: mapping.incidentTitlePath || undefined,
       incidentLevelPath: mapping.incidentLevelPath || undefined,
       incidentMessagePath: mapping.incidentMessagePath || undefined,
-    });
+    }, form.adapter === "rss" ? {
+      windowHours: form.rssWindowHours || undefined,
+      keywords: form.rssKeywords.split(",").map((k) => k.trim()).filter(Boolean),
+      excludeResolved: form.rssExcludeResolved,
+    } : undefined);
   } catch {
     return null;
   }
@@ -237,6 +245,9 @@ function loadForm() {
     form.group = props.editing.group ?? "";
     form.pollInterval = props.editing.pollInterval;
     form.enabled = props.editing.enabled;
+    form.rssWindowHours = props.editing.rss?.windowHours ?? 0;
+    form.rssKeywords = (props.editing.rss?.keywords ?? []).join(", ");
+    form.rssExcludeResolved = props.editing.rss?.excludeResolved ?? false;
     const detectedKey = detectAuthFromHeaders(props.editing.headers);
     form.headers = Object.entries(props.editing.headers)
       .filter(([k]) => k !== detectedKey)
@@ -487,6 +498,18 @@ function buildPayload() {
           incidentMessagePath: mapping.incidentMessagePath || undefined,
         }
       : undefined;
+
+  const rssKeywords = form.rssKeywords.split(",").map((k) => k.trim()).filter(Boolean);
+  const rss =
+    form.adapter === "rss" &&
+    (form.rssWindowHours > 0 || rssKeywords.length > 0 || form.rssExcludeResolved)
+      ? {
+          windowHours: form.rssWindowHours > 0 ? form.rssWindowHours : undefined,
+          keywords: rssKeywords.length ? rssKeywords : undefined,
+          excludeResolved: form.rssExcludeResolved || undefined,
+        }
+      : undefined;
+
   return {
     name: form.name.trim(),
     url: form.url.trim(),
@@ -494,6 +517,7 @@ function buildPayload() {
     adapter: form.adapter,
     headers,
     customMapping,
+    rss,
     body: form.body || undefined,
     group: form.group || undefined,
     pollInterval: Math.min(Math.max(form.pollInterval, 60), 1200),
@@ -682,6 +706,47 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       {{ a.label }}
                     </option>
                   </select>
+                </div>
+
+                <!-- RSS filter (rss adapter only) -->
+                <div
+                  v-if="form.adapter === 'rss'"
+                  class="rounded-xl border border-amber-100 bg-amber-50/40 p-4 space-y-3"
+                >
+                  <p class="text-xs font-medium text-amber-700 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                    </svg>
+                    RSS filter — scope a noisy feed (optional)
+                  </p>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Window (hours, 0 = all)</label>
+                      <input
+                        v-model.number="form.rssWindowHours"
+                        type="number"
+                        min="0"
+                        placeholder="24"
+                        class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                      />
+                    </div>
+                    <label class="flex items-end gap-2 pb-2 cursor-pointer select-none">
+                      <input v-model="form.rssExcludeResolved" type="checkbox" class="w-4 h-4 accent-amber-600" />
+                      <span class="text-xs text-gray-600">Exclude resolved entries</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Keywords (comma-separated — match any)</label>
+                    <input
+                      v-model="form.rssKeywords"
+                      type="text"
+                      placeholder="eu-west-1, us-east-1, ap-southeast-1"
+                      class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    />
+                  </div>
+                  <p class="text-[11px] text-gray-400">
+                    Only entries within the window, matching a keyword, and not resolved count toward the status.
+                  </p>
                 </div>
 
                 <!-- Mapping info — known adapters (read-only) -->

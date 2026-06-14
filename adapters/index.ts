@@ -13,7 +13,7 @@
  * - `AdapterKey`       : union type of the valid adapter keys
  */
 
-import type { AdapterResult, CustomMapping } from "~/types";
+import type { AdapterResult, CustomMapping, RssFilter } from "~/types";
 import { parseGithub } from "./github";
 import { parseAtlassian } from "./atlassian";
 import { parseAws } from "./aws";
@@ -94,10 +94,16 @@ export function runAdapter(
   adapterKey: string,
   data: unknown,
   customMapping?: CustomMapping,
+  rssFilter?: RssFilter,
 ): AdapterResult {
   // Case 1: custom adapter with an explicit mapping
   if (adapterKey === "custom" && customMapping) {
     return parseCustom(data, customMapping);
+  }
+
+  // Case 1b: rss adapter — honours the optional window/keyword/resolved filter
+  if (adapterKey === "rss") {
+    return parseRss(data, rssFilter);
   }
 
   // Case 2: known static adapter
