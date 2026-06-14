@@ -18,7 +18,7 @@ onUnmounted(() => disconnect())
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50" style="background-color: var(--t-bg, #f3f4f6);">
+  <div class="app-shell">
     <NuxtPage />
     <ToastContainer />
   </div>
