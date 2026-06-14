@@ -308,6 +308,8 @@ function buildIncidentsFromPath(resolved: unknown, mapping: CustomMapping): Inci
       const level: StatusLevel = levelStr
         ? (matchLevelMap(levelStr, levelMap) ?? autoDetectLevel(levelStr))
         : (title ? autoDetectLevel(title) : 'inconnu')
+      // Skip operational items so a full component/datacenter list only yields real problems.
+      if (level === 'operational') return null
 
       // Message: explicit path (sub-paths supported), otherwise native fields
       const messageRaw = mapping.incidentMessagePath
@@ -381,8 +383,11 @@ function buildIncidents(
       const title = toDetectableString(titleRaw)
       if (!title) return null
 
-      // Level: first an exact match in levelMap, otherwise auto-detection
-      const level = levelMap[title] ?? autoDetectLevel(title)
+      // Level: match against levelMap (exact/contains/wildcard/regex), otherwise auto-detection
+      const level = matchLevelMap(title, levelMap) ?? autoDetectLevel(title)
+      // Skip operational items: a wildcard over components/datacenters should surface
+      // only the ones that are actually degraded, not "everything is fine" entries.
+      if (level === 'operational') return null
 
       // Message: the msgWc.field field if available, otherwise the native summary/description fields
       const messageRaw = msgWc
@@ -518,12 +523,18 @@ export function parseCustom(data: unknown, mapping: CustomMapping): AdapterResul
     level = worstLevel(incidents.map((inc) => inc.level))
   }
 
-  // Step 4: extract the message (messagePath takes priority, statusPath as a fallback)
+  // Step 4: extract the message (messagePath takes priority, statusPath as a fallback).
+  // When statusPath is a wildcard (array) and no messagePath is set, don't join the raw
+  // status values into an ugly message — fall through to the level-aware default below.
   const rawMessage = mapping.messagePath
     ? getValueAtPath(resolved, mapping.messagePath)
-    : rawStatus
+    : (Array.isArray(rawStatus) ? undefined : rawStatus)
   let message = resolveMessage(rawMessage)
-  if (!message) message = incidents.length ? `${incidents.length} incident(s)` : 'Unknown status'
+  if (!message) {
+    message = incidents.length
+      ? `${incidents.length} incident(s)`
+      : (level === 'operational' ? 'Operational' : 'Unknown status')
+  }
 
   // Step 6: build the entries according to the messagePath wildcard
   const entries = mapping.messagePath

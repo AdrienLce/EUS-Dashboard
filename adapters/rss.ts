@@ -162,6 +162,15 @@ export function rssToStructured(raw: string): RssStructured {
     link: extractAttr(entry, 'link', 'href') || extractTag(entry, 'link') || '',
   }))
 
+  // Sort newest-first by date so `entries.0` is always the current state, regardless
+  // of whether the source feed is published oldest-first or newest-first. Entries with
+  // an unparseable/empty date keep their relative order and sink to the bottom.
+  entries.sort((a, b) => {
+    const ta = Date.parse(a.updated)
+    const tb = Date.parse(b.updated)
+    return (Number.isNaN(tb) ? -Infinity : tb) - (Number.isNaN(ta) ? -Infinity : ta)
+  })
+
   return {
     feed_title: feedTitle,
     feed_updated: feedUpdated,
