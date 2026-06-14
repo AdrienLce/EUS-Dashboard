@@ -1,0 +1,142 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.4",
+  "fallbackText": "Sentinel — project update. The status dashboard is built and ready; the one blocker to going live is a hosting home (a corporate AWS account).",
+  "msteams": { "width": "Full" },
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "verticalContentAlignment": "Center",
+          "items": [
+            {
+              "type": "Image",
+              "url": "https://uvzfnheuaduyivtddfba.supabase.co/storage/v1/object/public/app-logo/logo-sentinel-dashboard.png",
+              "width": "64px",
+              "height": "64px",
+              "altText": "Sentinel logo"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "verticalContentAlignment": "Center",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "PROJECT UPDATE · END USER SERVICES EUROPE",
+              "size": "Small",
+              "weight": "Bolder",
+              "color": "Accent",
+              "spacing": "None",
+              "wrap": true
+            },
+            {
+              "type": "TextBlock",
+              "text": "Sentinel — where it stands",
+              "size": "ExtraLarge",
+              "weight": "Bolder",
+              "spacing": "None",
+              "wrap": true
+            },
+            {
+              "type": "TextBlock",
+              "text": "Service Status Dashboard · One real-time view of every service we depend on",
+              "isSubtle": true,
+              "spacing": "None",
+              "wrap": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "A quick update on the **Sentinel** project — it had been quiet for a couple of months, so here's where it stands. The short version: the build is essentially done. It pulls the operational health of every external service we depend on into a single, real-time view — so during an incident we can answer **\"is it them, or is it us?\"** at a glance.",
+      "wrap": true,
+      "spacing": "Medium"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Instead of opening a dozen vendor status pages by hand, the team now has one pane of glass over GitHub, AWS, Cloudflare, Microsoft 365, Salesforce, ICE, Snowflake, Datadog and more — alongside our own custom endpoints.",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "What's working today",
+      "weight": "Bolder",
+      "color": "Accent",
+      "size": "Small",
+      "spacing": "Medium",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "📊 **One pane of glass** — 26 status sources (80 monitored endpoints), grouped by area, with a colour-coded banner\n\n⚡ **Real-time over WebSocket** — the server polls and pushes changes; ten viewers = one call per source, not ten\n\n🔧 **Any source, mostly no code** — built-in adapters (Statuspage, AWS, Azure DevOps, RSS/Atom) plus a visual JSON mapping editor for any API\n\n🧪 **Signal, not noise** — composites roll up the 49 UK Salesforce instances and the 7 ICE feeds; noisy feeds like AWS are scoped to the regions and window we care about\n\n🔒 **Secure by design** — per-source tokens stay server-side, the proxy blocks internal targets (anti-SSRF), and management pages can sit behind a password or SSO",
+      "wrap": true
+    },
+    {
+      "type": "Container",
+      "style": "warning",
+      "spacing": "Medium",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "⚠️ HOSTING — THE ONE ASK",
+          "size": "Small",
+          "weight": "Bolder",
+          "spacing": "None",
+          "wrap": true
+        },
+        {
+          "type": "TextBlock",
+          "text": "This is also what has held the project up. Sentinel is a small **always-on server** (background polling + a live WebSocket), so it can't just be \"uploaded\" somewhere static — it needs somewhere to run. **Without a cloud account to host it — ideally a corporate AWS account — it can't move past a local prototype, which is exactly why it stalled.** A tiny footprint (one container behind a load balancer, fronted by CloudFront, ~$35–80/month) would make it firm-owned and IT-secured. Full architecture written up and available on request.",
+          "wrap": true,
+          "spacing": "Small"
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "spacing": "Medium",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "WHERE IT'LL LIVE",
+          "size": "Small",
+          "weight": "Bolder",
+          "isSubtle": true,
+          "spacing": "None",
+          "wrap": true
+        },
+        {
+          "type": "TextBlock",
+          "text": "[https://sentinel.eus.tpicap.com](https://sentinel.eus.tpicap.com) _(target address, once it has a hosting home)_",
+          "wrap": true,
+          "spacing": "Small"
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "_Next up: proactive Teams / email alerts (via Power Automate) the moment a source crosses a chosen severity — so we hear about an outage before a user does._",
+      "wrap": true,
+      "spacing": "Medium",
+      "isSubtle": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Developed by Adrien Luce · Paris IT · End User Services Europe",
+      "size": "Small",
+      "isSubtle": true,
+      "wrap": true,
+      "spacing": "Medium"
+    }
+  ]
+}
