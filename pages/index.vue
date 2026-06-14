@@ -550,6 +550,7 @@ function openHistory(service: ServiceConfig) {
       v-if="selectedService"
       :open="historyOpen"
       :service="selectedService"
+      :current="currentStatus[selectedService.id]"
       :snapshots="getHistory(selectedService.id)"
       @close="historyOpen = false"
     />

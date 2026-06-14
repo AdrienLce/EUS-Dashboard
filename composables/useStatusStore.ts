@@ -66,10 +66,28 @@ function saveHistory() {
 }
 
 /**
+ * Calcule une signature stable de l'ensemble des incidents d'un snapshot.
+ *
+ * On se base sur l'identifiant et le niveau de chaque incident (triés), et non
+ * sur leur contenu textuel : ainsi l'apparition, la disparition ou le changement
+ * de sévérité d'un incident produit une nouvelle entrée d'historique, mais les
+ * mises à jour de texte répétées (incident_updates) ne spamment pas l'historique.
+ *
+ * @param snapshot - Snapshot à signer
+ * @returns Signature des incidents (chaîne vide si aucun incident)
+ */
+function incidentSignature(snapshot: StatusSnapshot): string {
+  return (snapshot.incidents ?? [])
+    .map((i) => `${i.id}:${i.level}`)
+    .sort()
+    .join('|')
+}
+
+/**
  * Enregistre un nouveau snapshot dans le store.
  *
  * - Met toujours à jour `currentStatus[serviceId]` (statut en temps réel)
- * - N'ajoute à `history` QUE si le niveau ou le message a changé
+ * - N'ajoute à `history` QUE si le niveau, le message OU l'ensemble des incidents a changé
  * - Limite l'historique à MAX_HISTORY_PER_SERVICE entrées (les plus récentes)
  * - Persiste l'historique dans localStorage si un changement est enregistré
  *
@@ -85,9 +103,15 @@ function pushSnapshot(snapshot: StatusSnapshot) {
 
   const arr = history.value[snapshot.serviceId]
 
-  // N'ajouter à l'historique que si le niveau ou le message a réellement changé
+  // N'ajouter à l'historique que si le niveau, le message ou les incidents ont changé.
+  // La prise en compte des incidents est nécessaire car un incident peut apparaître
+  // (ex: Statuspage) sans modifier l'indicateur global ni la description.
   const last = arr[0]
-  const changed = !last || last.level !== snapshot.level || last.message !== snapshot.message
+  const changed =
+    !last ||
+    last.level !== snapshot.level ||
+    last.message !== snapshot.message ||
+    incidentSignature(last) !== incidentSignature(snapshot)
 
   if (changed) {
     // Insérer en tête (ordre antéchronologique)

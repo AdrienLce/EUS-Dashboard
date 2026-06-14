@@ -4,6 +4,8 @@ import { LEVEL_LABELS, LEVEL_COLORS } from '~/types'
 
 const props = defineProps<{
   service: ServiceConfig
+  /** Snapshot courant (temps réel) — affiché en « État actuel » au-dessus de l'historique */
+  current?: StatusSnapshot | null
   snapshots: StatusSnapshot[]
   open: boolean
 }>()
@@ -11,6 +13,24 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+/** Incidents en cours sur le snapshot courant */
+const currentIncidents = computed(() => props.current?.incidents ?? [])
+/** Entrées structurées (RSS/custom) sur le snapshot courant */
+const currentEntries = computed(() => props.current?.entries ?? [])
+/** Vrai si l'état courant comporte des incidents ou des entrées à mettre en avant */
+const hasCurrentDetail = computed(
+  () => currentIncidents.value.length > 0 || currentEntries.value.length > 0,
+)
+/**
+ * Historique à afficher dans la timeline.
+ * Quand l'état courant est mis en avant, on évite de ré-afficher le snapshot courant
+ * (même timestamp) une seconde fois juste en dessous.
+ */
+const historySnaps = computed(() => {
+  if (!props.current || !hasCurrentDetail.value) return props.snapshots
+  return props.snapshots.filter((s) => s.timestamp !== props.current!.timestamp)
+})
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString('fr-FR', {
@@ -92,15 +112,60 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
             <!-- Content -->
             <div class="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-              <div v-if="snapshots.length === 0" class="text-center py-12 text-gray-400">
+              <!-- ── État actuel : incidents / entrées en cours ───────────── -->
+              <section v-if="hasCurrentDetail" class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <StatusBadge :level="current!.level" />
+                  <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">État actuel</span>
+                  <span class="text-sm text-gray-400 ml-auto">{{ formatDate(current!.timestamp) }}</span>
+                </div>
+
+                <!-- Incidents → AVEC pill -->
+                <div v-if="currentIncidents.length" class="space-y-2">
+                  <div
+                    v-for="incident in currentIncidents"
+                    :key="incident.id"
+                    class="rounded-lg border bg-gray-50 p-2.5"
+                    :class="LEVEL_COLORS[incident.level].border"
+                  >
+                    <div class="flex items-start gap-2">
+                      <StatusBadge :level="incident.level" size="sm" class="mt-0.5 shrink-0" />
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800">{{ incident.title }}</p>
+                        <p v-if="incident.message" class="text-xs text-gray-500 mt-1">{{ incident.message }}</p>
+                        <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                          <span>{{ formatDate(incident.updatedAt) }}</span>
+                          <a v-if="incident.url" :href="incident.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline" @click.stop>Voir →</a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Entries → SANS pill -->
+                <div v-else-if="currentEntries.length" class="space-y-1.5">
+                  <div v-for="(entry, i) in currentEntries" :key="i" class="rounded-lg border border-gray-100 bg-gray-50 p-2.5 space-y-1">
+                    <p class="text-sm font-medium text-gray-800">{{ entry.title }}</p>
+                    <p v-if="entry.summary" class="text-xs text-gray-500 line-clamp-2">{{ entry.summary }}</p>
+                    <div class="flex gap-3 text-xs text-gray-400">
+                      <span v-if="entry.date">{{ formatDate(entry.date) }}</span>
+                      <a v-if="entry.url" :href="entry.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Voir →</a>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- ── Historique ───────────────────────────────────────────── -->
+              <div v-if="historySnaps.length === 0 && !hasCurrentDetail" class="text-center py-12 text-gray-400">
                 <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p>Aucun historique disponible</p>
               </div>
 
-              <template v-else>
-                <div v-for="snap in snapshots" :key="snap.timestamp" class="space-y-3">
+              <template v-else-if="historySnaps.length">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Historique</p>
+                <div v-for="snap in historySnaps" :key="snap.timestamp" class="space-y-3">
                   <!-- Snapshot header -->
                   <div class="flex items-center gap-3">
                     <StatusBadge :level="snap.level" />
