@@ -38,7 +38,7 @@ const LEVELS = Object.entries(LEVEL_LABELS).map(([value, label]) => ({
 }));
 
 const AUTH_TYPES = [
-  { value: "none", label: "Aucune" },
+  { value: "none", label: "None" },
   { value: "bearer", label: "Bearer Token" },
   { value: "basic", label: "Basic Auth" },
   { value: "apikey", label: "API Key (header)" },
@@ -551,7 +551,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0"
             >
               <h2 class="font-semibold text-gray-900 text-lg">
-                {{ editing ? "Modifier le service" : "Ajouter un service" }}
+                {{ editing ? "Edit service" : "Add a service" }}
               </h2>
               <button
                 class="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -595,7 +595,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   <p
                     class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2"
                   >
-                    Préconfigurations
+                    Presets
                   </p>
                   <div class="flex flex-wrap gap-2">
                     <button
@@ -612,12 +612,12 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <!-- Nom -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
-                    >Nom <span class="text-red-500">*</span></label
+                    >Name <span class="text-red-500">*</span></label
                   >
                   <input
                     v-model="form.name"
                     type="text"
-                    placeholder="ex: Mon API"
+                    placeholder="e.g. My API"
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
@@ -648,7 +648,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <div>
                   <div class="flex items-center justify-between mb-1">
                     <label class="block text-sm font-medium text-gray-700"
-                      >Adaptateur</label
+                      >Adapter</label
                     >
                     <span
                       v-if="isInheritingAdapter"
@@ -667,7 +667,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
                         />
                       </svg>
-                      Hérité du groupe ({{ props.inheritedAdapter }})
+                      Inherited from group ({{ props.inheritedAdapter }})
                     </span>
                   </div>
                   <select
@@ -705,7 +705,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Mapping de l'adaptateur
+                    Adapter mapping
                   </p>
                   <div
                     v-if="adapterInfo.note"
@@ -716,7 +716,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   <template v-else>
                     <div class="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span class="text-gray-500">Chemin statut :</span>
+                        <span class="text-gray-500">Status path:</span>
                         <code
                           class="ml-1 font-mono bg-blue-100 px-1 rounded text-blue-800"
                           >{{ adapterInfo.statusPath }}</code
@@ -728,7 +728,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         >
                       </div>
                       <div v-if="adapterInfo.messagePath">
-                        <span class="text-gray-500">Chemin message :</span>
+                        <span class="text-gray-500">Message path:</span>
                         <code
                           class="ml-1 font-mono bg-blue-100 px-1 rounded text-blue-800"
                           >{{ adapterInfo.messagePath }}</code
@@ -739,7 +739,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       v-if="!resolvedAdapterValues"
                       class="text-xs text-blue-400 italic"
                     >
-                      Lancez un test pour voir les valeurs résolues
+                      Run a test to see resolved values
                     </p>
                   </template>
                 </div>
@@ -766,7 +766,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
                         />
                       </svg>
-                      Mapping hérité du groupe
+                      Mapping inherited from group
                     </p>
                     <button
                       type="button"
@@ -789,18 +789,18 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         form.adapter = 'custom';
                       "
                     >
-                      Personnaliser
+                      Customize
                     </button>
                   </div>
                   <div
                     class="grid grid-cols-2 gap-2 text-xs font-mono text-emerald-800"
                   >
                     <div>
-                      <span class="text-emerald-500">statut :</span>
+                      <span class="text-emerald-500">status:</span>
                       {{ effectiveMapping?.statusPath }}
                     </div>
                     <div v-if="effectiveMapping?.messagePath">
-                      <span class="text-emerald-500">message :</span>
+                      <span class="text-emerald-500">message:</span>
                       {{ effectiveMapping?.messagePath }}
                     </div>
                   </div>
@@ -827,29 +827,29 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
-                    Mapping personnalisé — cliquez sur une clé dans la réponse →
+                    Custom mapping — click a key in the response →
                   </p>
 
                   <div class="grid grid-cols-2 gap-3">
                     <div>
                       <label class="block text-xs text-gray-500 mb-1"
-                        >Chemin statut</label
+                        >Status path</label
                       >
                       <input
                         v-model="mapping.statusPath"
                         type="text"
-                        placeholder="ex: status.indicator"
+                        placeholder="e.g. status.indicator"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       />
                     </div>
                     <div>
                       <label class="block text-xs text-gray-500 mb-1"
-                        >Chemin message</label
+                        >Message path</label
                       >
                       <input
                         v-model="mapping.messagePath"
                         type="text"
-                        placeholder="ex: status.description"
+                        placeholder="e.g. status.description"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       />
                     </div>
@@ -858,18 +858,18 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   <!-- Incidents mapping -->
                   <div class="pt-2 border-t border-blue-100 space-y-2">
                     <label class="block text-xs text-gray-500">
-                      Chemin incidents (liste)
-                      <span class="text-gray-400 font-normal normal-case">— optionnel</span>
+                      Incidents path (list)
+                      <span class="text-gray-400 font-normal normal-case">— optional</span>
                     </label>
                     <input
                       v-model="mapping.incidentsPath"
                       type="text"
-                      placeholder="ex: incidents · result.incidents"
+                      placeholder="e.g. incidents · result.incidents"
                       class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     />
                     <div v-if="mapping.incidentsPath" class="grid grid-cols-3 gap-2">
                       <div>
-                        <label class="block text-[11px] text-gray-400 mb-1">Champ titre</label>
+                        <label class="block text-[11px] text-gray-400 mb-1">Title field</label>
                         <input
                           v-model="mapping.incidentTitlePath"
                           type="text"
@@ -878,7 +878,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         />
                       </div>
                       <div>
-                        <label class="block text-[11px] text-gray-400 mb-1">Champ niveau</label>
+                        <label class="block text-[11px] text-gray-400 mb-1">Level field</label>
                         <input
                           v-model="mapping.incidentLevelPath"
                           type="text"
@@ -887,7 +887,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         />
                       </div>
                       <div>
-                        <label class="block text-[11px] text-gray-400 mb-1">Champ message</label>
+                        <label class="block text-[11px] text-gray-400 mb-1">Message field</label>
                         <input
                           v-model="mapping.incidentMessagePath"
                           type="text"
@@ -897,7 +897,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </div>
                     </div>
                     <p v-if="mapping.incidentsPath" class="text-[11px] text-gray-400">
-                      Le niveau utilise la table de correspondance ci-dessous. Champs vides = détection auto
+                      The level uses the mapping table below. Empty fields = auto-detect
                       (name/title · impact/status · body/description).
                     </p>
                   </div>
@@ -908,10 +908,10 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     class="space-y-1.5"
                   >
                     <label class="block text-xs text-gray-500"
-                      >Correspondances valeur → niveau
+                      >Value → level mapping
                       <span class="text-gray-400 font-normal normal-case"
                         >· exact, <code class="font-mono">*wildcard*</code>,
-                        <code class="font-mono">~contient</code>,
+                        <code class="font-mono">~contains</code>,
                         <code class="font-mono">/regex/i</code></span
                       ></label
                     >
@@ -923,7 +923,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       <input
                         :value="val"
                         type="text"
-                        placeholder="valeur API"
+                        placeholder="API value"
                         class="flex-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                         @change="
                           updateLevelKey(
@@ -974,7 +974,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     class="text-xs text-blue-600 hover:text-blue-700 font-medium"
                     @click="addLevelEntry"
                   >
-                    + Ajouter correspondance
+                    + Add mapping
                   </button>
                 </div>
 
@@ -1011,7 +1011,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
                     />
                   </svg>
-                  Définir comme mapping global du groupe
+                  Set as the group's default mapping
                 </button>
 
                 <!-- Auth -->
@@ -1033,7 +1033,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       />
                     </svg>
                     <label class="text-sm font-medium text-gray-700"
-                      >Authentification</label
+                      >Authentication</label
                     >
                   </div>
                   <select
@@ -1065,7 +1065,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         class="px-3 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-white text-xs"
                         @click="auth.showSecret = !auth.showSecret"
                       >
-                        {{ auth.showSecret ? "Cacher" : "Voir" }}
+                        {{ auth.showSecret ? "Hide" : "Show" }}
                       </button>
                     </div>
                   </div>
@@ -1073,7 +1073,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <div class="grid grid-cols-2 gap-2">
                       <div>
                         <label class="block text-xs text-gray-500 mb-1"
-                          >Utilisateur</label
+                          >Username</label
                         >
                         <input
                           v-model="auth.username"
@@ -1084,7 +1084,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       </div>
                       <div>
                         <label class="block text-xs text-gray-500 mb-1"
-                          >Mot de passe</label
+                          >Password</label
                         >
                         <div class="flex gap-1">
                           <input
@@ -1098,7 +1098,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                             class="px-2 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-white text-xs shrink-0"
                             @click="auth.showSecret = !auth.showSecret"
                           >
-                            {{ auth.showSecret ? "Cacher" : "Voir" }}
+                            {{ auth.showSecret ? "Hide" : "Show" }}
                           </button>
                         </div>
                       </div>
@@ -1107,7 +1107,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   <div v-if="auth.type === 'apikey'" class="space-y-2">
                     <div>
                       <label class="block text-xs text-gray-500 mb-1"
-                        >Nom du header</label
+                        >Header name</label
                       >
                       <input
                         v-model="auth.headerName"
@@ -1118,7 +1118,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                     <div>
                       <label class="block text-xs text-gray-500 mb-1"
-                        >Valeur</label
+                        >Value</label
                       >
                       <div class="flex gap-2">
                         <input
@@ -1132,7 +1132,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           class="px-3 rounded-lg border border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-white text-xs"
                           @click="auth.showSecret = !auth.showSecret"
                         >
-                          {{ auth.showSecret ? "Cacher" : "Voir" }}
+                          {{ auth.showSecret ? "Hide" : "Show" }}
                         </button>
                       </div>
                     </div>
@@ -1159,14 +1159,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         />
                       </svg>
                       <label class="text-sm font-medium text-gray-700"
-                        >En-têtes supplémentaires</label
+                        >Additional headers</label
                       >
                     </div>
                     <button
-                      class="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      class="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
                       @click="addHeader"
                     >
-                      + Ajouter
+                      + Add
                     </button>
                   </div>
                   <div v-if="form.headers.length > 0" class="space-y-2">
@@ -1178,13 +1178,13 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       <input
                         v-model="header.key"
                         type="text"
-                        placeholder="Clé"
+                        placeholder="Key"
                         class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       />
                       <input
                         v-model="header.value"
                         type="text"
-                        placeholder="Valeur"
+                        placeholder="Value"
                         class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       />
                       <button
@@ -1208,14 +1208,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                   </div>
                   <p v-else class="text-xs text-gray-400 italic">
-                    Aucun en-tête supplémentaire
+                    No additional headers
                   </p>
                 </div>
 
                 <!-- Body POST -->
                 <div v-if="form.method === 'POST'">
                   <label class="block text-sm font-medium text-gray-700 mb-1"
-                    >Corps (JSON)</label
+                    >Body (JSON)</label
                   >
                   <textarea
                     v-model="form.body"
@@ -1229,7 +1229,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1"
-                      >Intervalle</label
+                      >Interval</label
                     >
                     <select
                       v-model.number="form.pollInterval"
@@ -1247,7 +1247,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <input
                       v-model="form.group"
                       type="text"
-                      placeholder="ex: Infrastructure"
+                      placeholder="e.g. Infrastructure"
                       class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -1301,7 +1301,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Tester
+                    Test
                   </button>
 
                   <span
@@ -1318,7 +1318,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   <span
                     v-if="isRawXml"
                     class="text-xs px-2 py-1 rounded bg-orange-50 text-orange-700 font-medium"
-                    >RSS / Atom — parsé</span
+                    >RSS / Atom — parsed</span
                   >
 
                   <!-- Onglets Réponse / Aperçu -->
@@ -1335,7 +1335,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       "
                       @click="rightTab = 'response'"
                     >
-                      Réponse
+                      Response
                     </button>
                     <button
                       class="px-2.5 py-1 text-xs rounded-md transition-colors"
@@ -1346,7 +1346,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       "
                       @click="rightTab = 'preview'"
                     >
-                      Aperçu
+                      Preview
                     </button>
                   </div>
                 </div>
@@ -1366,15 +1366,15 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     >
                   </p>
                   <p class="text-xs text-blue-600 mb-2">
-                    Utiliser ce champ comme :
+                    Use this field as:
                   </p>
-                  <!-- Boutons clé unique -->
+                  <!-- Single key buttons -->
                   <div class="flex gap-2 mb-2">
                     <button
                       class="flex-1 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       @click="applyMapping('status')"
                     >
-                      Statut
+                      Status
                     </button>
                     <button
                       class="flex-1 px-3 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
@@ -1391,7 +1391,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <!-- Champ spécifique : entries.*.title -->
                     <div v-if="wildcardPath">
                       <p class="text-xs text-blue-500 mb-1.5">
-                        Tous les
+                        All
                         <code class="font-mono bg-blue-100 px-1 rounded">{{
                           wildcardPath
                         }}</code>
@@ -1402,30 +1402,30 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           class="flex-1 px-3 py-1.5 text-xs font-medium bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
                           @click="applyMapping('status', true)"
                         >
-                          Tous → Statut
+                          All → Status
                         </button>
                         <button
                           class="flex-1 px-3 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                           @click="applyMapping('message', true)"
                         >
-                          Tous → Message
+                          All → Message
                         </button>
                       </div>
                     </div>
                     <!-- Item complet : entries.* -->
                     <div v-if="wildcardItemPath">
                       <p class="text-xs text-blue-500 mb-1.5">
-                        Item complet
+                        Whole item
                         <code class="font-mono bg-blue-100 px-1 rounded">{{
                           wildcardItemPath
                         }}</code>
-                        (titre + description + date) :
+                        (title + description + date):
                       </p>
                       <button
                         class="w-full px-3 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                         @click="applyMappingItem('message')"
                       >
-                        Tous → Message (items complets)
+                        All → Message (whole items)
                       </button>
                     </div>
                   </div>
@@ -1435,7 +1435,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     class="space-y-2 pt-2 border-t border-blue-100"
                   >
                     <p class="text-xs text-blue-500 mb-1.5">
-                      Incidents — liste
+                      Incidents — list
                       <code class="font-mono bg-blue-100 px-1 rounded">{{ incidentArrayPath }}</code>
                       :
                     </p>
@@ -1443,20 +1443,20 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       class="w-full px-3 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                       @click="applyIncidentsList"
                     >
-                      Définir comme liste d'incidents
+                      Set as incident list
                     </button>
                     <div v-if="incidentFieldFromClick" class="grid grid-cols-3 gap-2">
                       <button
                         class="px-2 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                         @click="applyIncidentField('title')"
                       >
-                        → Titre
+                        → Title
                       </button>
                       <button
                         class="px-2 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
                         @click="applyIncidentField('level')"
                       >
-                        → Niveau
+                        → Level
                       </button>
                       <button
                         class="px-2 py-1.5 text-xs font-medium bg-white border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors"
@@ -1515,15 +1515,15 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         v-if="isRawXml"
                         class="mb-3 text-xs text-orange-600 bg-orange-50 border border-orange-100 rounded-lg px-3 py-2"
                       >
-                        Flux RSS/Atom converti en JSON navigable.<br />
-                        <strong>Statut</strong> :
-                        <code class="font-mono">entries.0.title</code> (item
-                        unique) ou
-                        <code class="font-mono">entries.*.title</code> (pire
-                        niveau de tous → génère des incidents)<br />
-                        <strong>Message</strong> :
-                        <code class="font-mono">entries.*.summary</code> (tous
-                        les textes affichés, sans créer d'incidents)
+                        RSS/Atom feed converted to navigable JSON.<br />
+                        <strong>Status</strong>:
+                        <code class="font-mono">entries.0.title</code> (single
+                        item) or
+                        <code class="font-mono">entries.*.title</code> (worst
+                        level of all → generates incidents)<br />
+                        <strong>Message</strong>:
+                        <code class="font-mono">entries.*.summary</code> (all
+                        texts shown, without creating incidents)
                       </div>
                       <JsonTree
                         :data="treeData"
@@ -1553,7 +1553,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         </svg>
                       </div>
                       <p class="text-sm text-gray-400">
-                        Configurez l'URL<br />et cliquez sur Tester
+                        Configure the URL<br />and click Test
                       </p>
                     </div>
                   </template>
@@ -1565,7 +1565,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       class="flex flex-col items-center justify-center h-full text-center py-12"
                     >
                       <p class="text-sm text-gray-400">
-                        Lancez un test pour voir l'aperçu
+                        Run a test to see the preview
                       </p>
                     </div>
                     <div v-else class="space-y-4">
@@ -1594,20 +1594,20 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         <p
                           class="font-medium text-gray-600 uppercase tracking-wider"
                         >
-                          Résultat parsé
+                          Parsed result
                         </p>
                         <div class="flex items-center gap-2">
-                          <span class="text-gray-500">Niveau :</span>
+                          <span class="text-gray-500">Level:</span>
                           <StatusBadge :level="parsedPreview.level" size="sm" />
                         </div>
                         <div>
-                          <span class="text-gray-500">Message :</span>
+                          <span class="text-gray-500">Message:</span>
                           <span class="ml-1 text-gray-700">{{
                             parsedPreview.message
                           }}</span>
                         </div>
                         <div v-if="parsedPreview.incidents.length">
-                          <span class="text-gray-500">Incidents :</span>
+                          <span class="text-gray-500">Incidents:</span>
                           <span class="ml-1 text-gray-700">{{
                             parsedPreview.incidents.length
                           }}</span>
@@ -1627,21 +1627,21 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                 @click="emit('close')"
               >
-                Annuler
+                Cancel
               </button>
               <button
-                class="px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                class="px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
                 :disabled="!form.name.trim() || !form.url.trim()"
                 @click="submit"
               >
-                {{ editing ? "Enregistrer" : "Ajouter" }}
+                {{ editing ? "Save" : "Add" }}
               </button>
               <button
-                class="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                class="px-4 py-2 text-sm font-medium bg-accent text-white rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                 :disabled="!form.name.trim() || !form.url.trim()"
                 @click="submitAndClose"
               >
-                {{ editing ? "Enregistrer et Fermer" : "Ajouter et Fermer" }}
+                {{ editing ? "Save & Close" : "Add & Close" }}
               </button>
             </div>
           </div>

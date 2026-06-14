@@ -23,13 +23,13 @@ const emit = defineEmits<{
 }>();
 
 const ADAPTERS = [
-  { value: "auto", label: "Auto-détection" },
+  { value: "auto", label: "Auto-detect" },
   { value: "rss", label: "RSS / Atom" },
   { value: "atlassian", label: "Atlassian / Statuspage" },
   { value: "github", label: "GitHub Status" },
   { value: "aws", label: "AWS Health" },
   { value: "azuredevops", label: "Azure DevOps" },
-  { value: "custom", label: "Personnalisé (mapping)" },
+  { value: "custom", label: "Custom (mapping)" },
 ];
 
 const defaultMappingInit = (): CustomMapping => ({
@@ -144,12 +144,12 @@ function applyChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
 
 function onChildSave(config: Omit<ServiceConfig, "id" | "createdAt">) {
   applyChildSave(config);
-  toast(`"${config.name}" enregistré`);
+  toast(`"${config.name}" saved`);
 }
 
 function onChildSaveAndClose(config: Omit<ServiceConfig, "id" | "createdAt">) {
   applyChildSave(config);
-  toast(`"${config.name}" enregistré`);
+  toast(`"${config.name}" saved`);
   childFormOpen.value = false;
   editingChildId.value = null;
 }
@@ -262,7 +262,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   />
                 </svg>
                 <h2 class="font-semibold text-gray-900 text-lg">
-                  {{ editing ? "Modifier" : "Nouveau" }} groupe de service
+                  {{ editing ? "Edit" : "New" }} service group
                 </h2>
               </div>
               <button
@@ -294,12 +294,12 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <!-- Nom -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1"
-                    >Nom <span class="text-red-500">*</span></label
+                    >Name <span class="text-red-500">*</span></label
                   >
                   <input
                     v-model="form.name"
                     type="text"
-                    placeholder="ex: ICE"
+                    placeholder="e.g. ICE"
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -313,13 +313,13 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <input
                       v-model="form.group"
                       type="text"
-                      placeholder="ex: Trading"
+                      placeholder="e.g. Trading"
                       class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1"
-                      >Intervalle</label
+                      >Interval</label
                     >
                     <select
                       v-model.number="form.pollInterval"
@@ -352,10 +352,10 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         />
                       </svg>
                       <span class="text-sm font-medium text-gray-700"
-                        >Mapping global</span
+                        >Default mapping</span
                       >
                       <span class="text-xs text-gray-400"
-                        >hérité par défaut</span
+                        >inherited by default</span
                       >
                     </div>
                     <div class="flex items-center gap-1">
@@ -387,7 +387,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   <template v-if="form.defaultMappingEnabled">
                     <div>
                       <label class="block text-xs text-gray-500 mb-1"
-                        >Adaptateur par défaut</label
+                        >Default adapter</label
                       >
                       <select
                         v-model="form.defaultAdapter"
@@ -405,23 +405,23 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block text-xs text-gray-500 mb-1"
-                          >Chemin statut</label
+                          >Status path</label
                         >
                         <input
                           v-model="form.defaultMapping.statusPath"
                           type="text"
-                          placeholder="ex: entries.0.title"
+                          placeholder="e.g. entries.0.title"
                           class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         />
                       </div>
                       <div>
                         <label class="block text-xs text-gray-500 mb-1"
-                          >Chemin message</label
+                          >Message path</label
                         >
                         <input
                           v-model="form.defaultMapping.messagePath"
                           type="text"
-                          placeholder="ex: entries.*.summary"
+                          placeholder="e.g. entries.*.summary"
                           class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         />
                       </div>
@@ -430,13 +430,13 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <!-- Incidents (optionnel) -->
                     <div class="space-y-2">
                       <label class="block text-xs text-gray-500"
-                        >Chemin incidents (liste)
-                        <span class="text-gray-400 font-normal">— optionnel</span></label
+                        >Incidents path (list)
+                        <span class="text-gray-400 font-normal">— optional</span></label
                       >
                       <input
                         v-model="form.defaultMapping.incidentsPath"
                         type="text"
-                        placeholder="ex: incidents · result.incidents"
+                        placeholder="e.g. incidents · result.incidents"
                         class="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       />
                       <div
@@ -446,13 +446,13 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         <input
                           v-model="form.defaultMapping.incidentTitlePath"
                           type="text"
-                          placeholder="titre (name)"
+                          placeholder="title (name)"
                           class="w-full rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                         />
                         <input
                           v-model="form.defaultMapping.incidentLevelPath"
                           type="text"
-                          placeholder="niveau (impact)"
+                          placeholder="level (impact)"
                           class="w-full rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                         />
                         <input
@@ -468,16 +468,16 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <div>
                       <div class="flex items-center justify-between mb-2">
                         <label class="text-xs text-gray-500"
-                          >Table de correspondance</label
+                          >Mapping table</label
                         >
                         <button
                           type="button"
-                          class="text-xs text-blue-500 hover:text-blue-700"
+                          class="text-xs text-indigo-500 hover:text-indigo-700"
                           @click="
                             form.defaultMapping.levelMap[''] = 'operational'
                           "
                         >
-                          + Ajouter
+                          + Add
                         </button>
                       </div>
                       <div class="space-y-1.5">
@@ -489,7 +489,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           <input
                             :value="key"
                             type="text"
-                            placeholder="valeur API"
+                            placeholder="API value"
                             class="flex-1 rounded border border-gray-200 px-2 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                             @change="
                               (e) => {
@@ -506,14 +506,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                             v-model="form.defaultMapping.levelMap[key]"
                             class="rounded border border-gray-200 px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                           >
-                            <option value="operational">Opérationnel</option>
+                            <option value="operational">Operational</option>
                             <option value="information">Information</option>
-                            <option value="leger">Légère</option>
-                            <option value="mineur">Mineur</option>
-                            <option value="majeur">Majeur</option>
-                            <option value="critique">Critique</option>
+                            <option value="leger">Light</option>
+                            <option value="mineur">Minor</option>
+                            <option value="majeur">Major</option>
+                            <option value="critique">Critical</option>
                             <option value="maintenance">Maintenance</option>
-                            <option value="inconnu">Inconnu</option>
+                            <option value="inconnu">Unknown</option>
                           </select>
                           <button
                             type="button"
@@ -537,8 +537,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         </div>
                       </div>
                       <p class="text-xs text-gray-400 mt-2">
-                        Les sous-services avec leur propre mapping l'utilisent
-                        en priorité.
+                        Sub-services with their own mapping take priority.
                       </p>
                     </div>
                   </template>
@@ -549,7 +548,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               <div class="w-1/2 overflow-y-auto px-6 py-5 flex flex-col gap-4">
                 <div class="flex items-center justify-between">
                   <h3 class="text-sm font-medium text-gray-700">
-                    Sous-services
+                    Sub-services
                     <span class="text-gray-400 font-normal"
                       >({{ form.children.length }})</span
                     >
@@ -571,7 +570,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                         d="M12 4v16m8-8H4"
                       />
                     </svg>
-                    Ajouter
+                    Add
                   </button>
                 </div>
 
@@ -579,7 +578,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                   v-if="form.children.length === 0"
                   class="flex-1 flex items-center justify-center rounded-xl border border-dashed border-gray-200 text-gray-400 text-sm py-12"
                 >
-                  Aucun sous-service
+                  No sub-services
                 </div>
 
                 <div v-else class="space-y-2">
@@ -638,7 +637,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                     <span
                       class="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-600 shrink-0"
-                      >{{ child.adapter || "hérité" }}</span
+                      >{{ child.adapter || "inherited" }}</span
                     >
                     <div class="flex gap-1 shrink-0">
                       <button
@@ -691,14 +690,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                 @click="emit('close')"
               >
-                Annuler
+                Cancel
               </button>
               <button
-                class="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                class="px-4 py-2 text-sm font-medium bg-accent text-white rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                 :disabled="!form.name.trim()"
                 @click="submit"
               >
-                {{ editing ? "Enregistrer" : "Créer" }}
+                {{ editing ? "Save" : "Create" }}
               </button>
             </div>
           </div>

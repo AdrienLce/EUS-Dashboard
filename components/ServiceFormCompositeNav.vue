@@ -18,7 +18,7 @@ const emit = defineEmits<{
 
 <template>
   <div class="lg:w-44 shrink-0 border-b lg:border-b-0 lg:border-r border-gray-100 overflow-y-auto py-2">
-    <p class="px-4 pb-2 text-xs font-medium text-gray-400 uppercase tracking-wider">Sous-services</p>
+    <p class="px-4 pb-2 text-xs font-medium text-gray-400 uppercase tracking-wider">Sub-services</p>
     <button
       v-for="sib in siblings"
       :key="sib.id"

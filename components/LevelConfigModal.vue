@@ -59,11 +59,11 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
           >
             <div>
               <h2 class="font-semibold text-gray-900">
-                Personnaliser les niveaux
+                Customize levels
               </h2>
               <p class="text-xs text-gray-400 mt-0.5">
-                La référence est fixe (signification du niveau). Le libellé est
-                ce qui s'affiche.
+                The reference is fixed (the level's meaning). The label is what is
+                displayed.
               </p>
             </div>
             <button
@@ -92,9 +92,9 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
             style="grid-template-columns: 40px 1fr 1fr 1fr"
           >
             <span></span>
-            <span>Aperçu</span>
-            <span>Référence</span>
-            <span>Libellé affiché</span>
+            <span>Preview</span>
+            <span>Reference</span>
+            <span>Displayed label</span>
           </div>
 
           <!-- Rows -->
@@ -148,20 +148,20 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
               class="text-sm text-gray-400 hover:text-gray-600 transition-colors"
               @click="doReset"
             >
-              Réinitialiser
+              Reset
             </button>
             <div class="flex gap-3">
               <button
                 class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                 @click="emit('close')"
               >
-                Annuler
+                Cancel
               </button>
               <button
-                class="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                class="px-4 py-2 text-sm font-medium bg-accent text-white rounded-xl hover:opacity-90 transition-opacity"
                 @click="apply"
               >
-                Enregistrer
+                Save
               </button>
             </div>
           </div>

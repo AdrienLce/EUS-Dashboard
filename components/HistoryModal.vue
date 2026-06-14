@@ -98,7 +98,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div>
                 <h2 class="font-semibold text-gray-900 text-lg">{{ service.name }}</h2>
-                <p class="text-sm text-gray-500">Historique des statuts</p>
+                <p class="text-sm text-gray-500">Status history</p>
               </div>
               <button
                 class="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -116,7 +116,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
               <section v-if="hasCurrentDetail" class="space-y-3">
                 <div class="flex items-center gap-3">
                   <StatusBadge :level="current!.level" />
-                  <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">État actuel</span>
+                  <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Current state</span>
                   <span class="text-sm text-gray-400 ml-auto">{{ formatDate(current!.timestamp) }}</span>
                 </div>
 
@@ -135,7 +135,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                         <p v-if="incident.message" class="text-xs text-gray-500 mt-1">{{ incident.message }}</p>
                         <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
                           <span>{{ formatDate(incident.updatedAt) }}</span>
-                          <a v-if="incident.url" :href="incident.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline" @click.stop>Voir →</a>
+                          <a v-if="incident.url" :href="incident.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline" @click.stop>View →</a>
                         </div>
                       </div>
                     </div>
@@ -149,7 +149,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     <p v-if="entry.summary" class="text-xs text-gray-500 line-clamp-2">{{ entry.summary }}</p>
                     <div class="flex gap-3 text-xs text-gray-400">
                       <span v-if="entry.date">{{ formatDate(entry.date) }}</span>
-                      <a v-if="entry.url" :href="entry.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Voir →</a>
+                      <a v-if="entry.url" :href="entry.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">View →</a>
                     </div>
                   </div>
                 </div>
@@ -160,11 +160,11 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p>Aucun historique disponible</p>
+                <p>No history available</p>
               </div>
 
               <template v-else-if="historySnaps.length">
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Historique</p>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">History</p>
                 <div v-for="snap in historySnaps" :key="snap.timestamp" class="space-y-3">
                   <!-- Snapshot header -->
                   <div class="flex items-center gap-3">
@@ -187,13 +187,13 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                           <p v-if="incident.message" class="text-xs text-gray-500 mt-1 line-clamp-3">{{ incident.message }}</p>
                           <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
                             <span>{{ formatDate(incident.updatedAt) }}</span>
-                            <a v-if="incident.url" :href="incident.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline" @click.stop>Voir →</a>
+                            <a v-if="incident.url" :href="incident.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline" @click.stop>View →</a>
                           </div>
                         </div>
                       </div>
                     </div>
                     <button v-if="snap.incidents.length > 3" class="text-xs text-blue-500 hover:text-blue-600 w-full text-center py-1" @click="toggleSnap(snap.timestamp)">
-                      {{ expandedSnaps.has(snap.timestamp) ? 'Voir moins' : `+${snap.incidents.length - 3} autres` }}
+                      {{ expandedSnaps.has(snap.timestamp) ? 'Show less' : `+${snap.incidents.length - 3} more` }}
                     </button>
                   </div>
 
@@ -205,11 +205,11 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                         <p v-if="entry.summary" class="text-xs text-gray-500 line-clamp-2">{{ entry.summary }}</p>
                         <div class="flex gap-3 text-xs text-gray-400">
                           <span v-if="entry.date">{{ formatDate(entry.date) }}</span>
-                          <a v-if="entry.url" :href="entry.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Voir →</a>
+                          <a v-if="entry.url" :href="entry.url" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">View →</a>
                         </div>
                       </div>
                       <button v-if="snap.entries.length > 3" class="text-xs text-blue-500 hover:text-blue-600 w-full text-center py-1" @click="toggleSnap(snap.timestamp)">
-                        {{ expandedSnaps.has(snap.timestamp) ? 'Voir moins' : `+${snap.entries.length - 3} autres` }}
+                        {{ expandedSnaps.has(snap.timestamp) ? 'Show less' : `+${snap.entries.length - 3} more` }}
                       </button>
                     </template>
                     <template v-else>
@@ -217,7 +217,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                         <p class="text-xs text-gray-700 line-clamp-2">{{ line }}</p>
                       </div>
                       <button v-if="snap.message.split('\n').filter(l => l.trim()).length > 3" class="text-xs text-blue-500 hover:text-blue-600 w-full text-center py-1" @click="toggleSnap(snap.timestamp)">
-                        {{ expandedSnaps.has(snap.timestamp) ? 'Voir moins' : `+${snap.message.split('\n').filter(l => l.trim()).length - 3} autres` }}
+                        {{ expandedSnaps.has(snap.timestamp) ? 'Show less' : `+${snap.message.split('\n').filter(l => l.trim()).length - 3} more` }}
                       </button>
                     </template>
                   </div>

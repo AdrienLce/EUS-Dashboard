@@ -105,7 +105,7 @@ watch(
 
 const isGlobal = computed(() => selectedId.value === GLOBAL_ID)
 
-// Résumé global — tous les incidents/entries de tous les enfants
+// Summary global — tous les incidents/entries de tous les enfants
 const globalLevel = computed(() => {
   const levels = sortedChildren.value
     .map(ch => currentStatus.value[ch.id]?.level)
@@ -269,16 +269,16 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                 <template v-if="isGlobal">
                   <div class="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
                     <StatusBadge :level="globalLevel" />
-                    <span class="text-sm text-gray-500">{{ composite.children.filter(c => c.enabled).length }} services surveillés</span>
+                    <span class="text-sm text-gray-500">{{ composite.children.filter(c => c.enabled).length }} services monitored</span>
                   </div>
 
-                  <!-- Résumé rule-based -->
+                  <!-- Summary rule-based -->
                   <div v-if="globalSummary" class="mx-6 mt-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex items-start gap-3">
                     <svg class="w-4 h-4 text-gray-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     <div>
-                      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5">Résumé · {{ globalSummary.total }} entrée{{ globalSummary.total > 1 ? 's' : '' }}</p>
+                      <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5">Summary · {{ globalSummary.total }} {{ globalSummary.total > 1 ? 'entries' : 'entry' }}</p>
                       <p class="text-sm text-gray-700">{{ globalSummary.text }}</p>
                       <p v-if="globalSummary.dateRange" class="text-xs text-gray-400 mt-0.5">{{ globalSummary.dateRange }}</p>
                     </div>
@@ -319,7 +319,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </div>
                     <button
                       class="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
-                      title="Rafraîchir"
+                      title="Refresh"
                       @click="refreshChild(selectedChild)"
                     >
                       <svg
@@ -338,7 +338,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     </button>
                   </div>
 
-                  <!-- Résumé rule-based -->
+                  <!-- Summary rule-based -->
                   <div
                     v-if="summary && summary.total > 1"
                     class="mx-6 mt-4 rounded-xl border border-mauve-300 bg-mauve-100 px-4 py-3 flex items-start gap-3"
@@ -360,8 +360,8 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       <p
                         class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-0.5"
                       >
-                        Résumé · {{ summary.total }} entrée{{
-                          summary.total > 1 ? "s" : ""
+                        Summary · {{ summary.total }} {{
+                          summary.total > 1 ? "entries" : "entry"
                         }}
                       </p>
                       <p class="text-sm text-gray-700">{{ summary.text }}</p>
@@ -420,8 +420,8 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                               >
                                 {{
                                   isBlockExpanded(inc.id)
-                                    ? "Voir moins"
-                                    : "Voir plus"
+                                    ? "Show less"
+                                    : "Show more"
                                 }}
                               </button>
                             </template>
@@ -436,7 +436,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                                 rel="noopener noreferrer"
                                 class="text-blue-500 hover:underline"
                                 @click.stop
-                                >Voir →</a
+                                >View →</a
                               >
                             </div>
                           </div>
@@ -449,8 +449,8 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       >
                         {{
                           detailExpanded
-                            ? "Voir moins"
-                            : `Voir les ${selectedSnapshot.incidents.length - DETAIL_LIMIT} autres`
+                            ? "Show less"
+                            : `Show ${selectedSnapshot.incidents.length - DETAIL_LIMIT} more`
                         }}
                       </button>
                     </template>
@@ -483,8 +483,8 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                           >
                             {{
                               isBlockExpanded(`e${i}`)
-                                ? "Voir moins"
-                                : "Voir plus"
+                                ? "Show less"
+                                : "Show more"
                             }}
                           </button>
                         </template>
@@ -501,7 +501,7 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                             rel="noopener noreferrer"
                             class="text-blue-500 hover:underline"
                             @click.stop
-                            >Voir →</a
+                            >View →</a
                           >
                         </div>
                       </div>
@@ -512,8 +512,8 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       >
                         {{
                           detailExpanded
-                            ? "Voir moins"
-                            : `Voir les ${selectedSnapshot.entries.length - DETAIL_LIMIT} autres`
+                            ? "Show less"
+                            : `Show ${selectedSnapshot.entries.length - DETAIL_LIMIT} more`
                         }}
                       </button>
                     </template>
@@ -545,8 +545,8 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                       >
                         {{
                           detailExpanded
-                            ? "Voir moins"
-                            : `Voir les ${selectedSnapshot.message.split("\n").filter((l) => l.trim()).length - DETAIL_LIMIT} autres`
+                            ? "Show less"
+                            : `Show ${selectedSnapshot.message.split("\n").filter((l) => l.trim()).length - DETAIL_LIMIT} more`
                         }}
                       </button>
                     </template>
@@ -557,14 +557,14 @@ onUnmounted(() => document.removeEventListener("keydown", onKeydown));
                     <p
                       class="text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Historique
+                      History
                     </p>
 
                     <div
                       v-if="selectedHistory.length === 0"
                       class="text-center py-8 text-gray-400 text-sm"
                     >
-                      Aucun historique disponible
+                      No history available
                     </div>
 
                     <div v-else class="space-y-4">

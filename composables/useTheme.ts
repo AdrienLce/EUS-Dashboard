@@ -3,8 +3,8 @@ import { useServerConfig } from './useServerConfig'
 export type Theme = 'light' | 'dark'
 
 const THEMES: { value: Theme; label: string; description: string }[] = [
-  { value: 'light', label: 'Clair',  description: 'Fond blanc, texte sombre' },
-  { value: 'dark',  label: 'Sombre', description: 'Fond anthracite, texte clair' },
+  { value: 'light', label: 'Light', description: 'White background, dark text' },
+  { value: 'dark',  label: 'Dark',  description: 'Charcoal background, light text' },
 ]
 
 function applyTheme(t: string) {
