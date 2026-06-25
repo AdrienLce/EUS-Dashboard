@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:status.data.nasdaq.com)",
+      "WebFetch(domain:status.cloud.google.com)",
+      "WebFetch(domain:www.cloudflarestatus.com)",
+      "WebFetch(domain:status.snowflake.com)",
+      "WebFetch(domain:status.databricks.com)",
+      "WebFetch(domain:status.zoom.us)",
+      "WebFetch(domain:status.slack.com)",
+      "WebFetch(domain:azure.status.microsoft)",
+      "WebFetch(domain:api-status.service-now.com)",
+      "Bash(curl -s -o /tmp/sn.json -w 'HTTP %{http_code}  %{size_download} bytes\\\\n' --max-time 25 -H 'Accept: application/json' -H 'User-Agent: StatusDashboard-Server/1.0' https://api-status.service-now.com/api/datacenters)",
+      "Bash(curl -s -o /tmp/sn.json -w 'HTTP %{http_code}  %{size_download} bytes\\\\n' --max-time 25 -H 'Accept: application/json' -H 'User-Agent: Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/124 Safari/537.36' -H 'Origin: https://status.service-now.com' -H 'Referer: https://status.service-now.com/' https://api-status.service-now.com/api/datacenters)",
+      "Read(//tmp/**)",
+      "Bash(rm -f /tmp/sn.json)"
+    ]
+  }
+}
