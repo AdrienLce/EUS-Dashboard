@@ -53,8 +53,13 @@ async function hashPassword(password: string): Promise<string> {
 
 async function checkPassword(input: string): Promise<boolean> {
   if (!accessConfig.value.passwordHash) return true
-  const ok = await hashPassword(input) === accessConfig.value.passwordHash
-  if (ok) { sessionStorage.setItem(SESSION_KEY, '1'); granted.value = true }
+  const hash = await hashPassword(input)
+  const ok = hash === accessConfig.value.passwordHash
+  if (ok) {
+    sessionStorage.setItem(SESSION_KEY, '1'); granted.value = true
+    // Establish a server-side session cookie so protected API routes accept this client
+    await $fetch('/api/auth/password', { method: 'POST', body: { hash } }).catch(() => {})
+  }
   return ok
 }
 

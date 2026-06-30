@@ -6,11 +6,13 @@
 
 import { useStatusStore } from './useStatusStore'
 import { useServerConfig } from './useServerConfig'
-import type { StatusSnapshot, ServiceConfig, CompositeServiceConfig } from '~/types'
+import type { StatusSnapshot, ServiceConfig, SubServiceConfig, CompositeServiceConfig } from '~/types'
 
 let ws: WebSocket | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 const connected = ref(false)
+// Per-service in-flight refresh spinner state (keyed by serviceId / child id)
+const loading = ref<Record<string, boolean>>({})
 
 function connect() {
   if (!import.meta.client) return
@@ -30,7 +32,10 @@ function connect() {
 
       if (msg.type === 'snapshot') {
         const { pushSnapshot } = useStatusStore()
-        pushSnapshot(msg.data as StatusSnapshot)
+        const snap = msg.data as StatusSnapshot
+        pushSnapshot(snap)
+        // A fresh snapshot clears any pending refresh spinner for that service
+        if (loading.value[snap.serviceId]) loading.value[snap.serviceId] = false
       }
 
       // Real-time config update: service added/removed/disabled
@@ -63,6 +68,19 @@ function connect() {
 function requestRefresh(serviceId: string) {
   if (ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: 'refresh', serviceId }))
+    loading.value[serviceId] = true
+  }
+}
+
+/** Refresh a single composite child (used by CompositeDetailModal) */
+function refreshChild(child: SubServiceConfig) {
+  requestRefresh(child.id)
+}
+
+/** Refresh every enabled child of a composite */
+function refreshComposite(composite: CompositeServiceConfig) {
+  for (const child of composite.children) {
+    if (child.enabled) requestRefresh(child.id)
   }
 }
 
@@ -73,5 +91,5 @@ function disconnect() {
 }
 
 export function useRealtimeStatus() {
-  return { connect, disconnect, requestRefresh, connected }
+  return { connect, disconnect, requestRefresh, refreshChild, refreshComposite, loading, connected }
 }

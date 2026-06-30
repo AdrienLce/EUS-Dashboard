@@ -7,7 +7,7 @@ import type {
 } from "~/types";
 import { LEVEL_COLORS, LEVEL_LABELS, worstLevel } from "~/types";
 import { useStatusStore } from "~/composables/useStatusStore";
-import { usePolling } from "~/composables/usePolling";
+import { useRealtimeStatus } from "~/composables/useRealtimeStatus";
 import { buildSummary } from "~/utils/summarize";
 
 const props = defineProps<{
@@ -20,7 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const { currentStatus, getHistory } = useStatusStore();
-const { loading, refreshChild } = usePolling();
+const { loading, refreshChild } = useRealtimeStatus();
 
 const LEVEL_ORDER = [
   "majeur",

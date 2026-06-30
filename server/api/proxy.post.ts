@@ -17,6 +17,7 @@
 
 import { defineEventHandler, readBody, createError } from 'h3'
 import { fetch as httpFetch, type RequestInit as HttpRequestInit } from 'undici'
+import { isBlockedHost } from '../lib/ssrf'
 
 interface ProxyRequest {
   url: string
@@ -51,18 +52,16 @@ export default defineEventHandler(async (event) => {
 
   if (!req?.url) throw createError({ statusCode: 400, message: 'Missing URL' })
 
-  // SSRF validation
+  // SSRF validation (shared guard — covers loopback, RFC1918, link-local incl. cloud metadata)
+  let parsed: URL
   try {
-    const url = new URL(req.url)
-    const h = url.hostname
-    if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0'
-      || h.startsWith('192.168.') || h.startsWith('10.')) {
-      throw createError({ statusCode: 403, message: 'Private network access forbidden' })
-    }
+    parsed = new URL(req.url)
   }
-  catch (e: unknown) {
-    if ((e as { statusCode?: number }).statusCode) throw e
+  catch {
     throw createError({ statusCode: 400, message: 'URL invalide' })
+  }
+  if (isBlockedHost(parsed.hostname)) {
+    throw createError({ statusCode: 403, message: 'Private network access forbidden' })
   }
 
   const isGet = (req.method ?? 'GET') === 'GET'

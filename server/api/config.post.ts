@@ -34,7 +34,6 @@
  */
 
 import { defineEventHandler, readBody } from 'h3'
-import { poller } from '../lib/pollerState'
 
 interface ConfigBody {
   services?: unknown[]
@@ -58,10 +57,6 @@ export default defineEventHandler(async (event) => {
   if (body.theme !== undefined)         await storage.setItem('theme',         body.theme)
   if (body.pageStyle !== undefined)     await storage.setItem('pageStyle',     body.pageStyle)
   if (body.accessControl !== undefined) await storage.setItem('accessControl', body.accessControl)
-
-  if (body.services !== undefined || body.composites !== undefined) {
-    await poller.reload()
-  }
 
   // Broadcast the updated config to all WS clients
   // and reload the scheduler immediately if services/composites change

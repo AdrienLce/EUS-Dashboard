@@ -31,7 +31,12 @@ export default defineNitroPlugin(() => {
     process.env.HTTPS_PROXY || process.env.https_proxy ||
     process.env.HTTP_PROXY || process.env.http_proxy
   const caFile = process.env.STATUS_CA_FILE
-  const insecure = ['1', 'true', 'yes', 'on'].includes((process.env.STATUS_INSECURE_TLS || '').toLowerCase())
+  const insecureRequested = ['1', 'true', 'yes', 'on'].includes((process.env.STATUS_INSECURE_TLS || '').toLowerCase())
+  // Hard refuse to disable TLS verification in production, regardless of the env flag.
+  const insecure = insecureRequested && process.env.NODE_ENV !== 'production'
+  if (insecureRequested && !insecure) {
+    console.warn('[outbound] STATUS_INSECURE_TLS is set but IGNORED in production — certificate verification stays ON.')
+  }
 
   const connect: { rejectUnauthorized?: boolean; ca?: string[] } = {}
   if (caFile) {

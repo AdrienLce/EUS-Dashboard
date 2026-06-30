@@ -11,6 +11,7 @@
 import { fetch as httpFetch, type RequestInit as HttpRequestInit } from 'undici'
 import { runAdapter } from '../../adapters/index'
 import { broadcast } from '../routes/_ws'
+import { assertPublicUrl } from '../lib/ssrf'
 import type { ServiceConfig, SubServiceConfig, CompositeServiceConfig, StatusSnapshot } from '../../types/index'
 
 // Map of active timers: serviceId → NodeJS.Timeout
@@ -30,6 +31,10 @@ export function triggerRefresh(serviceId: string) {
 
 /** Direct fetch from the server (not via the internal HTTP proxy) */
 async function serverFetch(url: string, method: string, headers: Record<string, string>, body?: string, isPing = false): Promise<unknown> {
+  // SSRF guard: configs are user-supplied, so the live polling path must block
+  // private/loopback/link-local targets (incl. cloud metadata) like /api/proxy does.
+  assertPublicUrl(url)
+
   const options: HttpRequestInit = {
     method,
     headers: {
@@ -138,13 +143,21 @@ function scheduleService(svc: ServiceConfig | SubServiceConfig, intervalMs: numb
   refreshCallbacks.set(id, () => pollService(svc))
 }
 
+/** Maps a timer key to the id used for snapshots / refresh callbacks.
+ *  Composite children use the timer key `${compositeId}::${childId}` but are
+ *  snapshotted and refreshed under the bare `childId` (what the client sends). */
+function refreshKeyFor(timerKey: string): string {
+  const sep = timerKey.indexOf('::')
+  return sep === -1 ? timerKey : timerKey.slice(sep + 2)
+}
+
 /** Stops all timers of a composite */
 function clearComposite(compositeId: string) {
   for (const [key] of timers) {
     if (key.startsWith(`${compositeId}::`)) {
       clearInterval(timers.get(key)!)
       timers.delete(key)
-      refreshCallbacks.delete(key)
+      refreshCallbacks.delete(refreshKeyFor(key))
     }
   }
 }
@@ -183,11 +196,13 @@ async function reloadSchedulers() {
       const effectiveChild = { ...child, adapter: effectiveAdapter, customMapping: effectiveMapping }
 
       if (!timers.has(key)) {
-        // Composite key for grouping
+        // Timer keyed by `${composite.id}::${child.id}` for grouping, but the
+        // refresh callback is keyed by the bare child.id — that's the serviceId
+        // the snapshot carries and the WS client sends in {type:'refresh'}.
         const timer = setInterval(() => pollService(effectiveChild), ms)
         pollService(effectiveChild)
         timers.set(key, timer)
-        refreshCallbacks.set(key, () => pollService(effectiveChild))
+        refreshCallbacks.set(child.id, () => pollService(effectiveChild))
       }
     }
   }
@@ -197,7 +212,7 @@ async function reloadSchedulers() {
     if (!activeIds.has(key)) {
       clearInterval(timers.get(key)!)
       timers.delete(key)
-      refreshCallbacks.delete(key)
+      refreshCallbacks.delete(refreshKeyFor(key))
     }
   }
 }
